@@ -12,19 +12,19 @@ static void check_code(leitz_reply_kind k,uint8_t b,const char *expect,int ambig
 }
 int main(void) {
   leitz_reply x;
-  check_code(LEITZ_REPLY_STATUS_LEGACY,0x03,"READY_LEGACY",0);
-  check_code(LEITZ_REPLY_STATUS_LEGACY,0x20,"MEDIA_EMPTY_LEGACY",0);
-  check_code(LEITZ_REPLY_STATUS_LEGACY,0x30,"PAPER_JAM_LEGACY",0);
-  check_code(LEITZ_REPLY_STATUS_LEGACY,0x40,"GENERAL_ERROR_LEGACY",0);
-  check_code(LEITZ_REPLY_STATUS_LEGACY,0x00,"UNKNOWN_LEGACY",0);
-  check_code(LEITZ_REPLY_STATUS_V3,0x03,"READY_V3_UNVERIFIED",0);
-  check_code(LEITZ_REPLY_STATUS_V3,0x04,"DOOR_OPEN_V3_UNVERIFIED",0);
-  check_code(LEITZ_REPLY_STATUS_V3,0xc0,"FAULT_OR_BUSY_V3_AMBIGUOUS",1);
-  check_code(LEITZ_REPLY_STATUS_V3,0xa0,"FAULT_OR_BUSY_V3_AMBIGUOUS",1);
-  check_code(LEITZ_REPLY_STATUS_V3,0x90,"FAULT_OR_BUSY_V3_AMBIGUOUS",1);
-  check_code(LEITZ_REPLY_STATUS_V3,0x88,"FAULT_OR_BUSY_V3_AMBIGUOUS",1);
-  check_code(LEITZ_REPLY_STATUS_V3,0x00,"BUSY_V3_UNVERIFIED",0);
-  check_code(LEITZ_REPLY_STATUS_V3,0xff,"UNKNOWN_V3",0);
+  check_code(LEITZ_REPLY_STATUS_LEGACY,0x03,"READY",0);
+  check_code(LEITZ_REPLY_STATUS_LEGACY,0x20,"MEDIA_EMPTY",0);
+  check_code(LEITZ_REPLY_STATUS_LEGACY,0x30,"PAPER_JAM",0);
+  check_code(LEITZ_REPLY_STATUS_LEGACY,0x40,"GENERAL_ERROR",0);
+  check_code(LEITZ_REPLY_STATUS_LEGACY,0x00,"UNKNOWN",0);
+  check_code(LEITZ_REPLY_STATUS_V3,0x03,"READY",0);
+  check_code(LEITZ_REPLY_STATUS_V3,0x04,"DOOR_OPEN",0);
+  check_code(LEITZ_REPLY_STATUS_V3,0xc0,"FAULT_OR_BUSY",1);
+  check_code(LEITZ_REPLY_STATUS_V3,0xa0,"FAULT_OR_BUSY",1);
+  check_code(LEITZ_REPLY_STATUS_V3,0x90,"FAULT_OR_BUSY",1);
+  check_code(LEITZ_REPLY_STATUS_V3,0x88,"FAULT_OR_BUSY",1);
+  check_code(LEITZ_REPLY_STATUS_V3,0x00,"BUSY",0);
+  check_code(LEITZ_REPLY_STATUS_V3,0xff,"UNKNOWN",0);
   const uint8_t p1[]={0,0,1,0x2c},p2[]={0},p3[]={0xff,0xff,0xff,0xff};
   assert(!leitz_parse_reply(LEITZ_REPLY_PRINTED_LINES,p1,sizeof p1,&x));
   assert(x.printed_lines==300);
