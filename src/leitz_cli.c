@@ -24,12 +24,12 @@ int main(int argc,char **argv){
  if(argc==3 && !strcmp(argv[1],"validate-native")){
   /* Manufacturer Linux 1.0.3 framing; validation only, never USB. */
   FILE *f=fopen(argv[2],"rb");if(!f){perror(argv[2]);return 1;}
-  unsigned width=0,rows=0; char error[160]={0};
-  int rc=leitz_native_validate(f,&width,&rows,error,sizeof error);
+  unsigned width=0,pages=0; char error[160]={0};
+  int rc=leitz_native_validate_job(f,&pages,&width,error,sizeof error);
   if(fclose(f)) {perror("Closing input");return 1;}
   if(rc) {fprintf(stderr,"ERROR: %s\n",error);return 1;}
-  fprintf(stderr,"OK: native Linux 1.0.3 frame; width=%u; transmitted_rows=%u\n",
-          width,rows);
+  fprintf(stderr,"OK: native Linux 1.0.3 document; pages=%u; width=%u\n",
+          pages,width);
   return 0;
  }
  if(argc==4 && !strcmp(argv[1],"decode-status")) {
