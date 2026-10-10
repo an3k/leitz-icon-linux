@@ -4,7 +4,7 @@ import json,os,subprocess,tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 CAT=json.loads((ROOT/'media.json').read_text())
-assert len(CAT)==76 and len({m['name'] for m in CAT})==76
+assert len(CAT)==81 and len({m['name'] for m in CAT})==81
 ppd=(ROOT/'cups/LeitzIcon.ppd').read_text()
 for m in CAT:
   name=m['name'];assert f'*PageSize {name}/' in ppd and f'*PageRegion {name}:' in ppd
@@ -15,14 +15,14 @@ assert '*PageSize ShippingLabel70180001/Shipping Label 2" x 3 1/2"' in ppd
 assert '*PageSize Continuous70070001/Continuous - 1 1/2"' in ppd
 assert '*Resolution 300x300dpi/300 x 300 dpi:' in ppd
 print('PASS vendor-readable CUPS media labels and confirmed 300x300 dpi option')
-print('PASS all 76 vendor media catalog entries exposed')
+print('PASS 76 Windows GPD and 5 original Linux/macOS media entries exposed')
 
 with tempfile.TemporaryDirectory() as t:
  tmp=Path(t)
  def run_case(mname, dpi=600, empty=False):
   m=next((x for x in CAT if x['name']==mname),None)
   w=m['area'][0] if m else 960
-  h=(m['area'][1]//(2 if dpi==300 else 1)) if m else 1120
+  h=(((m['area'][1]+1)//2 if dpi==300 else m['area'][1])) if m else 1120
   if h>65000:raise AssertionError('too long')
   pgm=tmp/'media.pgm'
   with pgm.open('wb') as f:
@@ -57,5 +57,8 @@ with tempfile.TemporaryDirectory() as t:
               'LeitzFileFolderLabel','Continuous70090001','Continuous70030001'):
   run_case(name)
  run_case('Multipurpose70030001',300)
+ for name in ('LargePendaflexTabRotated','Multipurpose70030001Rotated','NameBadgeCard70190001Rotated','ShippingLabel70180001Rotated'):
+  run_case(name)
+ run_case('LargePendaflexTabRotated',300)
  run_case('Multipurpose70030001',empty=True)
  print('PASS offline media checks')
