@@ -25,7 +25,7 @@ An independent **Linux / CUPS driver** for the Leitz Icon USB label printer (USB
 The `main` branch contains the **experimental v0.4.1 development sources**, including:
 
 - `src/`: protocol encoder, offline validator and CUPS raster filter
-- `cups/`: USB backend, cartridge status, PPD with 76 vendor media profiles and a standalone CUPS Dockerfile
+- `cups/`: USB backend, cartridge status, PPD with 76 profiles on `main` (86 A/B profiles on the development branch) and a standalone CUPS Dockerfile
 - `media.json`: vendor-derived media dimensions, not evidence of physical support
 - `tests/`: synthetic offline raster/validation tests (the original physical golden fixtures are not published)
 
@@ -47,3 +47,7 @@ Only independently developed source code, build metadata and suitable test fixtu
 ## Licensing
 
 **No license has been selected yet.** Public access to the repository does not imply permission to copy, modify, or redistribute its contents beyond applicable law.
+
+## Development branch media profiles
+
+`port/vendor-parity` keeps 43 sorted A profiles followed by 43 `Leitz`-prefixed B variants in the same PPD. The four differing original source geometries are preserved and must not be silently normalized. Use `make media-check` to check PPD, `media.json`, C header and original B labels without accessing the printer.
