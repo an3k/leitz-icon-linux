@@ -8,7 +8,7 @@ WORKDIR /build
 RUN make all cups
 
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends cups cups-filters ghostscript ca-certificates bash passwd \
+RUN apt-get update && apt-get install -y --no-install-recommends cups cups-filters ghostscript ca-certificates bash passwd util-linux \
  && rm -rf /var/lib/apt/lists/*
 COPY --from=build /build/leitz-cli /usr/lib/cups/filter/leitz-cli
 COPY --from=build /build/leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
