@@ -24,7 +24,7 @@ def run(mode, data=None, expected_success=True, source=None):
 
 out = run("lines", bytes([0, 0, 1, 44]))
 assert "PRINTED_LINES_CANDIDATE=300" in out
-assert "COMPLETION_CONFIRMED" not in out
+assert out == "REPLY_BYTES=4\nINTERPRETATION=CANDIDATE_PRINTED_LINES_UNVERIFIED\nPRINTED_LINES_CANDIDATE=300\n"
 out = run("lines", bytes([0]))
 assert "PRINTED_LINES_CANDIDATE=0" in out
 out = run("legacy", bytes([0x03]))
