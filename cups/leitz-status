@@ -13,6 +13,13 @@ fi
 [[ -c "$DEVICE" ]] || { echo 'STATE=USB_DEVICE_MISSING';exit 4; }
 base=$(basename "$DEVICE")
 [[ "$base" =~ ^lp[0-9]+$ ]] || { echo 'ERROR: Unsupported USB device path' >&2;exit 4; }
+# Status must not consume responses destined for an active print job.
+lockdir=/run/leitz-icon
+mkdir -p -m 0700 -- "$lockdir" || { echo 'STATE=LOCK_UNAVAILABLE'; exit 4; }
+[[ -d "$lockdir" && ! -L "$lockdir" ]] || { echo 'STATE=LOCK_UNAVAILABLE'; exit 4; }
+exec 9>"$lockdir/$base.lock" || { echo 'STATE=LOCK_UNAVAILABLE'; exit 4; }
+flock -n 9 || { echo 'STATE=BUSY'; exit 4; }
+
 root=$(readlink -f "/sys/class/usbmisc/$base/device") || exit 4
 root=${root%/*}
 read -r vid < "$root/idVendor" || exit 4
@@ -23,10 +30,10 @@ fi
 exec 3<>"$DEVICE" || exit 4
 printf '\033U' >&3 || exit 4
 response=''
-IFS= read -r -d '' -t 3 response <&3 || { echo 'STATE=NO_REPLY';exit 4; }
+IFS= read -r -d '' -n 1024 -t 5 response <&3 || { echo 'STATE=NO_REPLY';exit 4; }
 exec 3>&-
-echo "RAW=$response"
 if [[ "$response" == 'SKU:No Cartridge;;;' ]];then
+echo "RAW=$response"
   echo 'STATE=NO_CARTRIDGE';exit 4
 fi
 if [[ "$response" =~ ^SKU:([0-9]{8})\;INIT:([0-9]+)\;USED:([0-9]+)\;$ ]];then
