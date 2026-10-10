@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Leitz Icon independent USB status. Only ESC U; never prints or cuts.
-# Use when idle; do not run concurrently with active printing.
+# Use when idle; Linux usblp rejects concurrent opens of /dev/usb/lpN.
 set -euo pipefail
 LC_ALL=C
 DEVICE=${LEITZ_DEVICE:-/dev/usb/lp0}
@@ -18,13 +18,6 @@ fi
 [[ -c "$DEVICE" ]] || { echo 'STATE=USB_DEVICE_MISSING';exit 4; }
 base=$(basename "$DEVICE")
 [[ "$base" =~ ^lp[0-9]+$ ]] || { echo 'ERROR: Unsupported USB device path' >&2;exit 4; }
-# Status must not consume responses destined for an active print job.
-lockdir=/run/leitz-icon
-mkdir -p -m 0700 -- "$lockdir" || { echo 'STATE=LOCK_UNAVAILABLE'; exit 4; }
-[[ -d "$lockdir" && ! -L "$lockdir" ]] || { echo 'STATE=LOCK_UNAVAILABLE'; exit 4; }
-exec 9>"$lockdir/$base.lock" || { echo 'STATE=LOCK_UNAVAILABLE'; exit 4; }
-flock -n 9 || { echo 'STATE=BUSY'; exit 4; }
-
 root=$(readlink -f "/sys/class/usbmisc/$base/device") || exit 4
 root=${root%/*}
 read -r vid < "$root/idVendor" || exit 4
@@ -32,7 +25,7 @@ read -r pid < "$root/idProduct" || exit 4
 if [[ "${vid,,}" != 289e || "${pid,,}" != 1000 ]];then
   echo "ERROR: USB device not Leitz Icon ($vid:$pid)" >&2;exit 4
 fi
-exec 3<>"$DEVICE" || exit 4
+exec 3<>"$DEVICE" || { echo 'STATE=USB_BUSY_OR_UNAVAILABLE'; exit 4; }
 printf '\033U' >&3 || exit 4
 response=''
 IFS= read -r -d '' -n 1024 -t 5 response <&3 || { echo 'STATE=NO_REPLY';exit 4; }
