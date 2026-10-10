@@ -87,31 +87,3 @@ expected = {
 assert set(differences) == expected, ("Unexpected source-geometry changes", differences)
 print("PASS 43 A + 43 B profiles, 4 native source differences preserved")
 print("PASS 86 complete PPD profiles, C header and Windows source labels")
-,
-    header, re.MULTILINE
-)
-assert len(structure) == 86, "C header count mismatch"
-for item, record in zip(catalog, structure):
-    name, pw, ph, aw, ah, ox, oy, length, continuous = record
-    assert item["name"] == name
-    assert item["page"] == [int(pw), int(ph)]
-    assert item["area"] == [int(aw), int(ah)]
-    assert item["origin"] == [int(ox), int(oy)]
-    assert item["command_length"] == int(length)
-    assert item["continuous"] == bool(int(continuous))
-
-differences = []
-for a, b in zip(left, right):
-    if any(a[field] != b[field] for field in (
-            "page", "area", "origin", "command_length",
-            "command_width", "continuous")):
-        differences.append(a["name"])
-expected = {
-    "LargePendaflexTabRotated",
-    "Multipurpose70030001Rotated",
-    "NameBadgeCard70190001Rotated",
-    "ShippingLabel70180001Rotated",
-}
-assert set(differences) == expected, ("Unexpected source-geometry changes", differences)
-print("PASS 43 A + 43 B profiles, 4 native source differences preserved")
-print("PASS 86 complete PPD profiles, C header and Windows source labels")
