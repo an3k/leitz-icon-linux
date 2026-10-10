@@ -1,10 +1,12 @@
 /* Standalone offline generator and validator. PDF processing is not included. */
 #include "leitz_codec.h"
+#include "leitz_status.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <ctype.h>
+#include <sys/stat.h>
 static int token(FILE *f,char *s,size_t max){
  int c;do{c=fgetc(f);if(c=='#'){while(c!='\n'&&c!=EOF)c=fgetc(f);}}while(c!=EOF&&isspace((unsigned char)c));
  if(c==EOF)return 0;
@@ -18,8 +20,41 @@ int main(int argc,char **argv){
   unsigned pages;char msg[160]={0};int ok=leitz_validate(f,&pages,msg,sizeof msg);
   fclose(f);fprintf(stderr,"%s\n",msg);return ok?1:0;
  }
+ if(argc==4 && !strcmp(argv[1],"decode-status")) {
+  /* Decodes a regular-file snapshot; never opens a device or sends commands. */
+  leitz_reply_kind kind;
+  if(leitz_reply_kind_from_name(argv[2],&kind)) {
+    fprintf(stderr,"ERROR: Use legacy, v3, lines, or version\\n");return 2;
+  }
+  struct stat info;
+  if(stat(argv[3],&info) || !S_ISREG(info.st_mode) ||
+     info.st_size<1 || info.st_size>(long)LEITZ_REPLY_MAX) {
+    fprintf(stderr,"ERROR: Requires a 1..1024-byte regular reply file\\n");return 1;
+  }
+  FILE *input=fopen(argv[3],"rb");
+  if(!input){perror(argv[3]);return 1;}
+  uint8_t bytes[LEITZ_REPLY_MAX+1];
+  size_t n=fread(bytes,1,sizeof bytes,input);
+  int io_bad=ferror(input),close_bad=fclose(input);
+  if(io_bad || close_bad || n!=(size_t)info.st_size || n>LEITZ_REPLY_MAX) {
+    fprintf(stderr,"ERROR: Cannot read complete reply snapshot\\n");return 1;
+  }
+  leitz_reply parsed;
+  if(leitz_parse_reply(kind,bytes,n,&parsed)) {
+    fprintf(stderr,"ERROR: Malformed or unsupported reply snapshot\\n");return 1;
+  }
+  printf("REPLY_BYTES=%zu\\nINTERPRETATION=%s\\n",n,parsed.interpretation);
+  if(kind==LEITZ_REPLY_PRINTED_LINES)
+    printf("PRINTED_LINES_CANDIDATE=%u\\nCOMPLETION_CONFIRMED=NO\\n",parsed.printed_lines);
+  else if(kind==LEITZ_REPLY_VERSION)
+    printf("VERSION_TEXT=%s\\n",parsed.version);
+  else
+    printf("STATUS_BYTE=0x%02X\\nAMBIGUOUS=%s\\nDEVICE_VERIFIED=NO\\n",
+           (unsigned)parsed.status_byte,parsed.ambiguous?"YES":"NO");
+  return 0;
+ }
  if(argc!=4||strcmp(argv[1],"pgm")){
-  fprintf(stderr,"Usage: leitz-cli validate file.bin | pgm image.pgm output.bin\n");return 2;
+  fprintf(stderr,"Usage: leitz-cli validate file.bin | pgm image.pgm output.bin | decode-status legacy|v3|lines|version reply.bin\n");return 2;
  }
  FILE *in=fopen(argv[2],"rb");if(!in){perror(argv[2]);return 1;}
  char word[80];unsigned w=0,h=0,max=0;int err=0;
