@@ -1,5 +1,29 @@
 [
   {
+    "name": "DHLShippingLabel",
+    "label": "DHL Shipping Label",
+    "page": [
+      1039,
+      4204
+    ],
+    "area": [
+      960,
+      4144
+    ],
+    "origin": [
+      40,
+      30
+    ],
+    "command_length": 2102,
+    "command_width": 960,
+    "continuous": false,
+    "source": "Original macOS 1.2.190 PPD (not present in Windows GPD)",
+    "original_page_size_pt": [
+      249,
+      505
+    ]
+  },
+  {
     "name": "Continuous112",
     "label": "Continuous - 1 1/2\"",
     "page": [
