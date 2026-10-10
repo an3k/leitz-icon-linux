@@ -39,7 +39,7 @@ The current device is exposed through Linux kernel `usblp` as `/dev/usb/lp0` (VI
 
 Limits: single-open enforcement is specific to the `usblp` path, **not** users that detach the kernel driver and use libusb directly. The device can continue moving or cutting after `close()`. A CUPS queue reporting `idle` does not prove the hardware has stopped.
 
-The test probe is a separate opt-in program: one manufacturer status command, 1,024-byte bounded binary response, direct stdout hex. It does not generate spool data and creates no host or container capture files. The production print path remains unchanged apart from the removal of filesystem locks. See [one-shot status procedure](CONTROLLED_STATUS_CAPTURE.md).
+The test probe is a separate opt-in program: one manufacturer status command, 1,024-byte bounded binary response, direct stdout hex **plus conservative human-readable decoding via the shared `leitz_status` parser**. It does not generate spool data and creates no host or container capture files. The production print path remains unchanged apart from the removal of filesystem locks. See [one-shot status procedure](CONTROLLED_STATUS_CAPTURE.md).
 
 **Validation state:** real idle replies for A and V confirmed; P gave zero bytes and a timeout on idle. Printed-line counting and mechanical completion remain unverified. Only the development branch is changed; the running CUPS container on TARS and `main` are unchanged.
 
