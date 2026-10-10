@@ -43,7 +43,7 @@ static const struct leitz_media *lookup(const cups_page_header2_t *h){
  }
  return NULL;
 }
-static int process(cups_raster_t *r,const cups_page_header2_t *h,FILE *job,const char *options,int native){
+static int process(cups_raster_t *r,const cups_page_header2_t *h,FILE *job,const char *options,int native,int first_page,int cut_every){
  unsigned dpi=h->HWResolution[1];
  unsigned width=h->cupsWidth,height=h->cupsHeight;
  if(h->HWResolution[0]!=300 || (dpi!=300&&dpi!=600) || !width||width>LEITZ_MAX_WIDTH ||
@@ -136,7 +136,7 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,FILE *job,const
    leitz_native_reference enc;
    const unsigned row_bytes=(width+7)/8;
    const uint8_t blank[120]={0};
-   if(leitz_native_begin(&enc,job,width,total,dpi,device_length))goto done;
+   if(leitz_native_begin_page(&enc,job,width,total,dpi,device_length,first_page))goto done;
    for(unsigned y=0;y<head;y++)
      if(leitz_native_row(&enc,blank,row_bytes))goto done;
    for(unsigned y=0;y<used;y++){
@@ -148,7 +148,7 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,FILE *job,const
    }
    for(unsigned y=0;y<tail;y++)
      if(leitz_native_row(&enc,blank,row_bytes))goto done;
-   if(leitz_native_end(&enc))goto done;
+   if(leitz_native_finish_page(&enc,cut_every))goto done;
  }else{
    /* Keep the previously tested framing byte-for-byte unchanged. */
    leitz_encoder enc;
