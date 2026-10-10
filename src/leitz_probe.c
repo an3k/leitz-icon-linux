@@ -106,6 +106,11 @@ int main(int argc, char **argv) {
                                            opcode=='P'?7000:5000,1000);
     const int close_ok=close(fd);
     if(result!=0 || close_ok<0) {
+        if (result==LEITZ_PROBE_TIMEOUT && received==0) {
+            printf("COMMAND=ESC %c\nREPLY_BYTES=0\nDECODED=NO_RESPONSE_WITHIN_TIMEOUT\n",opcode);
+            puts("COMPLETION_CONFIRMED=NO");
+            fflush(stdout);
+        }
         fprintf(stderr,"ERROR: Status exchange failed (%d), received %zu bytes; no retry.\n",
                 result,received);
         return 4;
