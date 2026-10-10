@@ -61,7 +61,7 @@ The Windows 2018 language monitor independently maps `leitz_oem_status` to ESC A
 - For any future experimental A/P/V probing, use **binary-safe bounded byte reads in a single USB-owning process**. Do **not** reuse Bash `read -d ''` for binary ESC A/P status; a leading zero is a meaningful possible byte.
 - For ESC A decode, prefer a strict decoder mode matching the exact intended filter generation; unknown status bytes must remain `UNKNOWN`, not `READY`.
 - For ESC P, accept a line count only after validating actual byte length, monotonicity and page/raster geometry; the upstream V3 code does not itself provide a strict 4-byte-length contract. A timeout or malformed reply must not trigger blind reprint.
-- Keep backend `flock` for coordinating our processes; note it is advisory and stops guarding only once the transfer completes, **not** when the printer finishes moving/cutting.
+- Rely on the Linux kernel `usblp` single-open guard for simultaneous accesses to `/dev/usb/lpN`. Other direct USB pathways are outside this guarantee. Closing the device does **not** prove mechanical completion.
 - Our current `leitzusb` sends validated data in one bulk stream and cannot interleave progress queries safely. A status-aware backend will require an explicit **single-owner state machine** with controlled send/query phases, separate error states, and no unsupported automatic retries.
 - A controlled, one-time real-device capture of ESC A, ESC P and ESC V at idle, plus ESC P during a predetermined safe print, is the remaining prerequisite for claiming device-level compatibility. No such USB query was sent during this analysis.
 
