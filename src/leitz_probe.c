@@ -109,7 +109,7 @@ int main(int argc,char **argv) {
     uint8_t response[LEITZ_PROBE_MAX_RESPONSE];
     size_t received=0;
     const int result=leitz_probe_exchange(fd,opcode,response,sizeof response,&received,
-                                           opcode=='P'?7000:5000,250);
+                                           opcode=='P'?7000:5000,1000);
     if (close(fd)<0) {perror("ERROR: Closing device");goto fail;}
     if (result!=0) {
         fprintf(stderr,"ERROR: Status exchange failed (%d), %zu bytes. No retry.\n",result,received);
