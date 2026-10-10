@@ -1,10 +1,10 @@
 CC ?= gcc
 CFLAGS ?= -O2 -Wall -Wextra -Werror -std=c11
 LDLIBS = -lm
-.PHONY: all cups clean test mock-filter native-reference-test media-check
+.PHONY: all cups clean test mock-filter native-reference-test media-check status-test
 all: leitz-cli
-leitz-cli: src/leitz_cli.c src/leitz_codec.c src/leitz_codec.h
-	$(CC) $(CFLAGS) -o $@ src/leitz_cli.c src/leitz_codec.c $(LDLIBS)
+leitz-cli: src/leitz_cli.c src/leitz_codec.c src/leitz_codec.h src/leitz_status.c src/leitz_status.h
+	$(CC) $(CFLAGS) -o $@ src/leitz_cli.c src/leitz_codec.c src/leitz_status.c $(LDLIBS)
 cups: leitz-rastertoicon
 leitz-rastertoicon: src/leitz_cups_filter.c src/leitz_codec.c src/leitz_codec.h src/leitz_media.h
 	$(CC) $(CFLAGS) -o $@ src/leitz_cups_filter.c src/leitz_codec.c -lcups $(LDLIBS)
@@ -22,3 +22,7 @@ native-reference-test:
 
 media-check:
 	python3 tools/check_media_consistency.py
+
+status-test:
+	$(CC) $(CFLAGS) -o /tmp/leitz-status-decode-test src/leitz_status.c tests/test_status_decode.c
+	/tmp/leitz-status-decode-test
