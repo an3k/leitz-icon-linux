@@ -198,9 +198,9 @@ int main(int argc,char **argv){
  if(!failed){
   rewind(job);unsigned n=0;char reason[256]={0};
   if(native){
-    unsigned native_width=0,native_rows=0;
-    if(leitz_native_validate(job,&native_width,&native_rows,reason,sizeof reason) ||
-       native_width!=h.cupsWidth || pages!=1){
+    unsigned native_width=0,native_pages=0;
+    if(leitz_native_validate_job(job,&native_pages,&native_width,reason,sizeof reason) ||
+       native_width!=h.cupsWidth || native_pages!=(unsigned)pages){
       fprintf(stderr,"ERROR: Generated native Linux job failed validation: %s\n",reason);
       failed=1;
     }
