@@ -348,13 +348,13 @@
 *DefaultLeitzCutMode: Automatic
 *LeitzCutMode Automatic/Automatic cut: ""
 *LeitzCutMode Content/Force cut after last ink (roll only, experimental): ""
-*LeitzCutMode Page/At selected page length (continuous uses whole length): ""
+*LeitzCutMode Page/Cut at selected page length (use a custom size for continuous rolls): ""
 *CloseUI: *LeitzCutMode
 *OpenUI *Resolution/Resolution: PickOne
 *OrderDependency: 20 AnySetup *Resolution
 *DefaultResolution: 300x600dpi
 *Resolution 300x600dpi/300 x 600 dpi: "<</HWResolution[300 600]>>setpagedevice"
-*Resolution 300x300dpi/300 x 300 dpi (untested): "<</HWResolution[300 300]>>setpagedevice"
+*Resolution 300x300dpi/300 x 300 dpi: "<</HWResolution[300 300]>>setpagedevice"
 *CloseUI: *Resolution
 *OpenUI *ColorModel/Color Mode: PickOne
 *OrderDependency: 30 AnySetup *ColorModel
