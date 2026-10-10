@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends gcc make libcup
 COPY src /build/src
 COPY Makefile /build/Makefile
 WORKDIR /build
-RUN make all cups
+RUN make all cups probe
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends cups cups-filters ghostscript ca-certificates bash passwd util-linux \
@@ -14,10 +14,12 @@ COPY --from=build /build/leitz-cli /usr/lib/cups/filter/leitz-cli
 COPY --from=build /build/leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
 COPY cups/leitzusb /usr/lib/cups/backend/leitzusb
 COPY cups/leitz-status /usr/local/bin/leitz-status
+COPY --from=build /build/leitz-probe /usr/local/bin/leitz-probe
 COPY cups/LeitzIcon.ppd /usr/share/ppd/LeitzIcon.ppd
 COPY cups/entrypoint.sh /usr/local/bin/leitz-cups-entrypoint
 RUN chmod 0755 /usr/local/bin/leitz-cups-entrypoint /usr/local/bin/leitz-status \
     /usr/lib/cups/filter/leitz-cli /usr/lib/cups/filter/leitz-rastertoicon \
+ && chmod 0700 /usr/local/bin/leitz-probe \
  && chmod 0700 /usr/lib/cups/backend/leitzusb \
  && mkdir -p /opt/leitz-cups-default \
  && cp -a /etc/cups/. /opt/leitz-cups-default/
