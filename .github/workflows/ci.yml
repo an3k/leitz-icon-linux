@@ -30,9 +30,10 @@ jobs:
       - name: Verify source package files
         run: |
           test -s cups/LeitzIcon.ppd
-          test -x cups/leitzusb
-          test -x cups/leitz-status
-          test -x cups/entrypoint.sh
+          test -s cups/leitzusb
+          test -s cups/leitz-status
+          test -s cups/entrypoint.sh
+          bash -n cups/leitzusb cups/leitz-status cups/entrypoint.sh
       - name: Create reproducible source snapshot
         run: |
           mkdir -p dist
