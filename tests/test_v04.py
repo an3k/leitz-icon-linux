@@ -29,6 +29,9 @@ assert '*PageSize StandardAddressLabel/Standard Address Label:' in ppd
 assert '*PageSize ShippingLabel70180001/Shipping Label 2" x 3 1/2"' in ppd
 assert '*PageSize Continuous70070001/Continuous - 1 1/2"' in ppd
 assert '*Resolution 300x300dpi/300 x 300 dpi:' in ppd
+assert '*OpenUI *LeitzProtocol/Print Protocol (development): PickOne' in ppd
+assert '*DefaultLeitzProtocol: Current' in ppd
+assert '*LeitzProtocol NativeLinux103/Original Linux 1.0.3 (experimental): ""' in ppd
 print('PASS vendor-readable CUPS media labels and confirmed 300x300 dpi option')
 assert len([line for line in ppd.splitlines() if line.startswith('*PageSize ')])==86
 assert [line.split()[1].split('/')[0] for line in ppd.splitlines() if line.startswith('*PageSize ')]==[m['name'] for m in CAT]
@@ -38,7 +41,7 @@ print('PASS 86 A-then-B PPD sizes with source-matched original Windows B labels'
 
 with tempfile.TemporaryDirectory() as t:
  tmp=Path(t)
- def run_case(mname, dpi=600, empty=False):
+ def run_case(mname, dpi=600, empty=False, native=False):
   m=next((x for x in CAT if x['name']==mname),None)
   w=m['area'][0] if m else 960
   h=(((m['area'][1]+1)//2 if dpi==300 else m['area'][1])) if m else 1120
@@ -55,17 +58,24 @@ with tempfile.TemporaryDirectory() as t:
   env=os.environ.copy();env['MOCK_MEDIA_NAME']=mname
   if dpi==300:env['MOCK_DPI300']='1'
   result=subprocess.run([str(ROOT/'leitz-rastertoicon-mock'),'1','root','Test','1',
-      'LeitzCutMode=Automatic',str(pgm)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+      'LeitzCutMode=Automatic' + (' LeitzProtocol=NativeLinux103' if native else ''),str(pgm)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
   if empty:
    assert result.returncode!=0 and not result.stdout
    print('PASS blank input blocked');return
   assert result.returncode==0, (mname,dpi,result.stderr.decode()[-700:])
   out=tmp/'out.bin';out.write_bytes(result.stdout)
-  status=subprocess.run([str(ROOT/'leitz-cli'),'validate',str(out)],capture_output=True)
+  status=subprocess.run([str(ROOT/'leitz-cli'),'validate-native' if native else 'validate',str(out)],capture_output=True)
   assert status.returncode==0,(mname,status.stderr)
-  preamble=result.stdout[120:135]
-  width=(preamble[-2]<<8)|preamble[-1]
+  if native:
+    assert result.stdout[:4] in (b'\x1b@\x1bi',b'\x1b@\x1bh')
+    width=(result.stdout[130]<<8)|result.stdout[131]
+    other=subprocess.run([str(ROOT/'leitz-cli'),'validate',str(out)],capture_output=True)
+    assert other.returncode!=0,other.stderr
+  else:
+    preamble=result.stdout[120:135]
+    width=(preamble[-2]<<8)|preamble[-1]
   assert width==w,(mname,width,w)
+  assert (b'protocol=NativeLinux103' if native else b'protocol=Current') in result.stderr
   if m['continuous']:
    assert b'cut=after-content' in result.stderr
    assert len(result.stdout)<2000,len(result.stdout)
@@ -91,4 +101,8 @@ with tempfile.TemporaryDirectory() as t:
               'ShippingLabel70180001Rotated','LeitzShippingLabel70180001Rotated'):
   run_case(name)
  run_case('Multipurpose70030001',empty=True)
- print('PASS offline media checks')
+ # Exercise the actual CUPS filter selection: native 1.0.3 emits a distinct
+ # vendor framing, but the tested current path remains the default.
+ run_case('FileFolderLabel',native=True)
+ run_case('FileFolderLabel',native=True,dpi=300)
+ print('PASS offline media checks for both actual print protocols')
