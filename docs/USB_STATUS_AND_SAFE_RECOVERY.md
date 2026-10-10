@@ -48,8 +48,8 @@ The test probe is a separate opt-in program: one manufacturer status command, 1,
 Added `src/leitz_status.c/.h` to the existing `leitz-cli`. Command: `leitz-cli decode-status legacy|v3|lines|version saved-reply.bin`. This command reads **only regular files** (1..1024 bytes), does **not** open `/dev/usb/lpN`, and does **not** send any printer commands. It rejects oversized, empty and malformed replies, and preserves binary NUL bytes in ESC A/P snapshots.
 
 - `legacy`: first-byte mapping from original macOS command filter. Unknown codes remain unknown.
-- `v3`: maps the first byte conservatively; masked fault codes with overlapping active-low busy bit remain `FAULT_OR_BUSY_V3_AMBIGUOUS`, **not** an operational printer-state decision.
-- `lines`: 1..4 big-endian bytes parsed as an **unverified candidate** count. Returns `COMPLETION_CONFIRMED=NO`; no continuation or resend is enabled.
+- `v3`: maps the first byte conservatively; masked fault codes with overlapping active-low busy bit remain the state `FAULT_OR_BUSY` with a separate `AMBIGUOUS=YES` indicator, **not** an operational printer-state decision.
+- `lines`: 1..4 big-endian bytes parsed as an **unverified candidate** count. No continuation or resend is enabled; the decoder does not emit an artificial job-completion field.
 - `version`: printable ASCII with optional terminal NUL (a conservative heuristic based on macOS text handling), not an established firmware-version wire grammar.
 
 Offline verification: compiled strict C11 decoder/unit test locally and compiled the CLI with stubbed **unmodified codec dependencies**; exercised NUL-containing line counts, ambiguous status byte `C0`, version text, and invalid lengths. The full in-repository `make status-test` target was added for later end-to-end regression runs; **real idle A/V replies have since been captured; P returned no bytes before timeout**.
@@ -62,7 +62,7 @@ Source: direct operator-provided output from TARS, Leitz Icon USB device `289e:1
 
 | Query | Actual result | Interpretation |
 |---|---|---|
-| `ESC A` (`1B 41`) | `REPLY_BYTES=1; REPLY_HEX=03` | Real device returned code `03`; the original macOS legacy/V3 decoder maps that byte to ready |
+| `ESC A` (`1B 41`) | `REPLY_BYTES=1; reply byte 0x03` | Real device returned code `0x03`; the original macOS legacy/V3 decoder maps that byte to ready |
 | `ESC V` (`1B 56`) | `REPLY_BYTES=34`, NUL-terminated printable ASCII `ID:[redacted];A:0129;M:0090;W:310c;;\x00` | Real response format confirmed; meanings of A/M/W not established; device ID deliberately redacted in this public repository |
 | `ESC P` (`1B 50`) | `ERROR: Status exchange failed (-2), received 0 bytes; no retry` | Seven-second deadline elapsed with **no response bytes** while idle. Does not prove command unsupported during active printing or on other firmware |
 
