@@ -4,6 +4,17 @@
 
 **Original source reviewed:** `raster2printer.c`, `raster2printer.h`, `raster_c_functions.c`, `raster_c_functions.h`, and `PPD/LeitzIcon.ppd.gz`. Do not commit the manufacturer's copyrighted source to this repository.
 
+## Shared page and cut controller in our development driver
+
+The original Linux 1.0.3 implementation is now **one selectable wire codec**.
+The internal `leitz_job.c` module owns shared multi-page sequencing and
+`LabelCutter=ON/OFF` policy for both `Current` and `NativeLinux103`.
+The `leitz_cups_filter.c` raster path is no longer protocol-specific.
+Only the command/raster encoding and its exact end-of-job bytes differ.
+
+The comparison below describes **historical v0.4.1 bytes** and original Linux
+source, not separate feature sets in our newly refactored job controller.
+
 ## Observed framing, not an assumed specification
 
 | Step | Native Linux 1.0.3 (source) | Our tested v0.4.1 |
