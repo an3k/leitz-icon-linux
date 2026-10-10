@@ -23,11 +23,11 @@
 
 `src/leitz_native_reference.[ch]` independently reconstructs the **level-1 plain/raw** command framing above. It intentionally does **not** implement vendor source algorithms for modes 0/2/3, CUPS profile selection, status reads, USB writes or firmware recovery. It accepts already-packed monochrome rows; all-blank rows **before** a printed line are combined into `ESC f` commands. To reproduce a quirk of the source, **trailing** skipped blanks are not flushed at the end of a page.
 
-Run `make native-reference-test` to verify frame bytes, 300/600 dpi, blank line aggregation (including original trailing-blank behavior), end marker and invalid inputs. This is fully offline; the production `leitz-rastertoicon` and `leitzusb` are **not modified or switched**.
+Run `make native-reference-test` to verify frame bytes, 300/600 dpi, blank line aggregation (including original unflushed trailing blanks), end marker, malformed data and explicit offline selection by `leitz-cli validate-native`. This is fully offline; the production `leitz-rastertoicon` and `leitzusb` are **not modified or switched**.
 
 ## Remaining porting work (grouped)
 
-1. Integrate a genuinely selectable wire protocol with a validator that understands **both** streams before USB writes are permitted.
+1. Offline dialect validation now exists explicitly: `leitz-cli validate` checks the tested v0.4.1 stream, `leitz-cli validate-native` checks the original Linux 1.0.3 reference stream. **Remaining:** create a genuinely selectable print pipeline and only then allow the selected dialect through `leitzusb` after corresponding validation; native is not currently sent to USB.
 2. Reconcile raster polarity, CUPS margins, length units and media geometry across the Windows GPD, original Linux PPD and macOS PPD without confusing catalog keys with device-cartridge SKUs.
 3. Add documented cutter options and per-page semantics (including no-cut-between-pages) and offline tests.
 4. Implement real status/progress handling only after confirming wire command response framing and retry safety. The macOS driver is a separate source; its behavior cannot be inferred from this Linux package.
