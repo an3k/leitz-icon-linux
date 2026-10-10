@@ -61,6 +61,18 @@ The existing `leitz-cli` can inspect **previously saved binary replies** with `l
 
 The development `leitzusb` backend now checks the installed cartridge with `ESC U`, then sends `ESC A` and requires the **measured ready status byte `0x03`** before transmitting any print bytes. A missing or different status blocks the job; no automatic retry is attempted. This is not a physical printing/cutting completion acknowledgment. The running TARS container is not modified.
 
+## Shared driver architecture (development branch)
+
+`leitz-rastertoicon` uses `leitz_cups_filter.c` for the **common**
+CUPS/media/raster path and `leitz_job.c` for **one common**
+page, label-length, cutter-policy and document controller. That controller
+switches **only the wire encoder** between `leitz_codec.c` (`Current`)
+and `leitz_native_reference.c` (`NativeLinux103`). Both protocols now
+implement `LabelCutter=ON/OFF` and multi-page documents through the
+same job controller. Validation still checks the exact selected framing.
+The development goal remains **one** final hardware-verified protocol;
+the temporary alternate codec and tests are retained during comparison.
+
 ## Actual CUPS print protocol selection (development only)
 
 The development-branch CUPS queue has `LeitzProtocol`: `Current` (**default; existing tested implementation**) or `NativeLinux103` (**original Linux 1.0.3 framing, experimental**). The same `leitz-rastertoicon` filter processes media, raster data and length selection, then encodes in the chosen protocol. The `leitzusb` backend independently validates the selected binary stream before USB and performs the same cartridge-width preflight. NativeLinux103 supports **multiple labels of one width/resolution per job**. The shared `LabelCutter=ON` option (default) cuts each label; `OFF` emits a final cut after the whole job **in either wire dialect**. The no-cut-between-pages path in `Current` is newly implemented and remains hardware-unverified. This functionality has not been tested on the actual printer. This is a transitional experimental option, not a plan to maintain two distinct printer systems indefinitely.
