@@ -2,7 +2,7 @@
 
 An independent **Linux / CUPS driver** for the Leitz Icon USB label printer (USB VID:PID `289e:1000`).
 
-> **Status: under development.** The older v0.2 prototype successfully printed and cut labels on a real device. The expanded v0.4 media/auto-cut implementation has not yet been physically validated. This repository does **not** currently provide a validated release.
+> **Status: under development.** The v0.4.1 driver has passed specific physical print-and-cut tests on white continuous paper at both 300×600 and 300×300 dpi. This is **not** a fully validated release. The expanded 86-entry development PPD is offline-checked only and is not installed on TARS.
 
 ## Goals
 
@@ -16,7 +16,8 @@ An independent **Linux / CUPS driver** for the Leitz Icon USB label printer (USB
 ## Evidence and limitations
 
 - **Physically tested with v0.2:** 88 mm continuous white paper, 300×600 dpi, a 170 mm calibration job, USB cartridge queries, CUPS printing from PDF/PostScript, and automatic cutting.
-- **Not established by that test:** functionality of all cassette SKUs and widths, die-cut media, 300×300 dpi, automatic cut at arbitrary content lengths, and long-term reliability.
+- **Physically tested with v0.4.1:** white continuous 88 mm paper at 300×300 and 300×600 dpi; fixed-length and content-dependent cutting; two-page jobs and PDF-through-CUPS printing. These tests do not establish coverage of all 86 media entries.
+- **Open issues:** the 88 mm yellow-plastic cassette printed a shorter length than requested and a later test stopped partway through. Neither the cause nor the handling of all cassette SKUs, die-cut stock, and long-term reliability is established.
 - **170 mm is only an example test length, not a fixed printer format.**
 - Successful transmission to the USB printer does not prove physical completion.
 
