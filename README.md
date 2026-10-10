@@ -57,6 +57,10 @@ Only independently developed source code, build metadata and suitable test fixtu
 
 The existing `leitz-cli` can inspect **previously saved binary replies** with `leitz-cli decode-status legacy|v3|lines|version reply.bin` in `port/vendor-parity`. This reads ordinary files only; it never queries the printer. The original macOS status mappings and ESC P byte order inform these parsers but **hardware compatibility and print completion are not verified**. The development-only regression target is `make status-test`.
 
+## Original Linux protocol validation (offline only)
+
+The original Linux 1.0.3 raw-reference framing is checked independently with `leitz-cli validate-native file.bin`; the existing hardware-tested dialect remains `leitz-cli validate file.bin`. The reference encoder has been corrected to **omit an end-of-page flush of trailing blank rows**, as observed in the original source. `make native-reference-test` includes both binary frame tests and rejection of native frames by the production validator. The USB backend and CUPS raster filter **do not yet select or transmit the native dialect**.
+
 ## Manual device status probe (development branch only)
 
 `port/vendor-parity` includes the optional `leitz-probe`. It sends **one** operator-approved `ESC A`, `ESC V`, or `ESC P` query to an idle printer and displays **both the original binary reply as hexadecimal and its conservative decoding** (status mappings, printable ASCII and fields, or an unverified printed-line candidate), without files or bind mounts. Linux kernel `usblp` prevents concurrent opens of `/dev/usb/lpN`; no extra `flock` paths are needed. This does **not** establish mechanical idle or verified print completion. See [controlled status probe](docs/CONTROLLED_STATUS_CAPTURE.md). Offline tests: `make probe-test`. The new probe code has not yet been tested on TARS.
