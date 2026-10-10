@@ -9,6 +9,12 @@ ppd=(ROOT/'cups/LeitzIcon.ppd').read_text()
 for m in CAT:
   name=m['name'];assert f'*PageSize {name}/' in ppd and f'*PageRegion {name}:' in ppd
   assert f'*ImageableArea {name}:' in ppd and f'*PaperDimension {name}:' in ppd
+assert '*PageSize Continuous70030001/Continuous - 3 1/2"' in ppd
+assert '*PageSize StandardAddressLabel/Standard Address Label:' in ppd
+assert '*PageSize ShippingLabel70180001/Shipping Label 2" x 3 1/2"' in ppd
+assert '*PageSize Continuous70070001/Continuous - 1 1/2"' in ppd
+assert '*Resolution 300x300dpi/300 x 300 dpi:' in ppd
+print('PASS vendor-readable CUPS media labels and confirmed 300x300 dpi option')
 print('PASS all 76 vendor media catalog entries exposed')
 
 with tempfile.TemporaryDirectory() as t:
