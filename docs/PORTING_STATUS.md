@@ -60,6 +60,26 @@ No more one-change/one-label iteration. Use offline tests for protocol frames, P
 - **Offline validator integrated:** `leitz-cli validate-native file.bin` now checks the original Linux 1.0.3 framing separately, without changing the existing `leitz-cli validate` dialect. `make native-reference-test` additionally verifies that native frames are rejected by the production validator and tests truncation/extra data. Now supported by the development-branch CUPS filter and backend, with full-document multi-page native validation; **not yet physically verified**.
 - Exact framing comparison: [VENDOR_LINUX_PROTOCOL.md](VENDOR_LINUX_PROTOCOL.md).
 
+## Architekturkorrektur: gemeinsame Auftragssteuerung (10.10.2026)
+
+Die beiden Projektquellen zur IST- und Zielarchitektur legen die Trennung fest:
+`leitz_cups_filter.c` verwaltet **Medien, Raster und Druckoptionen**, die neue
+`leitz_job.c` als internes Modul **Mehrseitenablauf, gemeinsamen Vorschubaufruf
+und Schnittentscheidung**. Die Auswahl `Current`/`NativeLinux103` erfolgt
+erst in `leitz_job.c` beim Aufruf der beiden Byte-Encoder
+`leitz_codec.c`/`leitz_native_reference.c`. Codec-spezifische Bytes für den
+letzten Schnitt bleiben dort gekapselt. `leitzusb`, `usblp`, der PPD-Katalog
+und der PDF-Konverter sind unverändert.
+
+Die Schnittoption `LabelCutter=OFF` gehört jetzt **nicht mehr exklusiv zum
+alten Linux-Protokoll**; beide Encoder werden durch dieselbe
+Auftragssteuerung behandelt. Bei einem einzelnen Etikett ist der resultierende
+Datenstrom identisch, unabhängig davon, ob `LabelCutter=ON` oder `OFF`
+gewählt wurde. Die ursprünglichen Einzelblatt-/Standardkodierfunktionen
+bleiben erhalten; nur ihre übergeordnete Ansteuerung wurde neu geordnet.
+Ein abschließender physischer Test ist noch ausstehend, die Änderung läuft
+ausschließlich auf `port/vendor-parity`.
+
 ## Integration since the reference-only stage (development branch)
 
 - The real CUPS filter now emits **multi-page native Linux 1.0.3** documents with a single reset/resolution at job start and a page header for each label. **Shared CUPS job policy** selects `LabelCutter=ON/OFF` for both wire dialects. Each encoder translates the same cut decision into its framing; `Current` continues to produce identical bytes by default. The newly enabled `Current` no-cut-between-pages path is experimental until physically tested.
