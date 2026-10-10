@@ -54,6 +54,34 @@ static void run(uint8_t cmd, const uint8_t *response, size_t length,
     assert(WIFEXITED(status) && WEXITSTATUS(status)==0);
 }
 
+static void test_partial_at_deadline(void) {
+    int pair[2];
+    assert(socketpair(AF_UNIX,SOCK_STREAM,0,pair)==0);
+    pid_t child=fork();
+    assert(child>=0);
+    if(child==0) {
+        close(pair[0]);
+        uint8_t cmd[2];
+        if(read(pair[1],cmd,2)!=2 || cmd[0]!=0x1b || cmd[1]!='A') _exit(2);
+        pause_ms(100);
+        const uint8_t part=0x03;
+        if(write(pair[1],&part,1)!=1) _exit(3);
+        pause_ms(300);
+        close(pair[1]);
+        _exit(0);
+    }
+    close(pair[1]);
+    int old=fcntl(pair[0],F_GETFL,0);
+    assert(old>=0 && fcntl(pair[0],F_SETFL,old|O_NONBLOCK)==0);
+    uint8_t bytes[8]={0};size_t n=0;
+    int rc=leitz_probe_exchange(pair[0],'A',bytes,sizeof bytes,&n,250,300);
+    assert(rc==LEITZ_PROBE_TIMEOUT && n==1 && bytes[0]==0x03);
+    close(pair[0]);
+    int status;
+    assert(waitpid(child,&status,0)==child);
+    assert(WIFEXITED(status) && WEXITSTATUS(status)==0);
+}
+
 int main(void) {
     signal(SIGPIPE,SIG_IGN);
     const uint8_t stat[]={0x00}; /* Binary NUL is meaningful. */
@@ -66,6 +94,7 @@ int main(void) {
     run('V',version,sizeof version,1,0,500);
     run('A',NULL,0,0,LEITZ_PROBE_TIMEOUT,150);
     run('V',overflow,sizeof overflow,0,LEITZ_PROBE_OVERFLOW,500);
+    test_partial_at_deadline();
     int pair[2];
     assert(socketpair(AF_UNIX,SOCK_STREAM,0,pair)==0);
     size_t count=123;
