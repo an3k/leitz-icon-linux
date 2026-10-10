@@ -61,7 +61,10 @@ int leitz_native_row(leitz_native_reference *p, const uint8_t *packed,
 }
 int leitz_native_end(leitz_native_reference *p) {
   if (!p || p->failed || p->finished || p->rows_written != p->total_rows) return -1;
-  if (skip_rows(p, p->pending_blank)) return p->failed = -1;
+  /* Mirror the original Linux 1.0.3 raw/optimization-1 stream:
+   * trailing blank rows remain pending at page end. The source emits
+   * ESC f only when a subsequent nonblank row is encountered.
+   */
   const uint8_t finish[4] = {ESC, 'G', ESC, 'E'};
   if (send(p->out, finish, sizeof finish)) return p->failed = -1;
   p->finished = 1;
