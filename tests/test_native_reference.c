@@ -21,7 +21,7 @@ static void test(unsigned dpi) {
   assert(fflush(f) == 0);
   assert(fseek(f, 0, SEEK_END) == 0);
   long len = ftell(f);
-  assert(len == 4 + 120 + 11 + 4 + 6 + 4 + 4);
+  assert(len == 4 + 120 + 11 + 4 + 6 + 4);
   rewind(f);
   uint8_t got[200] = {0};
   assert(fread(got, 1, (size_t)len, f) == (size_t)len);
@@ -30,7 +30,7 @@ static void test(unsigned dpi) {
   for (unsigned i = 4; i < 124; i++) assert(got[i] == 0x1b);
   const uint8_t setup[] = {0x1b,'L',0,2,0x1b,'w',0,16,0x1b,'B',0};
   assert(memcmp(got+124, setup, sizeof setup) == 0);
-  const uint8_t body[] = {0x1b,'f',0,1,0x1b,'D',2,0x16,0x81,0x42,0x1b,'f',0,2,0x1b,'G',0x1b,'E'};
+  const uint8_t body[] = {0x1b,'f',0,1,0x1b,'D',2,0x16,0x81,0x42,0x1b,'G',0x1b,'E'};
   assert(memcmp(got+135, body, sizeof body) == 0);
   fclose(f);
 }
