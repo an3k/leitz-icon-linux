@@ -1366,5 +1366,125 @@
     "command_length": 2102,
     "command_width": 960,
     "continuous": false
+  },
+  {
+    "name": "Continuous112",
+    "label": "Continuous - 1 1/2\"",
+    "page": [
+      461,
+      63780
+    ],
+    "area": [
+      431,
+      63720
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 65535,
+    "command_width": 431,
+    "continuous": true,
+    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
+    "original_page_size_pt": [
+      111,
+      7654
+    ]
+  },
+  {
+    "name": "LargePendaflexTabRotated",
+    "label": "Large Pendaflex Tab Rotated",
+    "page": [
+      331,
+      1181
+    ],
+    "area": [
+      301,
+      1121
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 591,
+    "command_width": 301,
+    "continuous": false,
+    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
+    "original_page_size_pt": [
+      79,
+      142
+    ]
+  },
+  {
+    "name": "Multipurpose70030001Rotated",
+    "label": "Multipurpose 2\" x 3 1/2\" Rotated",
+    "page": [
+      600,
+      2079
+    ],
+    "area": [
+      570,
+      2019
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 1040,
+    "command_width": 570,
+    "continuous": false,
+    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
+    "original_page_size_pt": [
+      144,
+      249
+    ]
+  },
+  {
+    "name": "NameBadgeCard70190001Rotated",
+    "label": "Name Badge Rotated",
+    "page": [
+      675,
+      2150
+    ],
+    "area": [
+      645,
+      2090
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 1075,
+    "command_width": 645,
+    "continuous": false,
+    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
+    "original_page_size_pt": [
+      162,
+      258
+    ]
+  },
+  {
+    "name": "ShippingLabel70180001Rotated",
+    "label": "Shipping Label 2\" x 3 1/2\" Rotated",
+    "page": [
+      591,
+      2079
+    ],
+    "area": [
+      561,
+      2019
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 1040,
+    "command_width": 561,
+    "continuous": false,
+    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
+    "original_page_size_pt": [
+      142,
+      249
+    ]
   }
 ]
