@@ -1,0 +1,217 @@
+[
+  {
+    "name": "LeitzAppointmentCard",
+    "label": "*Appointment Card",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzContinuous112",
+    "label": "*Continuous - 1 1/2\"",
+    "source": "Derived alias label from Linux Eigenentwicklung_A (user requested)"
+  },
+  {
+    "name": "LeitzContinuous70030001",
+    "label": "*Continuous - 3.5\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzContinuous70040001",
+    "label": "*Continuous - 2.4\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzContinuous70050001",
+    "label": "*Continuous - 2.25\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzContinuous70060001",
+    "label": "*Continuous - 2\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzContinuous70070001",
+    "label": "*Continuous - 1.54\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzContinuous70080001",
+    "label": "*Continuous - 1.25\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzContinuous70090001",
+    "label": "*Continuous - 1\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzContinuous70100001",
+    "label": "*Continuous - 0.75\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzContinuous70110001",
+    "label": "*Continuous - 0.5\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzContinuous70190001",
+    "label": "*Continuous - 3.6\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzDHLShippingLabel",
+    "label": "*DHL Shipping Label",
+    "source": "Derived alias label from Linux Eigenentwicklung_A (user requested)"
+  },
+  {
+    "name": "LeitzFileFolderLabel",
+    "label": "*File Folder Label",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzInternationalAddressLabel",
+    "label": "*Large Address Label",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzLargePendaflexTab",
+    "label": "*Large Pendaflex Tab",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzLargePendaflexTabRotated",
+    "label": "*Large Pendaflex Tab R",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzLeverArchFile1005",
+    "label": "*Lever Arch File 1005",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzMultipurpose70030001",
+    "label": "*Multipurpose 2\"x3.5\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzMultipurpose70030001Rotated",
+    "label": "*Multipurpose 2\"x3.5\" R",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzMultipurpose70090001",
+    "label": "*Multipurpose 1\"x1.5\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzMultipurpose70100001",
+    "label": "*Multipurpose 0.75\"x2.5\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzMultipurpose70110001",
+    "label": "*Multipurpose 0.5\"x1.875\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzNameBadgeCard70190001",
+    "label": "*Name Badge Card 2.25\"x3.5\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzNameBadgeCard70190001Rotated",
+    "label": "*Name Badge Card 2.25\"x3.5\" R",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzNameBadgeCard8214",
+    "label": "*Durable Label",
+    "source": "Derived alias label from Linux Eigenentwicklung_A (user requested)"
+  },
+  {
+    "name": "LeitzNameBadgeLabel70030001",
+    "label": "*Name Badge 2.33\"x3.5\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzNameBadgeLabel70060001",
+    "label": "*Name Badge Label 2\"x3\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzNarrowLeverArchCardShort",
+    "label": "*Narrow Lever Arch Card Short",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzNarrowLeverArchLabelLong",
+    "label": "*Narrow Lever Arch Label Long",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzNarrowLeverArchLabelShort",
+    "label": "*Narrow Lever Arch Label Short",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzPackageShippingLabel",
+    "label": "*Package Label 6\"x3.5\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzReturnAddressLabelLarge",
+    "label": "*Return Address Label Large",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzReturnAddressLabelSmall",
+    "label": "*Return Address Label Small",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzShippingLabel70130001",
+    "label": "*Shipping Label 2.33\"x4\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzShippingLabel70180001",
+    "label": "*Shipping Label 2\"x3.5\"",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzShippingLabel70180001Rotated",
+    "label": "*Shipping Label 2\"x3.5\" R",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzStandardAddressLabel",
+    "label": "*Standard Address Label",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzSuspensionFileLabel",
+    "label": "*Suspension File Label",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzWideLeverArchCardShort",
+    "label": "*Wide Lever Arch Card Short",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzWideLeverArchLabelLong",
+    "label": "*Wide Lever Arch Label Long",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzWideLeverArchLabelShort",
+    "label": "*Wide Lever Arch Label Short",
+    "source": "Original Windows LeitzUSRes.dll display string"
+  },
+  {
+    "name": "LeitzWristband",
+    "label": "*Wristband",
+    "source": "Derived alias label from Linux Eigenentwicklung_A (user requested)"
+  }
+]
