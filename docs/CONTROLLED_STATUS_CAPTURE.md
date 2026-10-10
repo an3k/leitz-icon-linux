@@ -1,6 +1,6 @@
 # Controlled Leitz Icon USB status probe (development branch only)
 
-The manually invoked `leitz-probe` sends **exactly one** status command to an operator-confirmed idle Leitz Icon and displays the **raw reply bytes as hexadecimal on stdout**. It is never called by CUPS. No file, directory, host mount, or proprietary driver is required for captures.
+The manually invoked `leitz-probe` sends **exactly one** status command to an operator-confirmed idle Leitz Icon and displays **both the raw reply bytes as hexadecimal and a decoded view on stdout**. It is never called by CUPS. No file, directory, host mount, or proprietary driver is required for captures.
 
 ## Separation of responsibilities
 
@@ -43,13 +43,21 @@ docker run --rm --network none --read-only \
   --idle-confirmed --device /dev/usb/lp0 --command status
 ```
 
-Expected output structure (illustration only; **not a measured response**):
+Example output for the **previously measured** `ESC A` reply (the decoded lines illustrate the new software; they were not emitted by the older probe binary):
 
 ```text
 COMMAND=ESC A
-REPLY_BYTES=<actual length>
-REPLY_HEX=<actual bytes in hexadecimal>
+REPLY_BYTES=1
+REPLY_HEX=03
+DECODED_STATUS_BYTE=0x03
+DECODED_STATUS_LEGACY=READY_LEGACY
+DECODED_STATUS_V3=READY_V3_UNVERIFIED
+COMPLETION_CONFIRMED=NO
 ```
+
+For `ESC V`, output also includes `DECODED_TEXT`, `DECODED_NUL_TERMINATED`, and `DECODED_FIELD_ID/A/M/W` when those fields are present. The raw and decoded ID are printed **locally** but must not be pasted into a public issue or committed to the repository. Meanings of fields A/M/W remain unverified.
+
+For a zero-byte timeout (as already measured for idle `ESC P`), the new probe prints `REPLY_BYTES=0` and `DECODED=NO_RESPONSE_WITHIN_TIMEOUT`, returns a non-zero exit code and does **not** fabricate a hex payload or printed-line count.
 
 Review the **actual** output and the recorded results below before considering any further queries. This is one controlled sequence, not an automatic polling system. No extra host directories, bind mounts, status files or background services. Do not claim `ESC P` is safe during printing from an idle-only test.
 
@@ -57,7 +65,7 @@ The offline parser `leitz-cli decode-status legacy|v3|lines|version FILE` remain
 
 ## Verification
 
-`make probe-test` compiles `leitz-probe` and exercises the binary transport with simulated duplex responses: zero bytes, fragments, timeout before a complete idle gap, oversized data, and unsupported commands. This is not a printer hardware test. Actual idle replies from TARS are recorded below; tests for responses while printing have **not** been performed.
+`make probe-test` compiles `leitz-probe` and exercises the binary transport with simulated duplex responses: zero bytes, fragments, timeout before a complete idle gap, oversized data, and unsupported commands. The formatter has separate offline unit tests for status, ASCII/NUL, structured fields, and candidate counters. This is not a printer hardware test. Actual idle replies from TARS are recorded below; tests for responses while printing have **not** been performed.
 
 ## First real-device results — 10 October 2026
 
