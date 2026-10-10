@@ -22,29 +22,29 @@ int leitz_parse_reply(leitz_reply_kind kind, const uint8_t *raw, size_t size,
       if (size>64) return -1;
       out->status_byte=raw[0];
       switch (raw[0]) {
-        case 0x03: out->interpretation="READY_LEGACY"; break;
-        case 0x20: out->interpretation="MEDIA_EMPTY_LEGACY"; break;
-        case 0x30: out->interpretation="PAPER_JAM_LEGACY"; break;
-        case 0x40: out->interpretation="GENERAL_ERROR_LEGACY"; break;
-        default: out->interpretation="UNKNOWN_LEGACY"; break;
+        case 0x03: out->interpretation="READY"; break;
+        case 0x20: out->interpretation="MEDIA_EMPTY"; break;
+        case 0x30: out->interpretation="PAPER_JAM"; break;
+        case 0x40: out->interpretation="GENERAL_ERROR"; break;
+        default: out->interpretation="UNKNOWN"; break;
       }
       return 0;
     case LEITZ_REPLY_STATUS_V3:
       if (size>64) return -1;
       out->status_byte=raw[0];
-      if (raw[0]==0x03) out->interpretation="READY_V3_UNVERIFIED";
-      else if (raw[0]==0x04) out->interpretation="DOOR_OPEN_V3_UNVERIFIED";
+      if (raw[0]==0x03) out->interpretation="READY";
+      else if (raw[0]==0x04) out->interpretation="DOOR_OPEN";
       else {
         /* Earlier static notes give an active-low busy bit that overlaps
          * every listed 0xC0/0xA0/0x90/0x88 masked fault code. Until branch
          * precedence is re-verified, these MUST remain ambiguous. */
         const uint8_t masked=raw[0]&0xfc;
         if (masked==0xc0 || masked==0xa0 || masked==0x90 || masked==0x88) {
-          out->interpretation="FAULT_OR_BUSY_V3_AMBIGUOUS";
+          out->interpretation="FAULT_OR_BUSY";
           out->ambiguous=1;
         } else if ((raw[0]&0x02)==0) {
-          out->interpretation="BUSY_V3_UNVERIFIED";
-        } else out->interpretation="UNKNOWN_V3";
+          out->interpretation="BUSY";
+        } else out->interpretation="UNKNOWN";
       }
       return 0;
     case LEITZ_REPLY_PRINTED_LINES:
