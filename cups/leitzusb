@@ -130,7 +130,7 @@ fi
 # decoders. Query *after* validating the job and matching the cartridge,
 # on the same exclusive /dev/usb/lpN descriptor. Never treat unknown
 # status bytes as ready and never initiate automatic job replay.
-printf '\\033A' >&3 || { echo 'ERROR: ESC A request failed' >&2; exit 4; }
+printf '\033A' >&3 || { echo 'ERROR: ESC A request failed' >&2; exit 4; }
 IFS= read -r -N 1 -t 5 status_byte <&3 || {
   echo 'ERROR: No one-byte ESC A status reply; job not sent' >&2; exit 4;
 }
