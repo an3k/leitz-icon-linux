@@ -56,3 +56,7 @@ Only independently developed source code, build metadata and suitable test fixtu
 ## Offline manufacturer-status reply decoding (development branch)
 
 The existing `leitz-cli` can inspect **previously saved binary replies** with `leitz-cli decode-status legacy|v3|lines|version reply.bin` in `port/vendor-parity`. This reads ordinary files only; it never queries the printer. The original macOS status mappings and ESC P byte order inform these parsers but **hardware compatibility and print completion are not verified**. The development-only regression target is `make status-test`.
+
+## One-shot device status capture (development only)
+
+`port/vendor-parity` includes a manually invoked diagnostic `leitz-probe`, with an exclusive device lock and exact USB VID/PID checks. It sends only **one** chosen status query (`ESC A`, `ESC V`, or `ESC P`) to an operator-confirmed idle printer and writes the raw binary reply; it is not run automatically and has no printing/retry/resume functionality. See [controlled status capture](docs/CONTROLLED_STATUS_CAPTURE.md). Offline transport tests: `make probe-test`. No live hardware captures have been made with it.
