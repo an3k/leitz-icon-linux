@@ -156,7 +156,7 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,FILE *job,const
    for(unsigned y=0;y<used;y++){
      if(fread(bits,1,width,cached)!=width || leitz_row_media(&enc,bits))goto done;
    }
-   if(leitz_end(&enc))goto done;
+   if(leitz_end_page(&enc,cut_every))goto done;
  }
  fprintf(stderr,"INFO: Leitz protocol=%s media=%s width=%u dpi=300x%u feed=%u; content=%u, total=%u; cut=%s\n",
     native?"NativeLinux103":"Current",m?m->name:"Custom",width,dpi,head,used,total,
@@ -175,10 +175,6 @@ int main(int argc,char **argv){
  const int native=option(argv[5],"LeitzProtocol","NativeLinux103");
  const int cut_every=!option(argv[5],"LabelCutter","OFF");
  cups_page_header2_t h;int pages=0,failed=0;unsigned first_dpi=0;
- if(!native && !cut_every){
-   fprintf(stderr,"ERROR: LabelCutter=OFF requires NativeLinux103\n");
-   failed=1;
- }
  while(!failed && cupsRasterReadHeader2(r,&h)){
   pages++;
   if(pages==1)first_dpi=h.HWResolution[1];
@@ -188,10 +184,15 @@ int main(int argc,char **argv){
     failed=1;break;
   }
  }
- if(!failed && native && !cut_every && pages>0){
-   /* The original Linux driver always cuts at document end. */
-   const uint8_t finish[2]={27,'E'};
-   if(fwrite(finish,1,sizeof finish,job)!=sizeof finish)failed=1;
+ if(!failed && !cut_every && pages>0){
+   /* Shared policy: complete the final cut for either wire dialect.
+    * Each codec emits its own ESC G page boundary without cutting.
+    * Default LabelCutter=ON remains unchanged. */
+   static const uint8_t native_finish[]={27,'E'};
+   static const uint8_t current_finish[]={27,'E',27,'@',27,'Z'};
+   const uint8_t *finish=native?native_finish:current_finish;
+   const size_t finish_size=native?sizeof native_finish:sizeof current_finish;
+   if(fwrite(finish,1,finish_size,job)!=finish_size)failed=1;
  }
  cupsRasterClose(r);if(argc==7)close(fd);
  if(!pages){fprintf(stderr,"ERROR: No raster pages\n");failed=1;}
