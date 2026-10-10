@@ -37,7 +37,7 @@ int leitz_probe_format(FILE *output, uint8_t opcode,
         (opcode!='A' && opcode!='V' && opcode!='P')) return -1;
     fprintf(output,"COMMAND=ESC %c\nREPLY_BYTES=%zu\nREPLY_HEX=",opcode,length);
     for (size_t i=0;i<length;i++)
-        fprintf(output,"%s%02X",i?" ":"",(unsigned)bytes[i]);
+        fprintf(output,"%s0x%02X",i?" ":"",(unsigned)bytes[i]);
     fputc('\n',output);
 
     leitz_reply decoded;
@@ -45,7 +45,7 @@ int leitz_probe_format(FILE *output, uint8_t opcode,
         leitz_reply v3;
         if (!leitz_parse_reply(LEITZ_REPLY_STATUS_LEGACY,bytes,length,&decoded) &&
             !leitz_parse_reply(LEITZ_REPLY_STATUS_V3,bytes,length,&v3)) {
-            fprintf(output,"DECODED_STATUS_BYTE=0x%02X\n",(unsigned)decoded.status_byte);
+            fprintf(output,"DECODED_STATUS_HEX=0x%02X\n",(unsigned)decoded.status_byte);
             fprintf(output,"DECODED_STATUS_LEGACY=%s\n",decoded.interpretation);
             fprintf(output,"DECODED_STATUS_V3=%s\n",v3.interpretation);
             if (length>1) fputs("DECODED_EXTRA_STATUS_BYTES=UNINTERPRETED\n",output);
@@ -64,6 +64,5 @@ int leitz_probe_format(FILE *output, uint8_t opcode,
             fputs("DECODED_PRINTED_LINES_VERIFIED=NO\n",output);
         } else fputs("DECODED=UNRECOGNIZED_PRINTED_LINES_REPLY\n",output);
     }
-    fputs("COMPLETION_CONFIRMED=NO\n",output);
     return fflush(output)==0 && !ferror(output) ? 0 : -1;
 }
