@@ -6,11 +6,11 @@ all: leitz-cli
 leitz-cli: src/leitz_cli.c src/leitz_codec.c src/leitz_codec.h src/leitz_status.c src/leitz_status.h src/leitz_native_validate.c src/leitz_native_reference.h
 	$(CC) $(CFLAGS) -o $@ src/leitz_cli.c src/leitz_codec.c src/leitz_status.c src/leitz_native_validate.c $(LDLIBS)
 cups: leitz-rastertoicon
-leitz-rastertoicon: src/leitz_cups_filter.c src/leitz_codec.c src/leitz_codec.h src/leitz_media.h
-	$(CC) $(CFLAGS) -o $@ src/leitz_cups_filter.c src/leitz_codec.c -lcups $(LDLIBS)
+leitz-rastertoicon: src/leitz_cups_filter.c src/leitz_codec.c src/leitz_codec.h src/leitz_media.h src/leitz_native_reference.c src/leitz_native_reference.h src/leitz_native_validate.c
+	$(CC) $(CFLAGS) -o $@ src/leitz_cups_filter.c src/leitz_codec.c src/leitz_native_reference.c src/leitz_native_validate.c -lcups $(LDLIBS)
 mock-filter: leitz-rastertoicon-mock
-leitz-rastertoicon-mock: src/leitz_cups_filter.c src/leitz_codec.c tests/mock_cups.c src/leitz_media.h
-	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L -Itests/shim -o $@ src/leitz_cups_filter.c src/leitz_codec.c tests/mock_cups.c $(LDLIBS)
+leitz-rastertoicon-mock: src/leitz_cups_filter.c src/leitz_codec.c src/leitz_native_reference.c src/leitz_native_validate.c tests/mock_cups.c src/leitz_media.h
+	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L -Itests/shim -o $@ src/leitz_cups_filter.c src/leitz_codec.c src/leitz_native_reference.c src/leitz_native_validate.c tests/mock_cups.c $(LDLIBS)
 clean:
 	rm -f leitz-cli leitz-rastertoicon leitz-rastertoicon-mock leitz-probe
 
