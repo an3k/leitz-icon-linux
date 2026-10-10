@@ -32,12 +32,12 @@ int main(void) {
     char *out=format('A',ready,sizeof ready);
     /* Output contract: exact field labels/values; no invented status data. */
     const char *expected_ready =
-        "COMMAND=ESC A\\n"
-        "REPLY_BYTES=1\\n"
-        "REPLY_HEX=0x03\\n"
-        "DECODED_STATUS_HEX=0x03\\n"
-        "DECODED_STATUS_LEGACY=READY\\n"
-        "DECODED_STATUS_V3=READY\\n";
+        "COMMAND=ESC A\n"
+        "REPLY_BYTES=1\n"
+        "REPLY_HEX=0x03\n"
+        "DECODED_STATUS_HEX=0x03\n"
+        "DECODED_STATUS_LEGACY=READY\n"
+        "DECODED_STATUS_V3=READY\n";
     assert(strcmp(out,expected_ready)==0);
     contains(out,"COMMAND=ESC A\nREPLY_BYTES=1\nREPLY_HEX=0x03\n");
     contains(out,"DECODED_STATUS_HEX=0x03\n");
