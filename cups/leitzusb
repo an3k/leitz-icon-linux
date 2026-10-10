@@ -126,6 +126,20 @@ if ((job_width>physical_width)); then
   echo "ERROR: Selected print width $job_width pixels exceeds cartridge print width $physical_width pixels (SKU $actual_sku)" >&2
   exit 4
 fi
+# Hardware-proven ESC A reply 0x03 means READY in both original macOS
+# decoders. Query *after* validating the job and matching the cartridge,
+# on the same exclusive /dev/usb/lpN descriptor. Never treat unknown
+# status bytes as ready and never initiate automatic job replay.
+printf '\\033A' >&3 || { echo 'ERROR: ESC A request failed' >&2; exit 4; }
+IFS= read -r -N 1 -t 5 status_byte <&3 || {
+  echo 'ERROR: No one-byte ESC A status reply; job not sent' >&2; exit 4;
+}
+printf -v status_code '%d' "'$status_byte"
+if (( status_code != 3 )); then
+  printf -v status_hex '0x%02X' "$status_code"
+  echo "ERROR: Printer not ready: ESC A status $status_hex; job not sent" >&2
+  exit 4
+fi
 # A successful write means that the kernel accepted bytes, not necessarily
 # that all labels finished printing. An error must never trigger blind retry.
 if ! cat -- "$tmp" >&3; then echo 'ERROR: USB transfer failed; inspect device before retry' >&2;exit 4;fi
