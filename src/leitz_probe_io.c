@@ -63,7 +63,16 @@ int leitz_probe_exchange(int fd, uint8_t opcode, uint8_t *buffer,
                              last_data + (long long)idle_gap_ms <= deadline)
                             ? 0 : LEITZ_PROBE_TIMEOUT;
         int status = ready(fd, POLLIN, wait);
-        if (!status) return *received ? 0 : LEITZ_PROBE_TIMEOUT;
+        if (!status) {
+            /* A timed-out poll is not proof of message completion. Only the
+             * full response-idle gap, reached before the overall deadline,
+             * may end an otherwise unframed snapshot. */
+            const long long stopped_at = monotonic_ms();
+            if (stopped_at >= 0 && last_data >= 0 &&
+                last_data + (long long)idle_gap_ms <= deadline &&
+                stopped_at >= last_data + (long long)idle_gap_ms) return 0;
+            return LEITZ_PROBE_TIMEOUT;
+        }
         if (status < 0) return LEITZ_PROBE_IO_ERROR;
         uint8_t extra;
         uint8_t *dst = *received < capacity ? buffer + *received : &extra;
