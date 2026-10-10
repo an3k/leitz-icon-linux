@@ -19,7 +19,7 @@ The manually invoked `leitz-probe` sends **exactly one** status command to an op
 
 ## Test procedure on TARS (only after explicitly choosing to capture)
 
-The existing `leitz-icon-cups:probe` image was built from an **older commit** before the no-lock/hex-output rewrite. First rebuild that experimental tag from the current development branch (does not replace the running `cups` container):
+For future testing, rebuild the separate experimental tag from the current development branch if its code has changed (does not replace the running `cups` container):
 
 ```sh
 docker build -f cups/Dockerfile -t leitz-icon-cups:probe \
@@ -51,10 +51,24 @@ REPLY_BYTES=<actual length>
 REPLY_HEX=<actual bytes in hexadecimal>
 ```
 
-Review that **actual** output before scheduling `--command version` or `--command printed-lines`. This is one controlled sequence, not an automatic polling system. No extra host directories, bind mounts, status files or background services. Do not claim `ESC P` is safe during printing from an idle-only test.
+Review the **actual** output and the recorded results below before considering any further queries. This is one controlled sequence, not an automatic polling system. No extra host directories, bind mounts, status files or background services. Do not claim `ESC P` is safe during printing from an idle-only test.
 
 The offline parser `leitz-cli decode-status legacy|v3|lines|version FILE` remains available for saved binary fixtures and does not access USB; it is **not** required merely to read the hex output.
 
 ## Verification
 
-`make probe-test` compiles `leitz-probe` and exercises the binary transport with simulated duplex responses: zero bytes, fragments, timeout before a complete idle gap, oversized data, and unsupported commands. This is not a printer hardware test. The image build and actual `ESC A` response must be verified again on TARS after the branch updates.
+`make probe-test` compiles `leitz-probe` and exercises the binary transport with simulated duplex responses: zero bytes, fragments, timeout before a complete idle gap, oversized data, and unsupported commands. This is not a printer hardware test. Actual idle replies from TARS are recorded below; tests for responses while printing have **not** been performed.
+
+## First real-device results — 10 October 2026
+
+Source: direct operator-provided output from TARS, Leitz Icon USB device `289e:1000`, kernel `usblp` path `/dev/usb/lp0`, using temporary `leitz-icon-cups:probe` container and `--idle-confirmed`. Operator confirmed CUPS idle/empty beforehand. **These were three separate manually invoked commands, not in-print queries.**
+
+| Query | Actual result | Interpretation |
+|---|---|---|
+| `ESC A` (`1B 41`) | `REPLY_BYTES=1; REPLY_HEX=03` | Real device returned code `03`; the original macOS legacy/V3 decoder maps that byte to ready |
+| `ESC V` (`1B 56`) | `REPLY_BYTES=34`, NUL-terminated printable ASCII `ID:[redacted];A:0129;M:0090;W:310c;;\x00` | Real response format confirmed; meanings of A/M/W not established; device ID deliberately redacted in this public repository |
+| `ESC P` (`1B 50`) | `ERROR: Status exchange failed (-2), received 0 bytes; no retry` | Seven-second deadline elapsed with **no response bytes** while idle. Does not prove command unsupported during active printing or on other firmware |
+
+**Implementation decision:** `ESC P` cannot currently be used to confirm print completion or resume an incomplete job. No automatic retries, no new in-print probes, no cutter/transport behavior change. `ESC A` READY does **not** confirm a finished mechanical cut; `ESC V` reports manufacturer fields without proven semantics. Do not extrapolate from one idle printer to all Leitz firmware variants.
+
+The development image used on TARS was built from the branch as of that test; the running `cups` container, its printing pipeline, and `main` were not replaced by this probe.
