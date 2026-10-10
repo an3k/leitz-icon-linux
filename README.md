@@ -57,9 +57,13 @@ Only independently developed source code, build metadata and suitable test fixtu
 
 The existing `leitz-cli` can inspect **previously saved binary replies** with `leitz-cli decode-status legacy|v3|lines|version reply.bin` in `port/vendor-parity`. This reads ordinary files only; it never queries the printer. The original macOS status mappings and ESC P byte order inform these parsers but **hardware compatibility and print completion are not verified**. The development-only regression target is `make status-test`.
 
+## USB readiness before printing
+
+The development `leitzusb` backend now checks the installed cartridge with `ESC U`, then sends `ESC A` and requires the **measured ready status byte `0x03`** before transmitting any print bytes. A missing or different status blocks the job; no automatic retry is attempted. This is not a physical printing/cutting completion acknowledgment. The running TARS container is not modified.
+
 ## Actual CUPS print protocol selection (development only)
 
-The development-branch CUPS queue has `LeitzProtocol`: `Current` (**default; existing tested implementation**) or `NativeLinux103` (**original Linux 1.0.3 framing, experimental**). The same `leitz-rastertoicon` filter processes media, raster data and length selection, then encodes in the chosen protocol. The `leitzusb` backend independently validates the selected binary stream before USB and performs the same cartridge-width preflight. NativeLinux103 is currently limited to **one label per job** and has not been tested on the actual printer. This is a transitional experimental option, not a plan to maintain two distinct printer systems indefinitely.
+The development-branch CUPS queue has `LeitzProtocol`: `Current` (**default; existing tested implementation**) or `NativeLinux103` (**original Linux 1.0.3 framing, experimental**). The same `leitz-rastertoicon` filter processes media, raster data and length selection, then encodes in the chosen protocol. The `leitzusb` backend independently validates the selected binary stream before USB and performs the same cartridge-width preflight. NativeLinux103 supports **multiple labels of one width/resolution per job**. Vendor `LabelCutter=ON` (default) cuts each label; `OFF` cuts only at the end of the native job. This functionality has not been tested on the actual printer. This is a transitional experimental option, not a plan to maintain two distinct printer systems indefinitely.
 
 ## Original Linux protocol validation (offline only)
 
