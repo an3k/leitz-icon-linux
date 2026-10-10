@@ -173,12 +173,25 @@ int main(int argc,char **argv){
  if(!r){fprintf(stderr,"ERROR: Unable to open CUPS raster\n");if(argc==7)close(fd);return 1;}
  FILE *job=tmpfile();if(!job){perror("tmpfile");cupsRasterClose(r);if(argc==7)close(fd);return 1;}
  const int native=option(argv[5],"LeitzProtocol","NativeLinux103");
- cups_page_header2_t h;int pages=0,failed=0;
- while(cupsRasterReadHeader2(r,&h)){
+ const int cut_every=!option(argv[5],"LabelCutter","OFF");
+ cups_page_header2_t h;int pages=0,failed=0;unsigned first_dpi=0;
+ if(!native && !cut_every){
+   fprintf(stderr,"ERROR: LabelCutter=OFF requires NativeLinux103\n");
+   failed=1;
+ }
+ while(!failed && cupsRasterReadHeader2(r,&h)){
   pages++;
-  if(pages>64 || (native && pages>1) || process(r,&h,job,argv[5],native)){
-    if(native && pages>1)fprintf(stderr,"ERROR: Native Linux 1.0.3 mode currently requires one label per job\n");
-    failed=1;break;}
+  if(pages==1)first_dpi=h.HWResolution[1];
+  if(pages>64 || (native && h.HWResolution[1]!=first_dpi) ||
+     process(r,&h,job,argv[5],native,pages==1,cut_every)){
+    fprintf(stderr,"ERROR: Invalid Leitz raster page or mixed native resolution\n");
+    failed=1;break;
+  }
+ }
+ if(!failed && native && !cut_every && pages>0){
+   /* The original Linux driver always cuts at document end. */
+   const uint8_t finish[2]={27,'E'};
+   if(fwrite(finish,1,sizeof finish,job)!=sizeof finish)failed=1;
  }
  cupsRasterClose(r);if(argc==7)close(fd);
  if(!pages){fprintf(stderr,"ERROR: No raster pages\n");failed=1;}
