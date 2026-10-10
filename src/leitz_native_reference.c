@@ -77,3 +77,9 @@ int leitz_native_finish_page(leitz_native_reference *p, int cut) {
 int leitz_native_end(leitz_native_reference *p) {
   return leitz_native_finish_page(p, 1);
 }
+int leitz_native_finish_job(leitz_native_reference *p) {
+  /* The original Linux job closes with ESC E after the last ESC G. */
+  if(!p || p->failed || !p->finished || !p->out)return -1;
+  const uint8_t command[]={ESC,'E'};
+  return send(p->out,command,sizeof command);
+}
