@@ -43,24 +43,25 @@ print('PASS 86 A-then-B PPD sizes with source-matched original Windows B labels'
 
 with tempfile.TemporaryDirectory() as t:
  tmp=Path(t)
- def run_case(mname, dpi=600, empty=False, native=False):
+ def run_case(mname, dpi=600, empty=False, native=False, pages=1, cut_each=True):
   m=next((x for x in CAT if x['name']==mname),None)
   w=m['area'][0] if m else 960
   h=(((m['area'][1]+1)//2 if dpi==300 else m['area'][1])) if m else 1120
   if h>65000:raise AssertionError('too long')
   pgm=tmp/'media.pgm'
   with pgm.open('wb') as f:
-   f.write(f'P5\n{w} {h}\n255\n'.encode())
-   row=bytearray(b'\xff'*w)
-   for y in range(h):
-    row[:]=b'\xff'*w
-    if not empty and y in (15,120):
-     row[min(15 if y==15 else 50,w-1)]=0
-    f.write(row)
+   for _page in range(pages):
+    f.write(f'P5\n{w} {h}\n255\n'.encode())
+    row=bytearray(b'\xff'*w)
+    for y in range(h):
+     row[:]=b'\xff'*w
+     if not empty and y in (15,120):
+      row[min(15 if y==15 else 50,w-1)]=0
+     f.write(row)
   env=os.environ.copy();env['MOCK_MEDIA_NAME']=mname
   if dpi==300:env['MOCK_DPI300']='1'
   result=subprocess.run([str(ROOT/'leitz-rastertoicon-mock'),'1','root','Test','1',
-      'LeitzCutMode=Automatic' + (' LeitzProtocol=NativeLinux103' if native else ''),str(pgm)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+      'LeitzCutMode=Automatic' + (' LeitzProtocol=NativeLinux103' if native else '') + (' LabelCutter=OFF' if not cut_each else ''),str(pgm)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
   if empty:
    assert result.returncode!=0 and not result.stdout
    print('PASS blank input blocked');return
@@ -68,6 +69,7 @@ with tempfile.TemporaryDirectory() as t:
   out=tmp/'out.bin';out.write_bytes(result.stdout)
   status=subprocess.run([str(ROOT/'leitz-cli'),'validate-native' if native else 'validate',str(out)],capture_output=True)
   assert status.returncode==0,(mname,status.stderr)
+  assert (f'{pages} validated label(s)' in status.stderr.decode() if not native else f'pages={pages};' in status.stderr.decode()), status.stderr
   if native:
     assert result.stdout[:4] in (b'\x1b@\x1bi',b'\x1b@\x1bh')
     width=(result.stdout[130]<<8)|result.stdout[131]
@@ -83,6 +85,7 @@ with tempfile.TemporaryDirectory() as t:
    assert len(result.stdout)<2000,len(result.stdout)
   else:assert b'cut=page' in result.stderr
   print(f'PASS {mname} @300x{dpi} width={w} payload={len(result.stdout)}')
+  return result.stdout
  for name in ('Multipurpose70030001','WideLeverArchLabelShort','NameBadgeLabel70060001',
               'NarrowLeverArchLabelShort','ReturnAddressLabelSmall',
               'LeitzFileFolderLabel','Continuous70090001','Continuous70030001'):
@@ -107,4 +110,13 @@ with tempfile.TemporaryDirectory() as t:
  # vendor framing, but the tested current path remains the default.
  run_case('FileFolderLabel',native=True)
  run_case('FileFolderLabel',native=True,dpi=300)
+ # Both codecs must honor the same job-level cutter and page-count choices.
+ for use_native in (False,True):
+  one_cut=run_case('FileFolderLabel',native=use_native)
+  one_end=run_case('FileFolderLabel',native=use_native,cut_each=False)
+  assert one_cut==one_end, 'Single-label bytes must be unchanged by cut policy'
+  two_cut=run_case('FileFolderLabel',native=use_native,pages=2)
+  two_end=run_case('FileFolderLabel',native=use_native,pages=2,cut_each=False)
+  assert two_cut!=two_end, 'Inter-label cut must differ'
+  assert two_end.count(b'\x1bE')==1, 'Only final cut expected'
  print('PASS offline media checks for both actual print protocols')
