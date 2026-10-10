@@ -1,4 +1,4 @@
-/* GENERATED from vendor media geometry; DO NOT EDIT without matching media.json. */
+/* GENERATED/EXTENDED from vendor media geometry; DO NOT EDIT without matching media.json. */
 #ifndef LEITZ_MEDIA_H
 #define LEITZ_MEDIA_H
 struct leitz_media {const char *name; unsigned page_width,page_height,raster_width,raster_height,left,bottom,length_code; int continuous;};
@@ -79,6 +79,11 @@ static const struct leitz_media leitz_media_catalog[] = {
   {"LeitzShippingLabel70180001Rotated",591,2078,561,2018,15,30,1039,0},
   {"Wristband",336,6554,306,6494,15,30,3277,0},
   {"DHLShippingLabel",1039,4204,960,4144,40,30,2102,0},
+  {"Continuous112",461,63780,431,63720,15,30,65535,1},
+  {"LargePendaflexTabRotated",331,1181,301,1121,15,30,591,0},
+  {"Multipurpose70030001Rotated",600,2079,570,2019,15,30,1040,0},
+  {"NameBadgeCard70190001Rotated",675,2150,645,2090,15,30,1075,0},
+  {"ShippingLabel70180001Rotated",591,2079,561,2019,15,30,1040,0},
 };
 #define LEITZ_MEDIA_COUNT (sizeof(leitz_media_catalog)/sizeof(leitz_media_catalog[0]))
 #endif
