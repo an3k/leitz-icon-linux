@@ -62,6 +62,18 @@ if ((size % 64 == 0)); then
   echo 'WARNING: USB job size divisible by 64; the link to earlier cut failures remains UNPROVEN' >&2
 fi
 
+# One owner per /dev/usb/lpN across our backend and leitz-status.
+# This is an advisory lock; external tools must share this lock or must not
+# have direct access to the USB character device.
+lockdir=/run/leitz-icon
+mkdir -p -m 0700 -- "$lockdir" || { echo 'ERROR: Cannot create USB lock directory' >&2; exit 4; }
+[[ -d "$lockdir" && ! -L "$lockdir" ]] || { echo 'ERROR: Unsafe USB lock directory' >&2; exit 4; }
+exec 9>"$lockdir/$port.lock" || { echo 'ERROR: Cannot open USB lock' >&2; exit 4; }
+if ! flock -w 30 9; then
+  echo 'ERROR: USB busy; could not acquire exclusive Leitz device lock' >&2
+  exit 4
+fi
+
 root=$(readlink -f "/sys/class/usbmisc/$port/device") || exit 4
 root=${root%/*}
 read -r vid < "$root/idVendor" || exit 4
@@ -72,7 +84,7 @@ fi
 [[ -c "$usb_device" ]] || { echo 'ERROR: USB printer missing' >&2; exit 4; }
 exec 3<>"$usb_device" || { echo 'ERROR: Cannot access Leitz USB printer' >&2;exit 4; }
 printf '\033U' >&3 || { echo 'ERROR: ESC U failed' >&2;exit 4; }
-IFS= read -r -d '' -t 3 response <&3 || { echo 'ERROR: No status response' >&2;exit 4; }
+IFS= read -r -d '' -n 1024 -t 5 response <&3 || { echo 'ERROR: No status response' >&2;exit 4; }
 if [[ "$response" == 'SKU:No Cartridge;;;' ]]; then
   echo 'ERROR: No cartridge; job blocked' >&2;exit 4
 fi
