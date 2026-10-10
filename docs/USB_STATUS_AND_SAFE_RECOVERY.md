@@ -35,17 +35,13 @@ Windows `JOB_CONTROL_LAST_PAGE_EJECTED`: https://learn.microsoft.com/en-us/windo
 
 ## USB access / ownership
 
-Previously `cups/leitzusb` and `cups/leitz-status` both opened `/dev/usb/lpN` without a mutual-exclusion mechanism. Status requests could race the print process and consume the wrong response.
+The current device is exposed through Linux kernel `usblp` as `/dev/usb/lp0` (VID:PID `289e:1000`). The kernel `usblp_open()` permits only **one open descriptor at a time**, returning `EBUSY` on another attempted open. This works across Docker containers using the same kernel driver. Redundant `flock` files and `/run/leitz-icon` have therefore been **removed** from `leitzusb`, `leitz-status`, and the experimental probe. See [upstream `usblp.c`](https://github.com/torvalds/linux/blob/master/drivers/usb/class/usblp.c).
 
-Development branch now adds one lock for each `lpN` device, in `/run/leitz-icon/lpN.lock`:
-- Print backend: acquire exclusive lock with up to 30 seconds' wait, *before opening USB and ESC U preflight*, hold through the transfer.
-- Standalone status: fail immediately with `STATE=BUSY` while lock is owned by the print backend.
-- Both use `flock`; the runtime image explicitly installs `util-linux`.
-- The `/run/leitz-icon` lock directory is owned by the container (normally running device operations as root) with permissions 0700.
-- This **advisory** lock only protects processes using the same file/inode in the same filesystem namespace. Multiple containers need a *shared lock directory* and must not independently access the device. Direct other programs using `usblp` **do not** honor our lock. Ideally the CUPS container is sole owner and all other clients use its status/printing interface.
-- Lock release follows the end of the USB **transfer**, **not** verified end of the mechanical print operation. Consequently status access after the last write is not yet a reliable `printer idle` proof. Avoid initiating additional arbitrary status queries until reply semantics and safe operating phases have been established.
+Limits: single-open enforcement is specific to the `usblp` path, **not** users that detach the kernel driver and use libusb directly. The device can continue moving or cutting after `close()`. A CUPS queue reporting `idle` does not prove the hardware has stopped.
 
-**Validation state:** static source checks and byte-level review; no hardware qualification of new lock/read behavior. TARS and `main` unchanged.
+The test probe is a separate opt-in program: one manufacturer status command, 1,024-byte bounded binary response, direct stdout hex. It does not generate spool data and creates no host or container capture files. The production print path remains unchanged apart from the removal of filesystem locks. See [one-shot status procedure](CONTROLLED_STATUS_CAPTURE.md).
+
+**Validation state:** source and mocked-protocol checks; real A/V/P replies remain unverified. Only the development branch is changed; the running CUPS container on TARS and `main` are unchanged.
 
 ## Offline status-decoder implementation (development only)
 
