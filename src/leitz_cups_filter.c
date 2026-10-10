@@ -4,6 +4,7 @@
  * hardware test offsets as conservative starting values. Other sizes UNTESTED.
  */
 #include "leitz_codec.h"
+#include "leitz_native_reference.h"
 #include "leitz_media.h"
 #include <cups/raster.h>
 #include <ctype.h>
@@ -42,7 +43,7 @@ static const struct leitz_media *lookup(const cups_page_header2_t *h){
  }
  return NULL;
 }
-static int process(cups_raster_t *r,const cups_page_header2_t *h,FILE *job,const char *options){
+static int process(cups_raster_t *r,const cups_page_header2_t *h,FILE *job,const char *options,int native){
  unsigned dpi=h->HWResolution[1];
  unsigned width=h->cupsWidth,height=h->cupsHeight;
  if(h->HWResolution[0]!=300 || (dpi!=300&&dpi!=600) || !width||width>LEITZ_MAX_WIDTH ||
@@ -128,14 +129,37 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,FILE *job,const
  /* For 300x600, ESC L is in 300dpi units according to the Windows GPD.
     For custom size use 0xffff, as with the vendor's CUSTOMSIZE mode. */
  if(fseek(cached,0,SEEK_SET)){goto done;}
- leitz_encoder enc;
- if(leitz_begin_media(&enc,job,width,total,used,head,tail,device_length,dpi))goto done;
- for(unsigned y=0;y<used;y++){
-  if(fread(bits,1,width,cached)!=width || leitz_row_media(&enc,bits))goto done;
+ if(native){
+   /* Both protocols share the exact same CUPS media and raster calculations.
+    * Only the wire framing differs. The original 1.0.3 reference emits
+    * full-width packed rows (no v0.4.1 offset/RLE compression). */
+   leitz_native_reference enc;
+   const unsigned row_bytes=(width+7)/8;
+   const uint8_t blank[120]={0};
+   if(leitz_native_begin(&enc,job,width,total,dpi,device_length))goto done;
+   for(unsigned y=0;y<head;y++)
+     if(leitz_native_row(&enc,blank,row_bytes))goto done;
+   for(unsigned y=0;y<used;y++){
+     uint8_t packed[120]={0};
+     if(fread(bits,1,width,cached)!=width)goto done;
+     for(unsigned x=0;x<width;x++)
+       if(bits[x])packed[x/8]|=(uint8_t)(1u<<(7-(x&7)));
+     if(leitz_native_row(&enc,packed,row_bytes))goto done;
+   }
+   for(unsigned y=0;y<tail;y++)
+     if(leitz_native_row(&enc,blank,row_bytes))goto done;
+   if(leitz_native_end(&enc))goto done;
+ }else{
+   /* Keep the previously tested framing byte-for-byte unchanged. */
+   leitz_encoder enc;
+   if(leitz_begin_media(&enc,job,width,total,used,head,tail,device_length,dpi))goto done;
+   for(unsigned y=0;y<used;y++){
+     if(fread(bits,1,width,cached)!=width || leitz_row_media(&enc,bits))goto done;
+   }
+   if(leitz_end(&enc))goto done;
  }
- if(leitz_end(&enc))goto done;
- fprintf(stderr,"INFO: Leitz media=%s width=%u dpi=300x%u feed=%u; content=%u, total=%u; cut=%s\n",
-    m?m->name:"Custom",width,dpi,head,used,total,
+ fprintf(stderr,"INFO: Leitz protocol=%s media=%s width=%u dpi=300x%u feed=%u; content=%u, total=%u; cut=%s\n",
+    native?"NativeLinux103":"Current",m?m->name:"Custom",width,dpi,head,used,total,
     (fixed||page_mode)?"page":"after-content");
  rc=0;
 done:
@@ -148,16 +172,26 @@ int main(int argc,char **argv){
  cups_raster_t *r=cupsRasterOpen(fd,CUPS_RASTER_READ);
  if(!r){fprintf(stderr,"ERROR: Unable to open CUPS raster\n");if(argc==7)close(fd);return 1;}
  FILE *job=tmpfile();if(!job){perror("tmpfile");cupsRasterClose(r);if(argc==7)close(fd);return 1;}
+ const int native=option(argv[5],"LeitzProtocol","NativeLinux103");
  cups_page_header2_t h;int pages=0,failed=0;
  while(cupsRasterReadHeader2(r,&h)){
   pages++;
-  if(pages>64 || process(r,&h,job,argv[5])){failed=1;break;}
+  if(pages>64 || (native && pages>1) || process(r,&h,job,argv[5],native)){
+    if(native && pages>1)fprintf(stderr,"ERROR: Native Linux 1.0.3 mode currently requires one label per job\n");
+    failed=1;break;}
  }
  cupsRasterClose(r);if(argc==7)close(fd);
  if(!pages){fprintf(stderr,"ERROR: No raster pages\n");failed=1;}
  if(!failed){
-  rewind(job);unsigned n;char reason[256]={0};
-  if(leitz_validate(job,&n,reason,sizeof(reason)) || (int)n!=pages){
+  rewind(job);unsigned n=0;char reason[256]={0};
+  if(native){
+    unsigned native_width=0,native_rows=0;
+    if(leitz_native_validate(job,&native_width,&native_rows,reason,sizeof reason) ||
+       native_width!=h.cupsWidth || pages!=1){
+      fprintf(stderr,"ERROR: Generated native Linux job failed validation: %s\n",reason);
+      failed=1;
+    }
+  }else if(leitz_validate(job,&n,reason,sizeof(reason)) || (int)n!=pages){
     fprintf(stderr,"ERROR: Generated job failed validation: %s\n",reason);failed=1;
   }
  }
