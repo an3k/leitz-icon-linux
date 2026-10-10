@@ -46,3 +46,16 @@ Development branch now adds one lock for each `lpN` device, in `/run/leitz-icon/
 - Lock release follows the end of the USB **transfer**, **not** verified end of the mechanical print operation. Consequently status access after the last write is not yet a reliable `printer idle` proof. Avoid initiating additional arbitrary status queries until reply semantics and safe operating phases have been established.
 
 **Validation state:** static source checks and byte-level review; no hardware qualification of new lock/read behavior. TARS and `main` unchanged.
+
+## Offline status-decoder implementation (development only)
+
+Added `src/leitz_status.c/.h` to the existing `leitz-cli`. Command: `leitz-cli decode-status legacy|v3|lines|version saved-reply.bin`. This command reads **only regular files** (1..1024 bytes), does **not** open `/dev/usb/lpN`, and does **not** send any printer commands. It rejects oversized, empty and malformed replies, and preserves binary NUL bytes in ESC A/P snapshots.
+
+- `legacy`: first-byte mapping from original macOS command filter. Unknown codes remain unknown.
+- `v3`: maps the first byte conservatively; masked fault codes with overlapping active-low busy bit remain `FAULT_OR_BUSY_V3_AMBIGUOUS`, **not** an operational printer-state decision.
+- `lines`: 1..4 big-endian bytes parsed as an **unverified candidate** count. Returns `COMPLETION_CONFIRMED=NO`; no continuation or resend is enabled.
+- `version`: printable ASCII with optional terminal NUL (a conservative heuristic based on macOS text handling), not an established firmware-version wire grammar.
+
+Offline verification: compiled strict C11 decoder/unit test locally and compiled the CLI with stubbed **unmodified codec dependencies**; exercised NUL-containing line counts, ambiguous status byte `C0`, version text, and invalid lengths. The full in-repository `make status-test` target was added for later end-to-end regression runs; **no physical status A/P/V reply has been captured yet**.
+
+The production USB backend and `leitz-status` are **unchanged by this decoder step**. No automatic status probing or resume behavior has been activated, and neither `main` nor TARS was modified.
