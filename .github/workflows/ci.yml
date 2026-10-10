@@ -21,7 +21,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends gcc make libcups2-dev cups
       - name: Compile driver and independent raster mock
         run: make clean all cups mock-filter
-      - name: Validate original tested raster reference and media cases
+      - name: Validate synthetic raster cases and media profiles
         run: |
           python3 tests/test_core.py
           python3 tests/test_v04.py
