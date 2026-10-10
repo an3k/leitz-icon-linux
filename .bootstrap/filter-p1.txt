@@ -1,0 +1,44 @@
+/* Independent CUPS raster filter for Leitz Icon.
+ * Media catalog: vendor GPD (76 entries). No PDF cropping or application logic.
+ * Continuous roll: automatically cut after last ink row, with proven 170mm
+ * hardware test offsets as conservative starting values. Other sizes UNTESTED.
+ */
+#include "leitz_codec.h"
+#include "leitz_media.h"
+#include <cups/raster.h>
+#include <ctype.h>
+#include <fcntl.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <unistd.h>
+
+static int output(FILE *in, FILE *out){
+ unsigned char buf[32768];size_t n;
+ while((n=fread(buf,1,sizeof(buf),in)))if(fwrite(buf,1,n,out)!=n)return -1;
+ return ferror(in)?-1:0;
+}
+static int option(const char *s,const char *key,const char *value){
+ size_t len=strlen(key);
+ for(const char *p=s;p&&*p;){
+  while(*p==' ')p++;
+  if(!strncmp(p,key,len)&&p[len]=='=' &&
+    !strncmp(p+len+1,value,strlen(value)) &&
+    (p[len+1+strlen(value)]==' '||p[len+1+strlen(value)]=='\0'))return 1;
+  while(*p&&*p!=' ')p++;
+ }
+ return 0;
+}
+static const struct leitz_media *lookup(const cups_page_header2_t *h){
+ for(size_t i=0;i<LEITZ_MEDIA_COUNT;i++){
+  const struct leitz_media *m=&leitz_media_catalog[i];
+  double pw=m->page_width*72.0/300.0, ph=m->page_height*72.0/600.0;
+  if(fabs(h->cupsPageSize[0]-pw)<.4 && fabs(h->cupsPageSize[1]-ph)<.4 &&
+     h->cupsWidth==m->raster_width &&
+     h->cupsHeight==m->raster_height*(h->HWResolution[1]==300?0.5:1.0))
+     return m;
+ }
+ return NULL;
+}
