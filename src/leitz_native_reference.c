@@ -19,9 +19,9 @@ static int skip_rows(leitz_native_reference *p, unsigned rows) {
   }
   return 0;
 }
-int leitz_native_begin(leitz_native_reference *p, FILE *out,
-                       unsigned width, unsigned rows, unsigned dpi_y,
-                       unsigned length_units) {
+int leitz_native_begin_page(leitz_native_reference *p, FILE *out,
+                            unsigned width, unsigned rows, unsigned dpi_y,
+                            unsigned length_units, int first_page) {
   if (!p || !out || !width || width > 960 || !rows || rows > 64000 ||
       (dpi_y != 300 && dpi_y != 600) || length_units > 65535)
     return -1;
@@ -36,10 +36,15 @@ int leitz_native_begin(leitz_native_reference *p, FILE *out,
   const uint8_t setup[11] = {ESC, 'L', (uint8_t)(length_units >> 8),
     (uint8_t)length_units, ESC, 'w', (uint8_t)(width >> 8),
     (uint8_t)width, ESC, 'B', 0};
-  if (send(out, init, sizeof init) ||
+  if ((first_page && send(out, init, sizeof init)) ||
       send(out, preamble, sizeof preamble) ||
       send(out, setup, sizeof setup)) return p->failed = -1;
   return 0;
+}
+int leitz_native_begin(leitz_native_reference *p, FILE *out,
+                       unsigned width, unsigned rows, unsigned dpi_y,
+                       unsigned length_units) {
+  return leitz_native_begin_page(p, out, width, rows, dpi_y, length_units, 1);
 }
 int leitz_native_row(leitz_native_reference *p, const uint8_t *packed,
                      unsigned row_bytes) {
@@ -59,14 +64,16 @@ int leitz_native_row(leitz_native_reference *p, const uint8_t *packed,
       send(p->out, packed, row_bytes)) return p->failed = -1;
   return 0;
 }
-int leitz_native_end(leitz_native_reference *p) {
+int leitz_native_finish_page(leitz_native_reference *p, int cut) {
   if (!p || p->failed || p->finished || p->rows_written != p->total_rows) return -1;
-  /* Mirror the original Linux 1.0.3 raw/optimization-1 stream:
-   * trailing blank rows remain pending at page end. The source emits
-   * ESC f only when a subsequent nonblank row is encountered.
-   */
+  /* Original 1.0.3 optimization-1 leaves trailing blank rows pending.
+   * Inter-label page end is ESC G, with optional ESC E cutter command.
+   * The document always ends with ESC G ESC E. */
   const uint8_t finish[4] = {ESC, 'G', ESC, 'E'};
-  if (send(p->out, finish, sizeof finish)) return p->failed = -1;
+  if (send(p->out, finish, cut ? 4u : 2u)) return p->failed = -1;
   p->finished = 1;
   return 0;
+}
+int leitz_native_end(leitz_native_reference *p) {
+  return leitz_native_finish_page(p, 1);
 }
