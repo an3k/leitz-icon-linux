@@ -43,13 +43,21 @@ No more one-change/one-label iteration. Use offline tests for protocol frames, P
 
 **Development branch only:** `port/vendor-parity`. The TARS installation and `main` remain unchanged until the integrated implementation is verified.
 
+## Native Linux 1.0.3 framing integrated into driver (development only)
+
+**What changed:** `leitz-rastertoicon` now accepts `-o LeitzProtocol=NativeLinux103`, and the PPD exposes `LeitzProtocol` with **Current** as default and **Original Linux 1.0.3 (experimental)** as the opt-in choice. Both variants use the **same** CUPS raster input, page geometry, media selection, cut-length calculation and staged output. The final encoder is selected inside the same running CUPS filter: the old `leitz_codec` remains the tested default, while the native Linux 1.0.3 raw framing is produced by `leitz_native_reference`. The backend detects native first bytes (`ESC @ ESC i/h`), runs the complete **native validator**, checks width at its distinct header offset, then performs the **same** SKU/width/USB transfer checks. Nothing reaches USB before whole-job validation.
+
+**Temporary restrictions:** NativeLinux103 supports **one label per job** at this stage, and its original unflushed trailing blank rows mean physical label length must not be assumed to match the CUPS page height. `ESC P` and physical completion remain unverified. The native dialect has **not** been tested on actual TARS hardware. The separate offline reference source and its tools remain present; nothing was deleted. The goal is to converge on one verified final encoding after hardware comparison.
+
+**Tests:** The existing `tests/test_v04.py` now exercises the real raster-filter native option at 300×300 and 300×600 dpi in addition to the unmodified Current path. Entire development-branch Docker build and live printer test remain pending.
+
 ## Native Linux 1.0.3 wire-reference implementation — offline only
 
 - Added independent C reference encoder `src/leitz_native_reference.[ch]` and strict single-label validator `src/leitz_native_validate.c` for the **plain/raw optimization-level-1 subset** of the actual manufacturer Linux 1.0.3 C sources. These are not vendor source copies.
 - Added offline C regression tests and `make native-reference-test`; checked with local GCC at both 300×300 and 300×600 dpi, against explicit byte-frame fixtures, rejection cases and truncated/altered end markers.
 - The reference reproduces the native source's **unflushed trailing blank rows**. This behavior is not automatically a desirable choice for continuous media; physical label length is not inferred from the emitted row count.
 - **Reference defect corrected:** its former unconditional end-of-label blank-row flush contradicted the original Linux 1.0.3 optimization-1 source and pre-existing regression fixtures. The encoder now leaves trailing blank rows pending (the productively tested v0.4.1 encoder is unchanged).
-- **Offline validator integrated:** `leitz-cli validate-native file.bin` now checks the original Linux 1.0.3 framing separately, without changing the existing `leitz-cli validate` dialect. `make native-reference-test` additionally verifies that native frames are rejected by the production validator and tests truncation/extra data. **Still not supported by `leitzusb` or the CUPS raster filter** and not printable through our current pipeline.
+- **Offline validator integrated:** `leitz-cli validate-native file.bin` now checks the original Linux 1.0.3 framing separately, without changing the existing `leitz-cli validate` dialect. `make native-reference-test` additionally verifies that native frames are rejected by the production validator and tests truncation/extra data. Now supported by the development-branch CUPS filter and backend, with explicit native validation and one-label restriction; **not yet physically verified**.
 - Exact framing comparison: [VENDOR_LINUX_PROTOCOL.md](VENDOR_LINUX_PROTOCOL.md).
 
 ## Real idle status probes (10 October 2026)
