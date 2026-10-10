@@ -25,8 +25,10 @@ jobs:
         run: |
           python3 tests/test_core.py
           python3 tests/test_v04.py
-      - name: Validate driver PPD
-        run: cupstestppd -v cups/LeitzIcon.ppd
+      - name: Validate driver PPD against installed CUPS filter
+        run: |
+          sudo install -m 0755 leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
+          cupstestppd -v cups/LeitzIcon.ppd
       - name: Verify source package files
         run: |
           test -s cups/LeitzIcon.ppd
