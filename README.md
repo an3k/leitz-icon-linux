@@ -33,7 +33,7 @@ The `main` branch contains the **experimental v0.4.1 development sources**, incl
 
 ## Downloads and releases
 
-- [Actions build results](https://github.com/an3k/leitz-icon-linux/actions): source snapshots appear as workflow artifacts after successful runs. GitHub may require login to download artifacts.
+- [Actions build results](https://github.com/an3k/leitz-icon-linux/actions): successful runs upload both a source snapshot (`leitz-icon-linux-source`) and an **experimental loadable Docker image** (`leitz-icon-cups-dev-image`). These are temporary build artifacts, not validated releases; GitHub may require login to download them.
 - [Releases](https://github.com/an3k/leitz-icon-linux/releases): the tag-triggered `release.yml` workflow will build a **loadable Docker image archive**, source archive and SHA-256 checksums as a public prerelease when a `v*` tag is deliberately pushed.
 - **No release tag has been created yet.** Do not assume a prebuilt Docker download already exists.
 - [Unraid deployment notes](docs/UNRAID.md) describe intended fresh-container settings; deployment remains pending device testing.
