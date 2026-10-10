@@ -42,3 +42,11 @@ Finish vendor protocol research and implement an explicit state machine for **ma
 No more one-change/one-label iteration. Use offline tests for protocol frames, PPD, dithering, media layouts, error handling, and mock USB responses. Schedule a **single batched physical test session** only after the related changes are integrated. Preserve exact original Windows and macOS terminology in the test comparisons.
 
 **Development branch only:** `port/vendor-parity`. The TARS installation and `main` remain unchanged until the integrated implementation is verified.
+
+## Native Linux 1.0.3 wire-reference implementation — offline only
+
+- Added independent C reference encoder `src/leitz_native_reference.[ch]` and strict single-label validator `src/leitz_native_validate.c` for the **plain/raw optimization-level-1 subset** of the actual manufacturer Linux 1.0.3 C sources. These are not vendor source copies.
+- Added offline C regression tests and `make native-reference-test`; checked with local GCC at both 300×300 and 300×600 dpi, against explicit byte-frame fixtures, rejection cases and truncated/altered end markers.
+- The reference reproduces the native source's **unflushed trailing blank rows**. This behavior is not automatically a desirable choice for continuous media; physical label length is not inferred from the emitted row count.
+- **Not yet integrated:** the reference stream is not accepted by the existing `leitz-cli` validator / `leitzusb` backend, nor selected by the production CUPS filter. It is therefore **not printable through our current pipeline**. Only after integrated validation can the dialect be evaluated against the existing known-good protocol.
+- Exact framing comparison: [VENDOR_LINUX_PROTOCOL.md](VENDOR_LINUX_PROTOCOL.md).
