@@ -50,10 +50,24 @@ size=$(stat -c %s -- "$tmp")
 if ((size < 130 || size > 25000000)); then
   echo "ERROR: Suspicious job length $size; not sent" >&2; exit 4
 fi
-"$LEITZ_VALIDATE_BIN" validate "$tmp" || { echo 'ERROR: Rejected invalid Leitz job' >&2;exit 4; }
-# Inspect the width encoded in ESC w. This is part of the *validated* header,
-# not arbitrary byte search. Header: 120 ESC preamble, 13-byte command prefix.
-read -r width_hi width_lo < <(od -An -tu1 -j 133 -N 2 "$tmp")
+# Determine framing from the first four bytes, then validate the *entire*
+# spooled document against that dialect before opening USB. The two command
+# streams have different header/width offsets; they are never interchanged.
+read -r b0 b1 b2 b3 < <(od -An -tu1 -N 4 "$tmp")
+if ((b0==27 && b1==64 && b2==27 && (b3==104 || b3==105))); then
+  dialect=native
+  width_offset=130
+  "$LEITZ_VALIDATE_BIN" validate-native "$tmp" || {
+    echo 'ERROR: Rejected invalid native Linux 1.0.3 job' >&2; exit 4;
+  }
+else
+  dialect=current
+  width_offset=133
+  "$LEITZ_VALIDATE_BIN" validate "$tmp" || {
+    echo 'ERROR: Rejected invalid Leitz job' >&2; exit 4;
+  }
+fi
+read -r width_hi width_lo < <(od -An -tu1 -j "$width_offset" -N 2 "$tmp")
 job_width=$((width_hi*256+width_lo))
 if ((job_width<1 || job_width>960));then
   echo "ERROR: Unsupported raster width $job_width" >&2; exit 4
@@ -116,5 +130,5 @@ fi
 # that all labels finished printing. An error must never trigger blind retry.
 if ! cat -- "$tmp" >&3; then echo 'ERROR: USB transfer failed; inspect device before retry' >&2;exit 4;fi
 exec 3>&-
-echo 'INFO: Leitz job transmitted (physical completion not confirmed)' >&2
+echo "INFO: Leitz $dialect job transferred to USB" >&2
 exit 0
