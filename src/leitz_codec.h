@@ -16,6 +16,7 @@ int leitz_begin_media(leitz_encoder *e,FILE *out,unsigned width,unsigned total_r
    unsigned raster_rows,unsigned top,unsigned bottom,unsigned length_code,unsigned dpi_y);
 int leitz_row_media(leitz_encoder *e,const uint8_t *pixels);
 int leitz_end_page(leitz_encoder *e, int cut);
+int leitz_finish_job(leitz_encoder *e);
 int leitz_end(leitz_encoder *e);
 int leitz_validate(FILE *f,unsigned *pages,char *reason,size_t reason_size);
 #endif
