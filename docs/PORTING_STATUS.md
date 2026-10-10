@@ -53,7 +53,7 @@ No more one-change/one-label iteration. Use offline tests for protocol frames, P
 
 ## Real idle status probes (10 October 2026)
 
-See [controlled status capture](CONTROLLED_STATUS_CAPTURE.md). `ESC A` returned one byte `03` (ready per original macOS decoder); `ESC V` returned a 34-byte NUL-terminated ASCII record with fields `ID`, `A`, `M`, `W` (device ID redacted from the repository). `ESC P` at idle returned **zero bytes and timed out after seven seconds**. Support during active printing and safe print-job recovery remain **unverified**. No automated progress/resume functionality is enabled.
+See [controlled status capture](CONTROLLED_STATUS_CAPTURE.md). `ESC A` returned one byte `03` (ready per original macOS decoder); `ESC V` returned a 34-byte NUL-terminated ASCII record with fields `ID`, `A`, `M`, `W` (device ID redacted from the repository). `ESC P` at idle returned **zero bytes and timed out after seven seconds**. Support during active printing and safe print-job recovery remain **unverified**. No automated progress/resume functionality is enabled. The diagnostic now formats every successful reply as both `REPLY_HEX` and decoded content from the shared offline parser; no USB protocol or CUPS behavior is altered.
 
 ## 43 + 43 alias catalog (development branch)
 
