@@ -387,7 +387,7 @@
 *OrderDependency: 13 AnySetup *LabelCutter
 *DefaultLabelCutter: ON
 *LabelCutter ON/Cut Each Label: ""
-*LabelCutter OFF/Cut At Job End (NativeLinux103): ""
+*LabelCutter OFF/Cut At Job End (experimental): ""
 *CloseUI: *LabelCutter
 *OpenUI *LeitzProtocol/Print Protocol (development): PickOne
 *OrderDependency: 12 AnySetup *LeitzProtocol
