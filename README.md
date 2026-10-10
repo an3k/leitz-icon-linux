@@ -57,9 +57,13 @@ Only independently developed source code, build metadata and suitable test fixtu
 
 The existing `leitz-cli` can inspect **previously saved binary replies** with `leitz-cli decode-status legacy|v3|lines|version reply.bin` in `port/vendor-parity`. This reads ordinary files only; it never queries the printer. The original macOS status mappings and ESC P byte order inform these parsers but **hardware compatibility and print completion are not verified**. The development-only regression target is `make status-test`.
 
+## Actual CUPS print protocol selection (development only)
+
+The development-branch CUPS queue has `LeitzProtocol`: `Current` (**default; existing tested implementation**) or `NativeLinux103` (**original Linux 1.0.3 framing, experimental**). The same `leitz-rastertoicon` filter processes media, raster data and length selection, then encodes in the chosen protocol. The `leitzusb` backend independently validates the selected binary stream before USB and performs the same cartridge-width preflight. NativeLinux103 is currently limited to **one label per job** and has not been tested on the actual printer. This is a transitional experimental option, not a plan to maintain two distinct printer systems indefinitely.
+
 ## Original Linux protocol validation (offline only)
 
-The original Linux 1.0.3 raw-reference framing is checked independently with `leitz-cli validate-native file.bin`; the existing hardware-tested dialect remains `leitz-cli validate file.bin`. The reference encoder has been corrected to **omit an end-of-page flush of trailing blank rows**, as observed in the original source. `make native-reference-test` includes both binary frame tests and rejection of native frames by the production validator. The USB backend and CUPS raster filter **do not yet select or transmit the native dialect**.
+The original Linux 1.0.3 raw-reference framing is checked independently with `leitz-cli validate-native file.bin`; the existing hardware-tested dialect remains `leitz-cli validate file.bin`. The reference encoder has been corrected to **omit an end-of-page flush of trailing blank rows**, as observed in the original source. `make native-reference-test` includes both binary frame tests and rejection of native frames by the production validator. The development CUPS raster filter now selects the native dialect explicitly, and the USB backend validates its frames; physical verification is outstanding.
 
 ## Manual device status probe (development branch only)
 
