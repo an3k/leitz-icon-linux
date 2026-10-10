@@ -15,5 +15,7 @@ clean:
 	rm -f leitz-cli leitz-rastertoicon leitz-rastertoicon-mock
 
 native-reference-test:
-	$(CC) $(CFLAGS) -o /tmp/leitz-native-reference-test src/leitz_native_reference.c tests/test_native_reference.c
+	$(CC) $(CFLAGS) -o /tmp/leitz-native-reference-test src/leitz_native_reference.c src/leitz_native_validate.c tests/test_native_reference.c
 	/tmp/leitz-native-reference-test
+	$(CC) $(CFLAGS) -o /tmp/leitz-native-validate-test src/leitz_native_reference.c src/leitz_native_validate.c tests/test_native_validate.c
+	/tmp/leitz-native-validate-test
