@@ -73,6 +73,13 @@ int leitz_end_page(leitz_encoder *e,int cut){
  return e->feed_units+e->printed_rows==e->total_rows?0:-1;
 }
 int leitz_end(leitz_encoder *e){return leitz_end_page(e,1);}
+int leitz_finish_job(leitz_encoder *e){
+  /* End-of-document cut after ESC G from a deliberately uncut final page.
+   * The full trailer matches the existing Current encoding. */
+  if(!e || e->error || !e->out || e->emitted_rows!=e->raster_rows)return -1;
+  static const uint8_t trailer[]={27,'E',27,'@',27,'Z'};
+  return fwrite(trailer,1,sizeof trailer,e->out)==sizeof trailer?0:-1;
+}
 static int rd(FILE *f){return fgetc(f);}
 static int bad(char *r,size_t n,const char *m){if(n)snprintf(r,n,"%s",m);return -1;}
 int leitz_validate(FILE *f,unsigned *pages,char *r,size_t n){
