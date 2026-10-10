@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Leitz Icon independent USB status. Only ESC U; never prints or cuts.
+# Use when idle; do not run concurrently with active printing.
+set -euo pipefail
+LC_ALL=C
+DEVICE=${LEITZ_DEVICE:-/dev/usb/lp0}
+if [[ $# != 0 && ( $# != 2 || $1 != --expected-sku ) ]]; then
+  echo 'Usage: leitz-status [--expected-sku NNNNNNNN]' >&2; exit 2
+fi
+if [[ $# == 2 && ! $2 =~ ^[0-9]{8}$ ]]; then
+  echo 'ERROR: Expected an eight-digit SKU' >&2; exit 2
+fi
+[[ -c "$DEVICE" ]] || { echo 'STATE=USB_DEVICE_MISSING';exit 4; }
+base=$(basename "$DEVICE")
+[[ "$base" =~ ^lp[0-9]+$ ]] || { echo 'ERROR: Unsupported USB device path' >&2;exit 4; }
+root=$(readlink -f "/sys/class/usbmisc/$base/device") || exit 4
+root=${root%/*}
+read -r vid < "$root/idVendor" || exit 4
+read -r pid < "$root/idProduct" || exit 4
+if [[ "${vid,,}" != 289e || "${pid,,}" != 1000 ]];then
+  echo "ERROR: USB device not Leitz Icon ($vid:$pid)" >&2;exit 4
+fi
+exec 3<>"$DEVICE" || exit 4
+printf '\033U' >&3 || exit 4
+response=''
+IFS= read -r -d '' -t 3 response <&3 || { echo 'STATE=NO_REPLY';exit 4; }
+exec 3>&-
+echo "RAW=$response"
+if [[ "$response" == 'SKU:No Cartridge;;;' ]];then
+  echo 'STATE=NO_CARTRIDGE';exit 4
+fi
+if [[ "$response" =~ ^SKU:([0-9]{8})\;INIT:([0-9]+)\;USED:([0-9]+)\;$ ]];then
+  sku=${BASH_REMATCH[1]}; init=${BASH_REMATCH[2]}; used=${BASH_REMATCH[3]}
+else
+  echo 'STATE=UNRECOGNIZED';exit 4
+fi
+printf 'STATE=CARTRIDGE_DETECTED\nSKU=%s\nINIT_RAW=%s\nUSED_RAW=%s\n' "$sku" "$init" "$used"
+case "$sku" in
+  70030001) echo 'MATERIAL=White paper 88mm';;
+  70160015) echo 'MATERIAL=Yellow plastic 88mm';;
+  70160025) echo 'MATERIAL=Red plastic 88mm';;
+  *) echo 'MATERIAL=UNKNOWN';;
+esac
+if (( $# == 2 ));then
+  if [[ "$2" != "$sku" ]];then
+    echo "SKU_CHECK=MISMATCH (expected $2)";exit 4
+  else
+    echo 'SKU_CHECK=MATCH'
+  fi
+fi
