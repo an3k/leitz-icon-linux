@@ -35,3 +35,4 @@ leitz-probe: src/leitz_probe.c src/leitz_probe_io.c src/leitz_probe_io.h
 probe-test: leitz-probe
 	$(CC) $(CFLAGS) -Isrc -o /tmp/leitz-probe-io-test src/leitz_probe_io.c tests/test_probe_io.c
 	/tmp/leitz-probe-io-test
+	python3 tests/test_probe_cli.py
