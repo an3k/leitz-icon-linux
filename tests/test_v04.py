@@ -80,5 +80,15 @@ with tempfile.TemporaryDirectory() as t:
   run_case(name)
  run_case('LargePendaflexTabRotated',300)
  run_case('Continuous112')
+ # Every new alias must run through the same CUPS raster-to-USB-byte pipeline.
+ for name in ('LeverArchFile1005','LeitzLeverArchFile1005',
+              'DHLShippingLabel','LeitzDHLShippingLabel',
+              'NameBadgeCard8214','LeitzNameBadgeCard8214',
+              'Wristband','LeitzWristband',
+              'LargePendaflexTabRotated','LeitzLargePendaflexTabRotated',
+              'Multipurpose70030001Rotated','LeitzMultipurpose70030001Rotated',
+              'NameBadgeCard70190001Rotated','LeitzNameBadgeCard70190001Rotated',
+              'ShippingLabel70180001Rotated','LeitzShippingLabel70180001Rotated'):
+  run_case(name)
  run_case('Multipurpose70030001',empty=True)
  print('PASS offline media checks')
