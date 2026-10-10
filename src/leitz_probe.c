@@ -1,5 +1,6 @@
 #define _XOPEN_SOURCE 700
 #include "leitz_probe_io.h"
+#include "leitz_probe_format.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -109,13 +110,10 @@ int main(int argc, char **argv) {
                 result,received);
         return 4;
     }
-    /* Present bytes verbatim as HEX ONLY; binary status must never be printed
-     * unescaped to a terminal. No files or capture directories are created. */
-    printf("COMMAND=ESC %c\nREPLY_BYTES=%zu\nREPLY_HEX=",opcode,received);
-    for(size_t i=0;i<received;i++) printf("%s%02X",i?" ":"",(unsigned)response[i]);
-    putchar('\n');
-    if(fflush(stdout)!=0) {
-        perror("ERROR: stdout");
+    /* Format the recorded bytes after closing USB. Decoding is diagnostic
+     * only: unknown values must not influence printing or recovery. */
+    if (leitz_probe_format(stdout,opcode,response,received)) {
+        fprintf(stderr,"ERROR: Cannot format USB response.\n");
         return 4;
     }
     return 0;
