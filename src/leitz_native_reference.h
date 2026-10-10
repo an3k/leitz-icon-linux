@@ -23,6 +23,7 @@ int leitz_native_begin_page(leitz_native_reference *p, FILE *out,
                             unsigned width, unsigned rows, unsigned dpi_y,
                             unsigned length_units, int first_page);
 int leitz_native_finish_page(leitz_native_reference *p, int cut);
+int leitz_native_finish_job(leitz_native_reference *p);
 int leitz_native_validate_job(FILE *in, unsigned *pages_out,
                               unsigned *first_width, char *error,
                               size_t error_size);
