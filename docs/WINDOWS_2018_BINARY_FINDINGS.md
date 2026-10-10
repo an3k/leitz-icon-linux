@@ -22,4 +22,4 @@ Source: user-supplied `Leitz-Icon-Windows-Release.exe` extracted as `MSI.zip`, i
 
 ## Implementation policy
 
-Keep the currently physically tested Windows-like USB printing command path; the Linux 1.0.3 source and macOS legacy/V3 binaries are additional references, not automatic replacement implementations. Probe ESC A/V only after framing, expected response length, locking, and timeout behavior have been established offline. Completion must not be advertised as confirmed unless the device supplies verifiable evidence. Do not automatically append ESC alignment bytes or reconfigure production TARS.
+Keep the currently physically tested Windows-like USB printing command path; the Linux 1.0.3 source and macOS legacy/V3 binaries are additional references, not automatic replacement implementations. Probe ESC A/V only with strict limits, kernel `usblp` exclusive open, and operator-confirmed mechanical idle; actual response framing remains to be captured. Completion must not be advertised as confirmed unless the device supplies verifiable evidence. Do not automatically append ESC alignment bytes or reconfigure production TARS.
