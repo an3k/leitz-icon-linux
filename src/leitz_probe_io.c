@@ -59,7 +59,9 @@ int leitz_probe_exchange(int fd, uint8_t opcode, uint8_t *buffer,
                               ? last_data + (long long)idle_gap_ms : deadline;
         const int wait = until(end);
         if (wait < 0) return LEITZ_PROBE_IO_ERROR;
-        if (!wait) return *received ? 0 : LEITZ_PROBE_TIMEOUT;
+        if (!wait) return (last_data >= 0 &&
+                             last_data + (long long)idle_gap_ms <= deadline)
+                            ? 0 : LEITZ_PROBE_TIMEOUT;
         int status = ready(fd, POLLIN, wait);
         if (!status) return *received ? 0 : LEITZ_PROBE_TIMEOUT;
         if (status < 0) return LEITZ_PROBE_IO_ERROR;
