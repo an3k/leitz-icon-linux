@@ -17,4 +17,6 @@ int leitz_native_begin(leitz_native_reference *p, FILE *out,
 int leitz_native_row(leitz_native_reference *p, const uint8_t *packed,
                      unsigned row_bytes);
 int leitz_native_end(leitz_native_reference *p);
+int leitz_native_validate(FILE *in, unsigned *width, unsigned *row_count,
+                          char *error, size_t error_size);
 #endif
