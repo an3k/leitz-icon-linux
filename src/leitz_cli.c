@@ -45,11 +45,11 @@ int main(int argc,char **argv){
   }
   printf("REPLY_BYTES=%zu\nINTERPRETATION=%s\n",n,parsed.interpretation);
   if(kind==LEITZ_REPLY_PRINTED_LINES)
-    printf("PRINTED_LINES_CANDIDATE=%u\nCOMPLETION_CONFIRMED=NO\n",parsed.printed_lines);
+    printf("PRINTED_LINES_CANDIDATE=%u\n",parsed.printed_lines);
   else if(kind==LEITZ_REPLY_VERSION)
     printf("VERSION_TEXT=%s\n",parsed.version);
   else
-    printf("STATUS_BYTE=0x%02X\nAMBIGUOUS=%s\nDEVICE_VERIFIED=NO\n",
+    printf("STATUS_HEX=0x%02X\nAMBIGUOUS=%s\nDEVICE_VERIFIED=NO\n",
            (unsigned)parsed.status_byte,parsed.ambiguous?"YES":"NO");
   return 0;
  }
