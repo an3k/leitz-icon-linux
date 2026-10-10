@@ -3,8 +3,8 @@
  * Continuous roll: automatically cut after last ink row, with proven 170mm
  * hardware test offsets as conservative starting values. Other sizes UNTESTED.
  */
+#include "leitz_job.h"
 #include "leitz_codec.h"
-#include "leitz_native_reference.h"
 #include "leitz_media.h"
 #include <cups/raster.h>
 #include <ctype.h>
@@ -43,7 +43,7 @@ static const struct leitz_media *lookup(const cups_page_header2_t *h){
  }
  return NULL;
 }
-static int process(cups_raster_t *r,const cups_page_header2_t *h,FILE *job,const char *options,int native,int first_page,int cut_every){
+static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,const char *options){
  unsigned dpi=h->HWResolution[1];
  unsigned width=h->cupsWidth,height=h->cupsHeight;
  if(h->HWResolution[0]!=300 || (dpi!=300&&dpi!=600) || !width||width>LEITZ_MAX_WIDTH ||
@@ -129,37 +129,15 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,FILE *job,const
  /* For 300x600, ESC L is in 300dpi units according to the Windows GPD.
     For custom size use 0xffff, as with the vendor's CUSTOMSIZE mode. */
  if(fseek(cached,0,SEEK_SET)){goto done;}
- if(native){
-   /* Both protocols share the exact same CUPS media and raster calculations.
-    * Only the wire framing differs. The original 1.0.3 reference emits
-    * full-width packed rows (no v0.4.1 offset/RLE compression). */
-   leitz_native_reference enc;
-   const unsigned row_bytes=(width+7)/8;
-   const uint8_t blank[120]={0};
-   if(leitz_native_begin_page(&enc,job,width,total,dpi,device_length,first_page))goto done;
-   for(unsigned y=0;y<head;y++)
-     if(leitz_native_row(&enc,blank,row_bytes))goto done;
-   for(unsigned y=0;y<used;y++){
-     uint8_t packed[120]={0};
-     if(fread(bits,1,width,cached)!=width)goto done;
-     for(unsigned x=0;x<width;x++)
-       if(bits[x])packed[x/8]|=(uint8_t)(1u<<(7-(x&7)));
-     if(leitz_native_row(&enc,packed,row_bytes))goto done;
-   }
-   for(unsigned y=0;y<tail;y++)
-     if(leitz_native_row(&enc,blank,row_bytes))goto done;
-   if(leitz_native_finish_page(&enc,cut_every))goto done;
- }else{
-   /* Keep the previously tested framing byte-for-byte unchanged. */
-   leitz_encoder enc;
-   if(leitz_begin_media(&enc,job,width,total,used,head,tail,device_length,dpi))goto done;
-   for(unsigned y=0;y<used;y++){
-     if(fread(bits,1,width,cached)!=width || leitz_row_media(&enc,bits))goto done;
-   }
-   if(leitz_end_page(&enc,cut_every))goto done;
+ /* Shared page controller implements feed, row and cut policy for both
+  * encoders; a protocol choice must not affect media and raster processing. */
+ if(leitz_job_begin_page(job,width,total,used,head,tail,device_length,dpi))goto done;
+ for(unsigned y=0;y<used;y++){
+   if(fread(bits,1,width,cached)!=width || leitz_job_row(job,bits))goto done;
  }
+ if(leitz_job_end_page(job))goto done;
  fprintf(stderr,"INFO: Leitz protocol=%s media=%s width=%u dpi=300x%u feed=%u; content=%u, total=%u; cut=%s\n",
-    native?"NativeLinux103":"Current",m?m->name:"Custom",width,dpi,head,used,total,
+    leitz_job_protocol_name(job),m?m->name:"Custom",width,dpi,head,used,total,
     (fixed||page_mode)?"page":"after-content");
  rc=0;
 done:
@@ -172,43 +150,33 @@ int main(int argc,char **argv){
  cups_raster_t *r=cupsRasterOpen(fd,CUPS_RASTER_READ);
  if(!r){fprintf(stderr,"ERROR: Unable to open CUPS raster\n");if(argc==7)close(fd);return 1;}
  FILE *job=tmpfile();if(!job){perror("tmpfile");cupsRasterClose(r);if(argc==7)close(fd);return 1;}
- const int native=option(argv[5],"LeitzProtocol","NativeLinux103");
- const int cut_every=!option(argv[5],"LabelCutter","OFF");
- cups_page_header2_t h;int pages=0,failed=0;unsigned first_dpi=0;
+ const leitz_protocol protocol=option(argv[5],"LeitzProtocol","NativeLinux103")
+   ? LEITZ_PROTOCOL_NATIVE_LINUX_103 : LEITZ_PROTOCOL_CURRENT;
+ const int cut_each_page=!option(argv[5],"LabelCutter","OFF");
+ leitz_job *document=leitz_job_create(job,protocol,cut_each_page);
+ if(!document){fprintf(stderr,"ERROR: Could not initialize print job\n");fclose(job);cupsRasterClose(r);if(argc==7)close(fd);return 1;}
+ cups_page_header2_t h;int pages=0,failed=0;
  while(!failed && cupsRasterReadHeader2(r,&h)){
-  pages++;
-  if(pages==1)first_dpi=h.HWResolution[1];
-  if(pages>64 || (native && h.HWResolution[1]!=first_dpi) ||
-     process(r,&h,job,argv[5],native,pages==1,cut_every)){
-    fprintf(stderr,"ERROR: Invalid Leitz raster page or mixed native resolution\n");
-    failed=1;break;
-  }
- }
- if(!failed && !cut_every && pages>0){
-   /* Shared policy: complete the final cut for either wire dialect.
-    * Each codec emits its own ESC G page boundary without cutting.
-    * Default LabelCutter=ON remains unchanged. */
-   static const uint8_t native_finish[]={27,'E'};
-   static const uint8_t current_finish[]={27,'E',27,'@',27,'Z'};
-   const uint8_t *finish=native?native_finish:current_finish;
-   const size_t finish_size=native?sizeof native_finish:sizeof current_finish;
-   if(fwrite(finish,1,finish_size,job)!=finish_size)failed=1;
+   pages++;
+   if(pages>64 || process(r,&h,document,argv[5])){
+     fprintf(stderr,"ERROR: Unsupported or invalid Leitz raster page\n");
+     failed=1;break;
+   }
  }
  cupsRasterClose(r);if(argc==7)close(fd);
  if(!pages){fprintf(stderr,"ERROR: No raster pages\n");failed=1;}
- if(!failed){
-  rewind(job);unsigned n=0;char reason[256]={0};
-  if(native){
-    unsigned native_width=0,native_pages=0;
-    if(leitz_native_validate_job(job,&native_pages,&native_width,reason,sizeof reason) ||
-       native_width!=h.cupsWidth || native_pages!=(unsigned)pages){
-      fprintf(stderr,"ERROR: Generated native Linux job failed validation: %s\n",reason);
-      failed=1;
-    }
-  }else if(leitz_validate(job,&n,reason,sizeof(reason)) || (int)n!=pages){
-    fprintf(stderr,"ERROR: Generated job failed validation: %s\n",reason);failed=1;
-  }
+ if(!failed && leitz_job_finish(document)){
+   fprintf(stderr,"ERROR: Cannot finish Leitz print job\n");
+   failed=1;
  }
+ if(!failed){
+   char reason[256]={0};
+   if(leitz_job_validate(document,reason,sizeof reason)){
+     fprintf(stderr,"ERROR: Generated job failed validation: %s\n",reason);
+     failed=1;
+   }
+ }
+ leitz_job_destroy(document);
  if(!failed){rewind(job);if(output(job,stdout)||fflush(stdout)){fprintf(stderr,"ERROR: Output failure\n");failed=1;}}
  fclose(job);
  return failed?1:0;
