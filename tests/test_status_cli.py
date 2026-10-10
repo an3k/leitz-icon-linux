@@ -24,13 +24,13 @@ def run(mode, data=None, expected_success=True, source=None):
 
 out = run("lines", bytes([0, 0, 1, 44]))
 assert "PRINTED_LINES_CANDIDATE=300" in out
-assert "COMPLETION_CONFIRMED=NO" in out
+assert "COMPLETION_CONFIRMED" not in out
 out = run("lines", bytes([0]))
 assert "PRINTED_LINES_CANDIDATE=0" in out
 out = run("legacy", bytes([0x03]))
-assert "STATUS_BYTE=0x03" in out and "READY_LEGACY" in out
+assert "STATUS_HEX=0x03" in out and "INTERPRETATION=READY" in out
 out = run("v3", bytes([0xC0]))
-assert "AMBIGUOUS=YES" in out and "FAULT_OR_BUSY" in out
+assert "AMBIGUOUS=YES" in out and "INTERPRETATION=FAULT_OR_BUSY" in out
 out = run("version", b"v2.1\x00")
 assert "VERSION_TEXT=v2.1" in out
 run("lines", bytes([0, 0, 0, 0, 0]), expected_success=False)
