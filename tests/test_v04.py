@@ -31,6 +31,8 @@ assert '*PageSize Continuous70070001/Continuous - 1 1/2"' in ppd
 assert '*Resolution 300x300dpi/300 x 300 dpi:' in ppd
 assert '*OpenUI *LeitzProtocol/Print Protocol (development): PickOne' in ppd
 assert '*DefaultLeitzProtocol: Current' in ppd
+assert '*DefaultLabelCutter: ON' in ppd
+assert '*LabelCutter OFF/Cut At Job End (NativeLinux103):' in ppd
 assert '*LeitzProtocol NativeLinux103/Original Linux 1.0.3 (experimental): ""' in ppd
 print('PASS vendor-readable CUPS media labels and confirmed 300x300 dpi option')
 assert len([line for line in ppd.splitlines() if line.startswith('*PageSize ')])==86
