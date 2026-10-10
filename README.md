@@ -52,3 +52,7 @@ Only independently developed source code, build metadata and suitable test fixtu
 ## Development branch media profiles
 
 `port/vendor-parity` keeps 43 sorted A profiles followed by 43 `Leitz`-prefixed B variants in the same PPD. The four differing original source geometries are preserved and must not be silently normalized. Use `make media-check` to check PPD, `media.json`, C header and original B labels without accessing the printer.
+
+## Offline manufacturer-status reply decoding (development branch)
+
+The existing `leitz-cli` can inspect **previously saved binary replies** with `leitz-cli decode-status legacy|v3|lines|version reply.bin` in `port/vendor-parity`. This reads ordinary files only; it never queries the printer. The original macOS status mappings and ESC P byte order inform these parsers but **hardware compatibility and print completion are not verified**. The development-only regression target is `make status-test`.
