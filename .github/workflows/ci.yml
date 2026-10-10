@@ -60,3 +60,12 @@ jobs:
             test -s /usr/share/ppd/LeitzIcon.ppd
             cupstestppd /usr/share/ppd/LeitzIcon.ppd
           '
+      - name: Export loadable experimental Docker image
+        run: |
+          mkdir -p dist
+          docker save leitz-icon-cups:ci | gzip -1 > dist/leitz-icon-cups-dev-image.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: leitz-icon-cups-dev-image
+          path: dist/leitz-icon-cups-dev-image.tar.gz
+          retention-days: 14
