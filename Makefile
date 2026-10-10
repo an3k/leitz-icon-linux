@@ -1,7 +1,7 @@
 CC ?= gcc
 CFLAGS ?= -O2 -Wall -Wextra -Werror -std=c11
 LDLIBS = -lm
-.PHONY: all cups clean test mock-filter native-reference-test
+.PHONY: all cups clean test mock-filter native-reference-test media-check
 all: leitz-cli
 leitz-cli: src/leitz_cli.c src/leitz_codec.c src/leitz_codec.h
 	$(CC) $(CFLAGS) -o $@ src/leitz_cli.c src/leitz_codec.c $(LDLIBS)
@@ -19,3 +19,6 @@ native-reference-test:
 	/tmp/leitz-native-reference-test
 	$(CC) $(CFLAGS) -o /tmp/leitz-native-validate-test src/leitz_native_reference.c src/leitz_native_validate.c tests/test_native_validate.c
 	/tmp/leitz-native-validate-test
+
+media-check:
+	python3 tools/check_media_consistency.py
