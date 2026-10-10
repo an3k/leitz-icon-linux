@@ -23,6 +23,7 @@ native-reference-test:
 media-check:
 	python3 tools/check_media_consistency.py
 
-status-test:
+status-test: leitz-cli
 	$(CC) $(CFLAGS) -o /tmp/leitz-status-decode-test src/leitz_status.c tests/test_status_decode.c
 	/tmp/leitz-status-decode-test
+	python3 tests/test_status_cli.py
