@@ -51,6 +51,10 @@ No more one-change/one-label iteration. Use offline tests for protocol frames, P
 - **Not yet integrated:** the reference stream is not accepted by the existing `leitz-cli` validator / `leitzusb` backend, nor selected by the production CUPS filter. It is therefore **not printable through our current pipeline**. Only after integrated validation can the dialect be evaluated against the existing known-good protocol.
 - Exact framing comparison: [VENDOR_LINUX_PROTOCOL.md](VENDOR_LINUX_PROTOCOL.md).
 
+## Real idle status probes (10 October 2026)
+
+See [controlled status capture](CONTROLLED_STATUS_CAPTURE.md). `ESC A` returned one byte `03` (ready per original macOS decoder); `ESC V` returned a 34-byte NUL-terminated ASCII record with fields `ID`, `A`, `M`, `W` (device ID redacted from the repository). `ESC P` at idle returned **zero bytes and timed out after seven seconds**. Support during active printing and safe print-job recovery remain **unverified**. No automated progress/resume functionality is enabled.
+
 ## 43 + 43 alias catalog (development branch)
 
 The branch PPD, `media.json`, and `src/leitz_media.h` now contain 86 entries in **A followed by B** order. Newly introduced names: `LeverArchFile1005` in A; `LeitzContinuous112`, `LeitzDHLShippingLabel`, `LeitzNameBadgeCard8214`, `LeitzWristband` in B. `tools/media_b_original_labels.json` records which B names are verbatim Windows originals versus explicit newly derived aliases. `make media-check` performs the read-only structural integrity gate; `make mock-filter` then `python3 tests/test_v04.py` is the separate offline raster test, which is not a physical device test. The PPD on TARS is unchanged.
