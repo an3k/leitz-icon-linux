@@ -48,11 +48,10 @@ Example output for the **previously measured** `ESC A` reply (the decoded lines 
 ```text
 COMMAND=ESC A
 REPLY_BYTES=1
-REPLY_HEX=03
-DECODED_STATUS_BYTE=0x03
-DECODED_STATUS_LEGACY=READY_LEGACY
-DECODED_STATUS_V3=READY_V3_UNVERIFIED
-COMPLETION_CONFIRMED=NO
+REPLY_HEX=0x03
+DECODED_STATUS_HEX=0x03
+DECODED_STATUS_LEGACY=READY
+DECODED_STATUS_V3=READY
 ```
 
 For `ESC V`, output also includes `DECODED_TEXT`, `DECODED_NUL_TERMINATED`, and `DECODED_FIELD_ID/A/M/W` when those fields are present. The raw and decoded ID are printed **locally** but must not be pasted into a public issue or committed to the repository. Meanings of fields A/M/W remain unverified.
@@ -73,7 +72,7 @@ Source: direct operator-provided output from TARS, Leitz Icon USB device `289e:1
 
 | Query | Actual result | Interpretation |
 |---|---|---|
-| `ESC A` (`1B 41`) | `REPLY_BYTES=1; REPLY_HEX=03` | Real device returned code `03`; the original macOS legacy/V3 decoder maps that byte to ready |
+| `ESC A` (`1B 41`) | `REPLY_BYTES=1; reply byte 0x03` | Real device returned code `0x03`; the original macOS legacy/V3 decoder maps that byte to ready |
 | `ESC V` (`1B 56`) | `REPLY_BYTES=34`, NUL-terminated printable ASCII `ID:[redacted];A:0129;M:0090;W:310c;;\x00` | Real response format confirmed; meanings of A/M/W not established; device ID deliberately redacted in this public repository |
 | `ESC P` (`1B 50`) | `ERROR: Status exchange failed (-2), received 0 bytes; no retry` | Seven-second deadline elapsed with **no response bytes** while idle. Does not prove command unsupported during active printing or on other firmware |
 
