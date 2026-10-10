@@ -29,10 +29,12 @@ status-test: leitz-cli
 	python3 tests/test_status_cli.py
 
 probe: leitz-probe
-leitz-probe: src/leitz_probe.c src/leitz_probe_io.c src/leitz_probe_io.h
-	$(CC) $(CFLAGS) -o $@ src/leitz_probe.c src/leitz_probe_io.c
+leitz-probe: src/leitz_probe.c src/leitz_probe_io.c src/leitz_probe_io.h src/leitz_probe_format.c src/leitz_probe_format.h src/leitz_status.c src/leitz_status.h
+	$(CC) $(CFLAGS) -o $@ src/leitz_probe.c src/leitz_probe_io.c src/leitz_probe_format.c src/leitz_status.c
 
 probe-test: leitz-probe
 	$(CC) $(CFLAGS) -Isrc -o /tmp/leitz-probe-io-test src/leitz_probe_io.c tests/test_probe_io.c
 	/tmp/leitz-probe-io-test
+	$(CC) $(CFLAGS) -Isrc -o /tmp/leitz-probe-format-test src/leitz_probe_format.c src/leitz_status.c tests/test_probe_format.c
+	/tmp/leitz-probe-format-test
 	python3 tests/test_probe_cli.py
