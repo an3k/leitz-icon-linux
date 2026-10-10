@@ -33,11 +33,12 @@ response=''
 IFS= read -r -d '' -n 1024 -t 5 response <&3 || { echo 'STATE=NO_REPLY';exit 4; }
 exec 3>&-
 if [[ "$response" == 'SKU:No Cartridge;;;' ]];then
-echo "RAW=$response"
+  echo "RAW=$response"
   echo 'STATE=NO_CARTRIDGE';exit 4
 fi
 if [[ "$response" =~ ^SKU:([0-9]{8})\;INIT:([0-9]+)\;USED:([0-9]+)\;$ ]];then
   sku=${BASH_REMATCH[1]}; init=${BASH_REMATCH[2]}; used=${BASH_REMATCH[3]}
+  echo "RAW=$response"
 else
   echo 'STATE=UNRECOGNIZED';exit 4
 fi
