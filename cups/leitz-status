@@ -4,6 +4,11 @@
 set -euo pipefail
 LC_ALL=C
 DEVICE=${LEITZ_DEVICE:-/dev/usb/lp0}
+# An alternative basename alone must not allow opening an arbitrary device.
+if [[ ! "$DEVICE" =~ ^/dev/usb/lp[0-9]+$ || -L "$DEVICE" ]]; then
+  echo 'ERROR: LEITZ_DEVICE must be a direct /dev/usb/lpN character device' >&2
+  exit 4
+fi
 if [[ $# != 0 && ( $# != 2 || $1 != --expected-sku ) ]]; then
   echo 'Usage: leitz-status [--expected-sku NNNNNNNN]' >&2; exit 2
 fi
