@@ -59,20 +59,34 @@ int leitz_row_media(leitz_encoder *e,const uint8_t *pixels){
  return 0;
 error:e->error=1;return -1;
 }
-int leitz_end(leitz_encoder *e){
+int leitz_end_page(leitz_encoder *e,int cut){
  if(e->error||e->emitted_rows!=e->raster_rows)return -1;
  if(feed(e,e->pending_blank)||feed(e,e->bottom))return -1;
- static const unsigned char end[]={27,'G',27,'E',27,'@',27,'Z'};
- if(fwrite(end,1,sizeof(end),e->out)!=sizeof(end))return -1;
+ /* Cut policy belongs to the job coordinator. The wire encoder only
+  * renders its chosen command sequence. The default full trailer is
+  * byte-for-byte identical to the hardware-tested v0.4.1 behavior. */
+ static const unsigned char end_cut[]={27,'G',27,'E',27,'@',27,'Z'};
+ static const unsigned char end_feed[]={27,'G'};
+ const unsigned char *end=cut?end_cut:end_feed;
+ size_t end_size=cut?sizeof end_cut:sizeof end_feed;
+ if(fwrite(end,1,end_size,e->out)!=end_size)return -1;
  return e->feed_units+e->printed_rows==e->total_rows?0:-1;
 }
+int leitz_end(leitz_encoder *e){return leitz_end_page(e,1);}
 static int rd(FILE *f){return fgetc(f);}
 static int bad(char *r,size_t n,const char *m){if(n)snprintf(r,n,"%s",m);return -1;}
 int leitz_validate(FILE *f,unsigned *pages,char *r,size_t n){
  *pages=0;
+ unsigned pending_preamble=0;
+ int last_page_cut=0;
  while(1){
-  int v=rd(f);if(v==EOF)break;if(v!=27)return bad(r,n,"Unexpected start byte");
-  for(int i=1;i<120;i++)if(rd(f)!=27)return bad(r,n,"Invalid preamble");
+  int v=pending_preamble?27:rd(f);
+  if(v==EOF)break;
+  if(v!=27)return bad(r,n,"Unexpected start byte");
+  for(int i=1;i<120;i++)
+    if((i<(int)pending_preamble?27:rd(f))!=27)
+      return bad(r,n,"Invalid preamble");
+  pending_preamble=0;
   const unsigned char a[]={27,'@',27,'B',0,27,'L'};
   for(size_t i=0;i<sizeof(a);i++)if(rd(f)!=a[i])return bad(r,n,"Header mismatch");
   int lh=rd(f),ll=rd(f);if(lh<0||ll<0)return bad(r,n,"Missing length code");
@@ -102,8 +116,19 @@ int leitz_validate(FILE *f,unsigned *pages,char *r,size_t n){
     }else return bad(r,n,"Raster mode unknown");
     count++;
    }else if(cmd=='G'){
-     static const unsigned char end[]={27,'E',27,'@',27,'Z'};
-     for(size_t i=0;i<sizeof(end);i++)if(rd(f)!=end[i])return bad(r,n,"Footer missing");
+     if(rd(f)!=27)return bad(r,n,"Page boundary missing ESC");
+     int next=rd(f);
+     if(next=='E'){
+       static const unsigned char rest[]={27,'@',27,'Z'};
+       for(size_t i=0;i<sizeof(rest);i++)
+         if(rd(f)!=rest[i])return bad(r,n,"Cut trailer missing");
+       last_page_cut=1;
+     }else if(next==27){
+       /* The first two ESC bytes of the following 120-ESC preamble
+        * have already been read. Do not mistake them for a cutter. */
+       pending_preamble=2;
+       last_page_cut=0;
+     }else return bad(r,n,"Unknown page boundary");
      finished=1;
    }else return bad(r,n,"Unknown command");
    if(count>LEITZ_MAX_ROWS)return bad(r,n,"Print length exceeds safety maximum");
@@ -113,6 +138,7 @@ int leitz_validate(FILE *f,unsigned *pages,char *r,size_t n){
   (*pages)++;if(*pages>64)return bad(r,n,"Too many labels");
  }
  if(!*pages)return bad(r,n,"No labels");
+ if(!last_page_cut)return bad(r,n,"Final page must include cut trailer");
  if(n)snprintf(r,n,"OK: %u validated label(s)",*pages);
  return 0;
 }
