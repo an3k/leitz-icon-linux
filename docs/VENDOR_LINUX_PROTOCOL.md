@@ -21,9 +21,9 @@
 
 ### Safe reference implementation
 
-`src/leitz_native_reference.[ch]` independently reconstructs the **level-1 plain/raw** command framing above. It intentionally does **not** implement vendor source algorithms for modes 0/2/3, CUPS profile selection, status reads, USB writes or firmware recovery. It accepts already-packed monochrome rows; all-blank rows are combined into `ESC f` commands.
+`src/leitz_native_reference.[ch]` independently reconstructs the **level-1 plain/raw** command framing above. It intentionally does **not** implement vendor source algorithms for modes 0/2/3, CUPS profile selection, status reads, USB writes or firmware recovery. It accepts already-packed monochrome rows; all-blank rows **before** a printed line are combined into `ESC f` commands. To reproduce a quirk of the source, **trailing** skipped blanks are not flushed at the end of a page.
 
-Run `make native-reference-test` to verify frame bytes, 300/600 dpi, blank line aggregation, end marker and invalid inputs. This is fully offline; the production `leitz-rastertoicon` and `leitzusb` are **not modified or switched**.
+Run `make native-reference-test` to verify frame bytes, 300/600 dpi, blank line aggregation (including original trailing-blank behavior), end marker and invalid inputs. This is fully offline; the production `leitz-rastertoicon` and `leitzusb` are **not modified or switched**.
 
 ## Remaining porting work (grouped)
 
