@@ -1,5 +1,5 @@
 *PPD-Adobe: "4.3"
-*% Derived from 76 original Leitz media choices; hardware verification is incomplete.
+*% Derived from 76 Windows GPD plus 5 original Linux/macOS unique media keys; hardware verification is incomplete.
 *FormatVersion: "4.3"
 *FileVersion: "0.4.1"
 *LanguageVersion: English
@@ -96,6 +96,11 @@
 *PageSize LeitzShippingLabel70180001Rotated/Shipping Label 2" x 3 1/2" Rotated (Windows alias): "<</PageSize[141.8400 249.3600]>>setpagedevice"
 *PageSize Wristband/Wristband: "<</PageSize[80.6400 786.4800]>>setpagedevice"
 *PageSize DHLShippingLabel/DHL Shipping Label: "<</PageSize[249.3600 504.4800]>>setpagedevice"
+*PageSize Continuous112/Continuous - 1 1/2": "<</PageSize[110.6400 7653.6000]>>setpagedevice"
+*PageSize LargePendaflexTabRotated/Large Pendaflex Tab Rotated: "<</PageSize[79.4400 141.7200]>>setpagedevice"
+*PageSize Multipurpose70030001Rotated/Multipurpose 2" x 3 1/2" Rotated: "<</PageSize[144.0000 249.4800]>>setpagedevice"
+*PageSize NameBadgeCard70190001Rotated/Name Badge Rotated: "<</PageSize[162.0000 258.0000]>>setpagedevice"
+*PageSize ShippingLabel70180001Rotated/Shipping Label 2" x 3 1/2" Rotated: "<</PageSize[141.8400 249.4800]>>setpagedevice"
 *CloseUI: *PageSize
 *OpenUI *PageRegion/Media Region: PickOne
 *OrderDependency: 10 AnySetup *PageRegion
@@ -176,6 +181,11 @@
 *PageRegion LeitzShippingLabel70180001Rotated: "<</PageSize[141.8400 249.3600]>>setpagedevice"
 *PageRegion Wristband: "<</PageSize[80.6400 786.4800]>>setpagedevice"
 *PageRegion DHLShippingLabel: "<</PageSize[249.3600 504.4800]>>setpagedevice"
+*PageRegion Continuous112: "<</PageSize[110.6400 7653.6000]>>setpagedevice"
+*PageRegion LargePendaflexTabRotated: "<</PageSize[79.4400 141.7200]>>setpagedevice"
+*PageRegion Multipurpose70030001Rotated: "<</PageSize[144.0000 249.4800]>>setpagedevice"
+*PageRegion NameBadgeCard70190001Rotated: "<</PageSize[162.0000 258.0000]>>setpagedevice"
+*PageRegion ShippingLabel70180001Rotated: "<</PageSize[141.8400 249.4800]>>setpagedevice"
 *CloseUI: *PageRegion
 *DefaultImageableArea: Continuous70030001
 *ImageableArea Continuous70030001: "9.6000 0.0000 240.0000 7680.0000"
@@ -254,6 +264,11 @@
 *ImageableArea LeitzShippingLabel70180001Rotated: "3.6000 3.6000 138.2400 245.7600"
 *ImageableArea Wristband: "3.6000 3.6000 77.0400 782.8800"
 *ImageableArea DHLShippingLabel: "9.6000 3.6000 240.0000 500.8800"
+*ImageableArea Continuous112: "3.6000 3.6000 107.0400 7650.0000"
+*ImageableArea LargePendaflexTabRotated: "3.6000 3.6000 75.8400 138.1200"
+*ImageableArea Multipurpose70030001Rotated: "3.6000 3.6000 140.4000 245.8800"
+*ImageableArea NameBadgeCard70190001Rotated: "3.6000 3.6000 158.4000 254.4000"
+*ImageableArea ShippingLabel70180001Rotated: "3.6000 3.6000 138.2400 245.8800"
 *DefaultPaperDimension: Continuous70030001
 *PaperDimension Continuous70030001: "249.3600 7680.0000"
 *PaperDimension PackageShippingLabel: "249.3600 432.0000"
@@ -331,6 +346,11 @@
 *PaperDimension LeitzShippingLabel70180001Rotated: "141.8400 249.3600"
 *PaperDimension Wristband: "80.6400 786.4800"
 *PaperDimension DHLShippingLabel: "249.3600 504.4800"
+*PaperDimension Continuous112: "110.6400 7653.6000"
+*PaperDimension LargePendaflexTabRotated: "79.4400 141.7200"
+*PaperDimension Multipurpose70030001Rotated: "144.0000 249.4800"
+*PaperDimension NameBadgeCard70190001Rotated: "162.0000 258.0000"
+*PaperDimension ShippingLabel70180001Rotated: "141.8400 249.4800"
 *HWMargins: 9.600 3.600 9.600 3.600
 *VariablePaperSize: True
 *MaxMediaWidth: "258.000"
