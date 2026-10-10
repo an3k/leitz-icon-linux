@@ -383,6 +383,12 @@
 *ParamCustomPageSize WidthOffset: 3 points 0 0
 *ParamCustomPageSize HeightOffset: 4 points 0 0
 *ParamCustomPageSize Orientation: 5 int 0 0
+*OpenUI *LeitzProtocol/Print Protocol (development): PickOne
+*OrderDependency: 12 AnySetup *LeitzProtocol
+*DefaultLeitzProtocol: Current
+*LeitzProtocol Current/Current verified print protocol: ""
+*LeitzProtocol NativeLinux103/Original Linux 1.0.3 (experimental): ""
+*CloseUI: *LeitzProtocol
 *OpenUI *LeitzCutMode/Cut Length: PickOne
 *OrderDependency: 11 AnySetup *LeitzCutMode
 *DefaultLeitzCutMode: Automatic
