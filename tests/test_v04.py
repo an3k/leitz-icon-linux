@@ -5,6 +5,15 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 CAT=json.loads((ROOT/'media.json').read_text())
 assert len(CAT)==81 and len({m['name'] for m in CAT})==81
+SOURCE_ADDITIONS=json.loads((ROOT/'tools/source_media_additions.json').read_text())
+assert len(SOURCE_ADDITIONS)==6
+assert [m['name'] for m in CAT[-6:]]==[m['name'] for m in SOURCE_ADDITIONS]
+for original in SOURCE_ADDITIONS:
+  current=next(m for m in CAT if m['name']==original['name'])
+  for field in ('page','area','origin','command_length','command_width','continuous'):
+    assert current[field]==original[field],(original['name'],field,current[field],original[field])
+assert CAT[-3]['name']=='Multipurpose70030001Rotated'
+print('PASS 75 Windows GPD physical sizes + 6 Linux/macOS-only profiles, source values intact')
 ppd=(ROOT/'cups/LeitzIcon.ppd').read_text()
 for m in CAT:
   name=m['name'];assert f'*PageSize {name}/' in ppd and f'*PageRegion {name}:' in ppd
