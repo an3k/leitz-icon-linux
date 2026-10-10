@@ -1,5 +1,47 @@
 [
   {
+    "name": "AppointmentCard",
+    "page": [
+      1075,
+      1200
+    ],
+    "area": [
+      960,
+      1140
+    ],
+    "origin": [
+      58,
+      30
+    ],
+    "command_length": 570,
+    "command_width": 960,
+    "continuous": false
+  },
+  {
+    "name": "Continuous112",
+    "label": "Continuous - 1 1/2\"",
+    "page": [
+      461,
+      63780
+    ],
+    "area": [
+      431,
+      63720
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 65535,
+    "command_width": 431,
+    "continuous": true,
+    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
+    "original_page_size_pt": [
+      111,
+      7654
+    ]
+  },
+  {
     "name": "Continuous70030001",
     "page": [
       1039,
@@ -16,60 +58,6 @@
     "command_length": 65535,
     "command_width": 960,
     "continuous": true
-  },
-  {
-    "name": "PackageShippingLabel",
-    "page": [
-      1039,
-      3600
-    ],
-    "area": [
-      960,
-      3540
-    ],
-    "origin": [
-      40,
-      30
-    ],
-    "command_length": 1800,
-    "command_width": 960,
-    "continuous": false
-  },
-  {
-    "name": "Multipurpose70030001",
-    "page": [
-      1039,
-      1200
-    ],
-    "area": [
-      960,
-      1140
-    ],
-    "origin": [
-      40,
-      30
-    ],
-    "command_length": 600,
-    "command_width": 960,
-    "continuous": false
-  },
-  {
-    "name": "NameBadgeLabel70030001",
-    "page": [
-      1039,
-      1398
-    ],
-    "area": [
-      960,
-      1338
-    ],
-    "origin": [
-      40,
-      30
-    ],
-    "command_length": 699,
-    "command_width": 960,
-    "continuous": false
   },
   {
     "name": "Continuous70040001",
@@ -90,40 +78,22 @@
     "continuous": true
   },
   {
-    "name": "WideLeverArchLabelShort",
+    "name": "Continuous70050001",
     "page": [
-      720,
-      4536
+      673,
+      64000
     ],
     "area": [
-      690,
-      4476
+      643,
+      64000
     ],
     "origin": [
       15,
-      30
+      0
     ],
-    "command_length": 2268,
-    "command_width": 690,
-    "continuous": false
-  },
-  {
-    "name": "WideLeverArchLabelLong",
-    "page": [
-      720,
-      6732
-    ],
-    "area": [
-      690,
-      6702
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 3366,
-    "command_width": 690,
-    "continuous": false
+    "command_length": 65535,
+    "command_width": 643,
+    "continuous": true
   },
   {
     "name": "Continuous70060001",
@@ -144,76 +114,40 @@
     "continuous": true
   },
   {
-    "name": "LargePendaflexTab",
-    "page": [
-      591,
-      662
-    ],
-    "area": [
-      561,
-      602
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 331,
-    "command_width": 561,
-    "continuous": false
-  },
-  {
-    "name": "NameBadgeLabel70060001",
-    "page": [
-      591,
-      1800
-    ],
-    "area": [
-      561,
-      1740
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 900,
-    "command_width": 561,
-    "continuous": false
-  },
-  {
-    "name": "NarrowLeverArchLabelShort",
+    "name": "Continuous70070001",
     "page": [
       461,
-      4536
+      64000
     ],
     "area": [
       431,
-      4476
+      64000
     ],
     "origin": [
       15,
-      30
+      0
     ],
-    "command_length": 2268,
+    "command_length": 65535,
     "command_width": 431,
-    "continuous": false
+    "continuous": true
   },
   {
-    "name": "NarrowLeverArchLabelLong",
+    "name": "Continuous70080001",
     "page": [
-      461,
-      6732
+      378,
+      64000
     ],
     "area": [
-      431,
-      6672
+      348,
+      64000
     ],
     "origin": [
       15,
-      30
+      0
     ],
-    "command_length": 3366,
-    "command_width": 431,
-    "continuous": false
+    "command_length": 65535,
+    "command_width": 348,
+    "continuous": true
   },
   {
     "name": "Continuous70090001",
@@ -234,42 +168,6 @@
     "continuous": true
   },
   {
-    "name": "Multipurpose70090001",
-    "page": [
-      295,
-      900
-    ],
-    "area": [
-      265,
-      840
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 450,
-    "command_width": 265,
-    "continuous": false
-  },
-  {
-    "name": "ReturnAddressLabelLarge",
-    "page": [
-      295,
-      1276
-    ],
-    "area": [
-      265,
-      1216
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 638,
-    "command_width": 265,
-    "continuous": false
-  },
-  {
     "name": "Continuous70100001",
     "page": [
       224,
@@ -286,42 +184,6 @@
     "command_length": 65535,
     "command_width": 194,
     "continuous": true
-  },
-  {
-    "name": "ReturnAddressLabelSmall",
-    "page": [
-      224,
-      1200
-    ],
-    "area": [
-      194,
-      1140
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 600,
-    "command_width": 194,
-    "continuous": false
-  },
-  {
-    "name": "Multipurpose70100001",
-    "page": [
-      224,
-      1500
-    ],
-    "area": [
-      194,
-      1440
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 750,
-    "command_width": 194,
-    "continuous": false
   },
   {
     "name": "Continuous70110001",
@@ -342,21 +204,39 @@
     "continuous": true
   },
   {
-    "name": "Multipurpose70110001",
+    "name": "Continuous70190001",
     "page": [
-      148,
-      1134
+      1075,
+      64000
     ],
     "area": [
-      118,
-      1074
+      960,
+      64000
     ],
     "origin": [
-      15,
+      57,
+      0
+    ],
+    "command_length": 65535,
+    "command_width": 960,
+    "continuous": true
+  },
+  {
+    "name": "DHLShippingLabel",
+    "page": [
+      1039,
+      4204
+    ],
+    "area": [
+      960,
+      4144
+    ],
+    "origin": [
+      40,
       30
     ],
-    "command_length": 567,
-    "command_width": 118,
+    "command_length": 2102,
+    "command_width": 960,
     "continuous": false
   },
   {
@@ -374,24 +254,6 @@
       30
     ],
     "command_length": 1050,
-    "command_width": 118,
-    "continuous": false
-  },
-  {
-    "name": "SuspensionFileLabel",
-    "page": [
-      148,
-      1200
-    ],
-    "area": [
-      118,
-      1140
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 600,
     "command_width": 118,
     "continuous": false
   },
@@ -414,21 +276,365 @@
     "continuous": false
   },
   {
-    "name": "StandardAddressLabel",
+    "name": "LargePendaflexTab",
     "page": [
-      1039,
+      591,
       662
     ],
     "area": [
-      960,
+      561,
       602
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 331,
+    "command_width": 561,
+    "continuous": false
+  },
+  {
+    "name": "LargePendaflexTabRotated",
+    "label": "Large Pendaflex Tab Rotated",
+    "page": [
+      331,
+      1181
+    ],
+    "area": [
+      301,
+      1121
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 591,
+    "command_width": 301,
+    "continuous": false,
+    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
+    "original_page_size_pt": [
+      79,
+      142
+    ]
+  },
+  {
+    "name": "LeverArchFile1005",
+    "page": [
+      591,
+      2598
+    ],
+    "area": [
+      561,
+      2538
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 1299,
+    "command_width": 561,
+    "continuous": false,
+    "label": "Active File",
+    "source": "Derived non-prefixed alias of original Linux/macOS LeitzLeverArchFile1005"
+  },
+  {
+    "name": "Multipurpose70030001",
+    "page": [
+      1039,
+      1200
+    ],
+    "area": [
+      960,
+      1140
     ],
     "origin": [
       40,
       30
     ],
-    "command_length": 331,
+    "command_length": 600,
     "command_width": 960,
+    "continuous": false
+  },
+  {
+    "name": "Multipurpose70030001Rotated",
+    "label": "Multipurpose 2\" x 3 1/2\" Rotated",
+    "page": [
+      600,
+      2079
+    ],
+    "area": [
+      570,
+      2019
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 1040,
+    "command_width": 570,
+    "continuous": false,
+    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
+    "original_page_size_pt": [
+      144,
+      249
+    ]
+  },
+  {
+    "name": "Multipurpose70090001",
+    "page": [
+      295,
+      900
+    ],
+    "area": [
+      265,
+      840
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 450,
+    "command_width": 265,
+    "continuous": false
+  },
+  {
+    "name": "Multipurpose70100001",
+    "page": [
+      224,
+      1500
+    ],
+    "area": [
+      194,
+      1440
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 750,
+    "command_width": 194,
+    "continuous": false
+  },
+  {
+    "name": "Multipurpose70110001",
+    "page": [
+      148,
+      1134
+    ],
+    "area": [
+      118,
+      1074
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 567,
+    "command_width": 118,
+    "continuous": false
+  },
+  {
+    "name": "NameBadgeCard70190001",
+    "page": [
+      1075,
+      1350
+    ],
+    "area": [
+      960,
+      1290
+    ],
+    "origin": [
+      58,
+      30
+    ],
+    "command_length": 675,
+    "command_width": 960,
+    "continuous": false
+  },
+  {
+    "name": "NameBadgeCard70190001Rotated",
+    "label": "Name Badge Rotated",
+    "page": [
+      675,
+      2150
+    ],
+    "area": [
+      645,
+      2090
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 1075,
+    "command_width": 645,
+    "continuous": false,
+    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
+    "original_page_size_pt": [
+      162,
+      258
+    ]
+  },
+  {
+    "name": "NameBadgeCard8214",
+    "page": [
+      1075,
+      1276
+    ],
+    "area": [
+      960,
+      1216
+    ],
+    "origin": [
+      58,
+      30
+    ],
+    "command_length": 638,
+    "command_width": 960,
+    "continuous": false
+  },
+  {
+    "name": "NameBadgeLabel70030001",
+    "page": [
+      1039,
+      1398
+    ],
+    "area": [
+      960,
+      1338
+    ],
+    "origin": [
+      40,
+      30
+    ],
+    "command_length": 699,
+    "command_width": 960,
+    "continuous": false
+  },
+  {
+    "name": "NameBadgeLabel70060001",
+    "page": [
+      591,
+      1800
+    ],
+    "area": [
+      561,
+      1740
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 900,
+    "command_width": 561,
+    "continuous": false
+  },
+  {
+    "name": "NarrowLeverArchCardShort",
+    "page": [
+      378,
+      4488
+    ],
+    "area": [
+      348,
+      4428
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 2244,
+    "command_width": 348,
+    "continuous": false
+  },
+  {
+    "name": "NarrowLeverArchLabelLong",
+    "page": [
+      461,
+      6732
+    ],
+    "area": [
+      431,
+      6672
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 3366,
+    "command_width": 431,
+    "continuous": false
+  },
+  {
+    "name": "NarrowLeverArchLabelShort",
+    "page": [
+      461,
+      4536
+    ],
+    "area": [
+      431,
+      4476
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 2268,
+    "command_width": 431,
+    "continuous": false
+  },
+  {
+    "name": "PackageShippingLabel",
+    "page": [
+      1039,
+      3600
+    ],
+    "area": [
+      960,
+      3540
+    ],
+    "origin": [
+      40,
+      30
+    ],
+    "command_length": 1800,
+    "command_width": 960,
+    "continuous": false
+  },
+  {
+    "name": "ReturnAddressLabelLarge",
+    "page": [
+      295,
+      1276
+    ],
+    "area": [
+      265,
+      1216
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 638,
+    "command_width": 265,
+    "continuous": false
+  },
+  {
+    "name": "ReturnAddressLabelSmall",
+    "page": [
+      224,
+      1200
+    ],
+    "area": [
+      194,
+      1140
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 600,
+    "command_width": 194,
     "continuous": false
   },
   {
@@ -468,75 +674,63 @@
     "continuous": false
   },
   {
-    "name": "NameBadgeCard70190001",
-    "page": [
-      1075,
-      1350
-    ],
-    "area": [
-      960,
-      1290
-    ],
-    "origin": [
-      58,
-      30
-    ],
-    "command_length": 675,
-    "command_width": 960,
-    "continuous": false
-  },
-  {
-    "name": "NameBadgeCard8214",
-    "page": [
-      1075,
-      1276
-    ],
-    "area": [
-      960,
-      1216
-    ],
-    "origin": [
-      58,
-      30
-    ],
-    "command_length": 638,
-    "command_width": 960,
-    "continuous": false
-  },
-  {
-    "name": "AppointmentCard",
-    "page": [
-      1075,
-      1200
-    ],
-    "area": [
-      960,
-      1140
-    ],
-    "origin": [
-      58,
-      30
-    ],
-    "command_length": 570,
-    "command_width": 960,
-    "continuous": false
-  },
-  {
-    "name": "LeitzLeverArchFile1005",
+    "name": "ShippingLabel70180001Rotated",
+    "label": "Shipping Label 2\" x 3 1/2\" Rotated",
     "page": [
       591,
-      2598
+      2079
     ],
     "area": [
       561,
-      2538
+      2019
     ],
     "origin": [
       15,
       30
     ],
-    "command_length": 1299,
+    "command_length": 1040,
     "command_width": 561,
+    "continuous": false,
+    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
+    "original_page_size_pt": [
+      142,
+      249
+    ]
+  },
+  {
+    "name": "StandardAddressLabel",
+    "page": [
+      1039,
+      662
+    ],
+    "area": [
+      960,
+      602
+    ],
+    "origin": [
+      40,
+      30
+    ],
+    "command_length": 331,
+    "command_width": 960,
+    "continuous": false
+  },
+  {
+    "name": "SuspensionFileLabel",
+    "page": [
+      148,
+      1200
+    ],
+    "area": [
+      118,
+      1140
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 600,
+    "command_width": 118,
     "continuous": false
   },
   {
@@ -558,94 +752,100 @@
     "continuous": false
   },
   {
-    "name": "NarrowLeverArchCardShort",
+    "name": "WideLeverArchLabelLong",
     "page": [
-      378,
-      4488
+      720,
+      6732
     ],
     "area": [
-      348,
-      4428
+      690,
+      6702
     ],
     "origin": [
       15,
       30
     ],
-    "command_length": 2244,
-    "command_width": 348,
+    "command_length": 3366,
+    "command_width": 690,
     "continuous": false
   },
   {
-    "name": "Continuous70070001",
+    "name": "WideLeverArchLabelShort",
     "page": [
-      461,
-      64000
+      720,
+      4536
     ],
     "area": [
-      431,
-      64000
+      690,
+      4476
     ],
     "origin": [
       15,
-      0
+      30
     ],
-    "command_length": 65535,
-    "command_width": 431,
-    "continuous": true
+    "command_length": 2268,
+    "command_width": 690,
+    "continuous": false
   },
   {
-    "name": "Continuous70080001",
+    "name": "Wristband",
     "page": [
-      378,
-      64000
+      336,
+      6554
     ],
     "area": [
-      348,
-      64000
+      306,
+      6494
     ],
     "origin": [
       15,
-      0
+      30
     ],
-    "command_length": 65535,
-    "command_width": 348,
-    "continuous": true
+    "command_length": 3277,
+    "command_width": 306,
+    "continuous": false
   },
   {
-    "name": "Continuous70050001",
-    "page": [
-      673,
-      64000
-    ],
-    "area": [
-      643,
-      64000
-    ],
-    "origin": [
-      15,
-      0
-    ],
-    "command_length": 65535,
-    "command_width": 643,
-    "continuous": true
-  },
-  {
-    "name": "Continuous70190001",
+    "name": "LeitzAppointmentCard",
     "page": [
       1075,
-      64000
+      1200
     ],
     "area": [
       960,
-      64000
+      1140
     ],
     "origin": [
-      57,
-      0
+      58,
+      30
+    ],
+    "command_length": 570,
+    "command_width": 960,
+    "continuous": false
+  },
+  {
+    "name": "LeitzContinuous112",
+    "label": "*Continuous - 1 1/2\"",
+    "page": [
+      461,
+      63780
+    ],
+    "area": [
+      431,
+      63720
+    ],
+    "origin": [
+      15,
+      30
     ],
     "command_length": 65535,
-    "command_width": 960,
-    "continuous": true
+    "command_width": 431,
+    "continuous": true,
+    "source": "Derived alias of original Linux/macOS or Windows-non-prefixed media; no distinct vendor Windows Leitz key",
+    "original_page_size_pt": [
+      111,
+      7654
+    ]
   },
   {
     "name": "LeitzContinuous70030001",
@@ -666,60 +866,6 @@
     "continuous": true
   },
   {
-    "name": "LeitzPackageShippingLabel",
-    "page": [
-      1039,
-      3600
-    ],
-    "area": [
-      960,
-      3540
-    ],
-    "origin": [
-      40,
-      30
-    ],
-    "command_length": 1800,
-    "command_width": 960,
-    "continuous": false
-  },
-  {
-    "name": "LeitzMultipurpose70030001",
-    "page": [
-      1039,
-      1200
-    ],
-    "area": [
-      960,
-      1140
-    ],
-    "origin": [
-      40,
-      30
-    ],
-    "command_length": 600,
-    "command_width": 960,
-    "continuous": false
-  },
-  {
-    "name": "LeitzNameBadgeLabel70030001",
-    "page": [
-      1039,
-      1398
-    ],
-    "area": [
-      960,
-      1338
-    ],
-    "origin": [
-      40,
-      30
-    ],
-    "command_length": 699,
-    "command_width": 960,
-    "continuous": false
-  },
-  {
     "name": "LeitzContinuous70040001",
     "page": [
       720,
@@ -738,40 +884,22 @@
     "continuous": true
   },
   {
-    "name": "LeitzWideLeverArchLabelShort",
+    "name": "LeitzContinuous70050001",
     "page": [
-      720,
-      4536
+      673,
+      64000
     ],
     "area": [
-      690,
-      4476
+      643,
+      64000
     ],
     "origin": [
       15,
-      30
+      0
     ],
-    "command_length": 2268,
-    "command_width": 690,
-    "continuous": false
-  },
-  {
-    "name": "LeitzWideLeverArchLabelLong",
-    "page": [
-      720,
-      6732
-    ],
-    "area": [
-      690,
-      6702
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 3366,
-    "command_width": 690,
-    "continuous": false
+    "command_length": 65535,
+    "command_width": 643,
+    "continuous": true
   },
   {
     "name": "LeitzContinuous70060001",
@@ -792,76 +920,40 @@
     "continuous": true
   },
   {
-    "name": "LeitzLargePendaflexTab",
-    "page": [
-      591,
-      662
-    ],
-    "area": [
-      561,
-      602
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 331,
-    "command_width": 561,
-    "continuous": false
-  },
-  {
-    "name": "LeitzNameBadgeLabel70060001",
-    "page": [
-      591,
-      1800
-    ],
-    "area": [
-      561,
-      1740
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 900,
-    "command_width": 561,
-    "continuous": false
-  },
-  {
-    "name": "LeitzNarrowLeverArchLabelShort",
+    "name": "LeitzContinuous70070001",
     "page": [
       461,
-      4536
+      64000
     ],
     "area": [
       431,
-      4476
+      64000
     ],
     "origin": [
       15,
-      30
+      0
     ],
-    "command_length": 2268,
+    "command_length": 65535,
     "command_width": 431,
-    "continuous": false
+    "continuous": true
   },
   {
-    "name": "LeitzNarrowLeverArchLabelLong",
+    "name": "LeitzContinuous70080001",
     "page": [
-      461,
-      6732
+      378,
+      64000
     ],
     "area": [
-      431,
-      6672
+      348,
+      64000
     ],
     "origin": [
       15,
-      30
+      0
     ],
-    "command_length": 3366,
-    "command_width": 431,
-    "continuous": false
+    "command_length": 65535,
+    "command_width": 348,
+    "continuous": true
   },
   {
     "name": "LeitzContinuous70090001",
@@ -882,42 +974,6 @@
     "continuous": true
   },
   {
-    "name": "LeitzMultipurpose70090001",
-    "page": [
-      295,
-      900
-    ],
-    "area": [
-      265,
-      840
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 450,
-    "command_width": 265,
-    "continuous": false
-  },
-  {
-    "name": "LeitzReturnAddressLabelLarge",
-    "page": [
-      295,
-      1276
-    ],
-    "area": [
-      265,
-      1216
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 638,
-    "command_width": 265,
-    "continuous": false
-  },
-  {
     "name": "LeitzContinuous70100001",
     "page": [
       224,
@@ -934,42 +990,6 @@
     "command_length": 65535,
     "command_width": 194,
     "continuous": true
-  },
-  {
-    "name": "LeitzReturnAddressLabelSmall",
-    "page": [
-      224,
-      1200
-    ],
-    "area": [
-      194,
-      1140
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 600,
-    "command_width": 194,
-    "continuous": false
-  },
-  {
-    "name": "LeitzMultipurpose70100001",
-    "page": [
-      224,
-      1500
-    ],
-    "area": [
-      194,
-      1440
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 750,
-    "command_width": 194,
-    "continuous": false
   },
   {
     "name": "LeitzContinuous70110001",
@@ -990,22 +1010,42 @@
     "continuous": true
   },
   {
-    "name": "LeitzMultipurpose70110001",
+    "name": "LeitzContinuous70190001",
     "page": [
-      148,
-      1134
+      1075,
+      64000
     ],
     "area": [
-      118,
-      1074
+      960,
+      64000
     ],
     "origin": [
-      15,
+      57,
+      0
+    ],
+    "command_length": 65535,
+    "command_width": 960,
+    "continuous": true
+  },
+  {
+    "name": "LeitzDHLShippingLabel",
+    "page": [
+      1039,
+      4204
+    ],
+    "area": [
+      960,
+      4144
+    ],
+    "origin": [
+      40,
       30
     ],
-    "command_length": 567,
-    "command_width": 118,
-    "continuous": false
+    "command_length": 2102,
+    "command_width": 960,
+    "continuous": false,
+    "label": "*DHL Shipping Label",
+    "source": "Derived alias of original Linux/macOS or Windows-non-prefixed media; no distinct vendor Windows Leitz key"
   },
   {
     "name": "LeitzFileFolderLabel",
@@ -1022,24 +1062,6 @@
       30
     ],
     "command_length": 1050,
-    "command_width": 118,
-    "continuous": false
-  },
-  {
-    "name": "LeitzSuspensionFileLabel",
-    "page": [
-      148,
-      1200
-    ],
-    "area": [
-      118,
-      1140
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 600,
     "command_width": 118,
     "continuous": false
   },
@@ -1062,21 +1084,347 @@
     "continuous": false
   },
   {
-    "name": "LeitzStandardAddressLabel",
+    "name": "LeitzLargePendaflexTab",
     "page": [
-      1039,
+      591,
       662
     ],
     "area": [
-      960,
+      561,
       602
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 331,
+    "command_width": 561,
+    "continuous": false
+  },
+  {
+    "name": "LeitzLargePendaflexTabRotated",
+    "page": [
+      331,
+      1182
+    ],
+    "area": [
+      301,
+      1122
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 591,
+    "command_width": 301,
+    "continuous": false
+  },
+  {
+    "name": "LeitzLeverArchFile1005",
+    "page": [
+      591,
+      2598
+    ],
+    "area": [
+      561,
+      2538
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 1299,
+    "command_width": 561,
+    "continuous": false
+  },
+  {
+    "name": "LeitzMultipurpose70030001",
+    "page": [
+      1039,
+      1200
+    ],
+    "area": [
+      960,
+      1140
     ],
     "origin": [
       40,
       30
     ],
-    "command_length": 331,
+    "command_length": 600,
     "command_width": 960,
+    "continuous": false
+  },
+  {
+    "name": "LeitzMultipurpose70030001Rotated",
+    "page": [
+      600,
+      2078
+    ],
+    "area": [
+      570,
+      2018
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 1039,
+    "command_width": 570,
+    "continuous": false
+  },
+  {
+    "name": "LeitzMultipurpose70090001",
+    "page": [
+      295,
+      900
+    ],
+    "area": [
+      265,
+      840
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 450,
+    "command_width": 265,
+    "continuous": false
+  },
+  {
+    "name": "LeitzMultipurpose70100001",
+    "page": [
+      224,
+      1500
+    ],
+    "area": [
+      194,
+      1440
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 750,
+    "command_width": 194,
+    "continuous": false
+  },
+  {
+    "name": "LeitzMultipurpose70110001",
+    "page": [
+      148,
+      1134
+    ],
+    "area": [
+      118,
+      1074
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 567,
+    "command_width": 118,
+    "continuous": false
+  },
+  {
+    "name": "LeitzNameBadgeCard70190001",
+    "page": [
+      1075,
+      1350
+    ],
+    "area": [
+      960,
+      1290
+    ],
+    "origin": [
+      58,
+      30
+    ],
+    "command_length": 675,
+    "command_width": 960,
+    "continuous": false
+  },
+  {
+    "name": "LeitzNameBadgeCard70190001Rotated",
+    "page": [
+      675,
+      2078
+    ],
+    "area": [
+      645,
+      2018
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 1039,
+    "command_width": 645,
+    "continuous": false
+  },
+  {
+    "name": "LeitzNameBadgeCard8214",
+    "page": [
+      1075,
+      1276
+    ],
+    "area": [
+      960,
+      1216
+    ],
+    "origin": [
+      58,
+      30
+    ],
+    "command_length": 638,
+    "command_width": 960,
+    "continuous": false,
+    "label": "*Durable Label",
+    "source": "Derived alias of original Linux/macOS or Windows-non-prefixed media; no distinct vendor Windows Leitz key"
+  },
+  {
+    "name": "LeitzNameBadgeLabel70030001",
+    "page": [
+      1039,
+      1398
+    ],
+    "area": [
+      960,
+      1338
+    ],
+    "origin": [
+      40,
+      30
+    ],
+    "command_length": 699,
+    "command_width": 960,
+    "continuous": false
+  },
+  {
+    "name": "LeitzNameBadgeLabel70060001",
+    "page": [
+      591,
+      1800
+    ],
+    "area": [
+      561,
+      1740
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 900,
+    "command_width": 561,
+    "continuous": false
+  },
+  {
+    "name": "LeitzNarrowLeverArchCardShort",
+    "page": [
+      378,
+      4488
+    ],
+    "area": [
+      348,
+      4428
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 2244,
+    "command_width": 348,
+    "continuous": false
+  },
+  {
+    "name": "LeitzNarrowLeverArchLabelLong",
+    "page": [
+      461,
+      6732
+    ],
+    "area": [
+      431,
+      6672
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 3366,
+    "command_width": 431,
+    "continuous": false
+  },
+  {
+    "name": "LeitzNarrowLeverArchLabelShort",
+    "page": [
+      461,
+      4536
+    ],
+    "area": [
+      431,
+      4476
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 2268,
+    "command_width": 431,
+    "continuous": false
+  },
+  {
+    "name": "LeitzPackageShippingLabel",
+    "page": [
+      1039,
+      3600
+    ],
+    "area": [
+      960,
+      3540
+    ],
+    "origin": [
+      40,
+      30
+    ],
+    "command_length": 1800,
+    "command_width": 960,
+    "continuous": false
+  },
+  {
+    "name": "LeitzReturnAddressLabelLarge",
+    "page": [
+      295,
+      1276
+    ],
+    "area": [
+      265,
+      1216
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 638,
+    "command_width": 265,
+    "continuous": false
+  },
+  {
+    "name": "LeitzReturnAddressLabelSmall",
+    "page": [
+      224,
+      1200
+    ],
+    "area": [
+      194,
+      1140
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 600,
+    "command_width": 194,
     "continuous": false
   },
   {
@@ -1116,39 +1464,57 @@
     "continuous": false
   },
   {
-    "name": "LeitzNameBadgeCard70190001",
+    "name": "LeitzShippingLabel70180001Rotated",
     "page": [
-      1075,
-      1350
+      591,
+      2078
+    ],
+    "area": [
+      561,
+      2018
+    ],
+    "origin": [
+      15,
+      30
+    ],
+    "command_length": 1039,
+    "command_width": 561,
+    "continuous": false
+  },
+  {
+    "name": "LeitzStandardAddressLabel",
+    "page": [
+      1039,
+      662
     ],
     "area": [
       960,
-      1290
+      602
     ],
     "origin": [
-      58,
+      40,
       30
     ],
-    "command_length": 675,
+    "command_length": 331,
     "command_width": 960,
     "continuous": false
   },
   {
-    "name": "LeitzAppointmentCard",
+    "name": "LeitzSuspensionFileLabel",
     "page": [
-      1075,
+      148,
       1200
     ],
     "area": [
-      960,
+      118,
       1140
     ],
     "origin": [
-      58,
+      15,
       30
     ],
-    "command_length": 570,
-    "command_width": 960,
+    "command_length": 600,
+    "command_width": 118,
     "continuous": false
   },
   {
@@ -1170,169 +1536,43 @@
     "continuous": false
   },
   {
-    "name": "LeitzNarrowLeverArchCardShort",
+    "name": "LeitzWideLeverArchLabelLong",
     "page": [
-      378,
-      4488
+      720,
+      6732
     ],
     "area": [
-      348,
-      4428
+      690,
+      6702
     ],
     "origin": [
       15,
       30
     ],
-    "command_length": 2244,
-    "command_width": 348,
+    "command_length": 3366,
+    "command_width": 690,
     "continuous": false
   },
   {
-    "name": "LeitzContinuous70070001",
+    "name": "LeitzWideLeverArchLabelShort",
     "page": [
-      461,
-      64000
+      720,
+      4536
     ],
     "area": [
-      431,
-      64000
-    ],
-    "origin": [
-      15,
-      0
-    ],
-    "command_length": 65535,
-    "command_width": 431,
-    "continuous": true
-  },
-  {
-    "name": "LeitzContinuous70080001",
-    "page": [
-      378,
-      64000
-    ],
-    "area": [
-      348,
-      64000
-    ],
-    "origin": [
-      15,
-      0
-    ],
-    "command_length": 65535,
-    "command_width": 348,
-    "continuous": true
-  },
-  {
-    "name": "LeitzContinuous70050001",
-    "page": [
-      673,
-      64000
-    ],
-    "area": [
-      643,
-      64000
-    ],
-    "origin": [
-      15,
-      0
-    ],
-    "command_length": 65535,
-    "command_width": 643,
-    "continuous": true
-  },
-  {
-    "name": "LeitzContinuous70190001",
-    "page": [
-      1075,
-      64000
-    ],
-    "area": [
-      960,
-      64000
-    ],
-    "origin": [
-      57,
-      0
-    ],
-    "command_length": 65535,
-    "command_width": 960,
-    "continuous": true
-  },
-  {
-    "name": "LeitzLargePendaflexTabRotated",
-    "page": [
-      331,
-      1182
-    ],
-    "area": [
-      301,
-      1122
+      690,
+      4476
     ],
     "origin": [
       15,
       30
     ],
-    "command_length": 591,
-    "command_width": 301,
+    "command_length": 2268,
+    "command_width": 690,
     "continuous": false
   },
   {
-    "name": "LeitzMultipurpose70030001Rotated",
-    "page": [
-      600,
-      2078
-    ],
-    "area": [
-      570,
-      2018
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 1039,
-    "command_width": 570,
-    "continuous": false
-  },
-  {
-    "name": "LeitzNameBadgeCard70190001Rotated",
-    "page": [
-      675,
-      2078
-    ],
-    "area": [
-      645,
-      2018
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 1039,
-    "command_width": 645,
-    "continuous": false
-  },
-  {
-    "name": "LeitzShippingLabel70180001Rotated",
-    "page": [
-      591,
-      2078
-    ],
-    "area": [
-      561,
-      2018
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 1039,
-    "command_width": 561,
-    "continuous": false
-  },
-  {
-    "name": "Wristband",
+    "name": "LeitzWristband",
     "page": [
       336,
       6554
@@ -1347,144 +1587,8 @@
     ],
     "command_length": 3277,
     "command_width": 306,
-    "continuous": false
-  },
-  {
-    "name": "DHLShippingLabel",
-    "page": [
-      1039,
-      4204
-    ],
-    "area": [
-      960,
-      4144
-    ],
-    "origin": [
-      40,
-      30
-    ],
-    "command_length": 2102,
-    "command_width": 960,
-    "continuous": false
-  },
-  {
-    "name": "Continuous112",
-    "label": "Continuous - 1 1/2\"",
-    "page": [
-      461,
-      63780
-    ],
-    "area": [
-      431,
-      63720
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 65535,
-    "command_width": 431,
-    "continuous": true,
-    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
-    "original_page_size_pt": [
-      111,
-      7654
-    ]
-  },
-  {
-    "name": "LargePendaflexTabRotated",
-    "label": "Large Pendaflex Tab Rotated",
-    "page": [
-      331,
-      1181
-    ],
-    "area": [
-      301,
-      1121
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 591,
-    "command_width": 301,
     "continuous": false,
-    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
-    "original_page_size_pt": [
-      79,
-      142
-    ]
-  },
-  {
-    "name": "Multipurpose70030001Rotated",
-    "label": "Multipurpose 2\" x 3 1/2\" Rotated",
-    "page": [
-      600,
-      2079
-    ],
-    "area": [
-      570,
-      2019
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 1040,
-    "command_width": 570,
-    "continuous": false,
-    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
-    "original_page_size_pt": [
-      144,
-      249
-    ]
-  },
-  {
-    "name": "NameBadgeCard70190001Rotated",
-    "label": "Name Badge Rotated",
-    "page": [
-      675,
-      2150
-    ],
-    "area": [
-      645,
-      2090
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 1075,
-    "command_width": 645,
-    "continuous": false,
-    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
-    "original_page_size_pt": [
-      162,
-      258
-    ]
-  },
-  {
-    "name": "ShippingLabel70180001Rotated",
-    "label": "Shipping Label 2\" x 3 1/2\" Rotated",
-    "page": [
-      591,
-      2079
-    ],
-    "area": [
-      561,
-      2019
-    ],
-    "origin": [
-      15,
-      30
-    ],
-    "command_length": 1040,
-    "command_width": 561,
-    "continuous": false,
-    "source": "Original Linux 1.0.3/macOS 1.2.190 PPD",
-    "original_page_size_pt": [
-      142,
-      249
-    ]
+    "label": "*Wristband",
+    "source": "Derived alias of original Linux/macOS or Windows-non-prefixed media; no distinct vendor Windows Leitz key"
   }
 ]
