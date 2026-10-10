@@ -22,6 +22,18 @@ with TemporaryDirectory() as td:
     assert p.returncode == 0, p.stderr.decode()
     original = dest.read_bytes()
     assert run([str(ROOT / "leitz-cli"), "validate", str(dest)], capture_output=True).returncode == 0
+    # Existing byte stream stays identical; only an explicitly requested
+    # no-cut boundary can replace the intermediate page trailer.
+    trailer = b"\x1bG\x1bE\x1b@\x1bZ"
+    assert original.endswith(trailer)
+    joined = original[:-len(trailer)] + b"\x1bG" + original
+    combined = root / "two_pages_final_cut.bin"
+    combined.write_bytes(joined)
+    assert run([str(ROOT / "leitz-cli"), "validate", str(combined)],
+               capture_output=True).returncode == 0
+    combined.write_bytes(joined[:-len(trailer)] + b"\x1bG")
+    assert run([str(ROOT / "leitz-cli"), "validate", str(combined)],
+               capture_output=True).returncode != 0
     for drop in (1, 9, 150):
         bad = root / "bad.bin"
         bad.write_bytes(original[:-drop])
