@@ -20,11 +20,23 @@ An independent **Linux / CUPS driver** for the Leitz Icon USB label printer (USB
 - **170 mm is only an example test length, not a fixed printer format.**
 - Successful transmission to the USB printer does not prove physical completion.
 
-## Repository plan
+## Source and continuous integration
 
-1. Preserve and review the experimentally developed driver sources.
-2. Add reproducible source, CUPS PPD and Docker build checks through GitHub Actions.
-3. Make downloadable releases only after checks pass and actual printer behavior is verified.
+The `main` branch contains the **experimental v0.4.1 development sources**, including:
+
+- `src/`: protocol encoder, offline validator and CUPS raster filter
+- `cups/`: USB backend, cartridge status, PPD with 76 vendor media profiles and a standalone CUPS Dockerfile
+- `media.json`: vendor-derived media dimensions, not evidence of physical support
+- `tests/`: synthetic offline raster/validation tests (the original physical golden fixtures are not published)
+
+[GitHub Actions](https://github.com/an3k/leitz-icon-linux/actions) compiles the sources, validates the PPD, runs synthetic tests and **builds a Docker image without access to real hardware**. A passed run is not a release or proof of printing success.
+
+## Downloads and releases
+
+- [Actions build results](https://github.com/an3k/leitz-icon-linux/actions): source snapshots appear as workflow artifacts after successful runs. GitHub may require login to download artifacts.
+- [Releases](https://github.com/an3k/leitz-icon-linux/releases): the tag-triggered `release.yml` workflow will build a **loadable Docker image archive**, source archive and SHA-256 checksums as a public prerelease when a `v*` tag is deliberately pushed.
+- **No release tag has been created yet.** Do not assume a prebuilt Docker download already exists.
+- [Unraid deployment notes](docs/UNRAID.md) describe intended fresh-container settings; deployment remains pending device testing.
 
 Do not run experimental builds against production print queues without reviewing their status.
 
