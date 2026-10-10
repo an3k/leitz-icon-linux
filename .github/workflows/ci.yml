@@ -25,6 +25,8 @@ jobs:
         run: |
           python3 tests/test_core.py
           python3 tests/test_v04.py
+      - name: Regression-test status and diagnostic formatting (offline)
+        run: make status-test probe-test
       - name: Validate driver PPD against installed CUPS filter
         run: |
           sudo install -m 0755 leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
