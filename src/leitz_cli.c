@@ -24,12 +24,12 @@ int main(int argc,char **argv){
   /* Decodes a regular-file snapshot; never opens a device or sends commands. */
   leitz_reply_kind kind;
   if(leitz_reply_kind_from_name(argv[2],&kind)) {
-    fprintf(stderr,"ERROR: Use legacy, v3, lines, or version\\n");return 2;
+    fprintf(stderr,"ERROR: Use legacy, v3, lines, or version\n");return 2;
   }
   struct stat info;
   if(stat(argv[3],&info) || !S_ISREG(info.st_mode) ||
      info.st_size<1 || info.st_size>(long)LEITZ_REPLY_MAX) {
-    fprintf(stderr,"ERROR: Requires a 1..1024-byte regular reply file\\n");return 1;
+    fprintf(stderr,"ERROR: Requires a 1..1024-byte regular reply file\n");return 1;
   }
   FILE *input=fopen(argv[3],"rb");
   if(!input){perror(argv[3]);return 1;}
@@ -37,19 +37,19 @@ int main(int argc,char **argv){
   size_t n=fread(bytes,1,sizeof bytes,input);
   int io_bad=ferror(input),close_bad=fclose(input);
   if(io_bad || close_bad || n!=(size_t)info.st_size || n>LEITZ_REPLY_MAX) {
-    fprintf(stderr,"ERROR: Cannot read complete reply snapshot\\n");return 1;
+    fprintf(stderr,"ERROR: Cannot read complete reply snapshot\n");return 1;
   }
   leitz_reply parsed;
   if(leitz_parse_reply(kind,bytes,n,&parsed)) {
-    fprintf(stderr,"ERROR: Malformed or unsupported reply snapshot\\n");return 1;
+    fprintf(stderr,"ERROR: Malformed or unsupported reply snapshot\n");return 1;
   }
-  printf("REPLY_BYTES=%zu\\nINTERPRETATION=%s\\n",n,parsed.interpretation);
+  printf("REPLY_BYTES=%zu\nINTERPRETATION=%s\n",n,parsed.interpretation);
   if(kind==LEITZ_REPLY_PRINTED_LINES)
-    printf("PRINTED_LINES_CANDIDATE=%u\\nCOMPLETION_CONFIRMED=NO\\n",parsed.printed_lines);
+    printf("PRINTED_LINES_CANDIDATE=%u\nCOMPLETION_CONFIRMED=NO\n",parsed.printed_lines);
   else if(kind==LEITZ_REPLY_VERSION)
-    printf("VERSION_TEXT=%s\\n",parsed.version);
+    printf("VERSION_TEXT=%s\n",parsed.version);
   else
-    printf("STATUS_BYTE=0x%02X\\nAMBIGUOUS=%s\\nDEVICE_VERIFIED=NO\\n",
+    printf("STATUS_BYTE=0x%02X\nAMBIGUOUS=%s\nDEVICE_VERIFIED=NO\n",
            (unsigned)parsed.status_byte,parsed.ambiguous?"YES":"NO");
   return 0;
  }
