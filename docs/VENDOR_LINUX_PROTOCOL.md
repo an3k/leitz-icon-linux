@@ -27,10 +27,10 @@ Run `make native-reference-test` to verify frame bytes, 300/600 dpi, blank line 
 
 ## Remaining porting work (grouped)
 
-1. **Implemented in development:** `LeitzProtocol=NativeLinux103` selects the original Linux framing in the real CUPS raster filter. The backend detects and validates either stream before opening USB, including distinct ESC-w width offsets. Current remains the default. Remaining: compile and verify on TARS; test hardware output before choosing the final implementation. Native is limited to one label per job.
+1. **Implemented in development:** `LeitzProtocol=NativeLinux103` selects the original Linux framing in the real CUPS raster filter. The backend detects and validates either stream before opening USB, including distinct ESC-w width offsets. Current remains the default. Remaining: compile and verify on TARS; test hardware output before choosing the final implementation. Native now supports multiple pages with the same width/resolution and `LabelCutter=ON/OFF`, exactly one reset at document start and final `ESC E` in either mode.
 2. Reconcile raster polarity, CUPS margins, length units and media geometry across the Windows GPD, original Linux PPD and macOS PPD without confusing catalog keys with device-cartridge SKUs.
-3. Add documented cutter options and per-page semantics (including no-cut-between-pages) and offline tests.
-4. Implement real status/progress handling only after confirming wire command response framing and retry safety. The macOS driver is a separate source; its behavior cannot be inferred from this Linux package.
+3. **Implemented in development:** `LabelCutter=ON/OFF` in the native print pipeline (each page vs. final cut only), including explicit full-document frame validation. Physical behavior is pending a combined hardware test.
+4. **Implemented:** known ready byte `0x03` is checked via `ESC A` before USB print data. **Remaining:** during-print progress and completion handling once supported by actual device responses; `ESC P` timed out at idle. The macOS driver is a separate source; its behavior cannot be inferred from this Linux package.
 5. Batch physical testing on TARS for different cassettes and both resolutions; never infer physical completion from CUPS `idle`.
 
 **Hardware test not yet completed.** Use the native experimental option only during a controlled test; the current verified stream is the default.
