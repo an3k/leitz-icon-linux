@@ -37,7 +37,7 @@ static const struct leitz_media *lookup(const cups_page_header2_t *h){
   double pw=m->page_width*72.0/300.0, ph=m->page_height*72.0/600.0;
   if(fabs(h->cupsPageSize[0]-pw)<.4 && fabs(h->cupsPageSize[1]-ph)<.4 &&
      h->cupsWidth==m->raster_width &&
-     h->cupsHeight==m->raster_height*(h->HWResolution[1]==300?0.5:1.0))
+     h->cupsHeight==(h->HWResolution[1]==300?(m->raster_height+1)/2:m->raster_height))
      return m;
  }
  return NULL;
@@ -66,7 +66,7 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,FILE *job,const
          selected->page_height*72.0/600.0 < h->cupsPageSize[1]-.4 ||
          selected->page_height*72.0/600.0 > h->cupsPageSize[1]+.4 ||
          width!=selected->raster_width ||
-         height!=selected->raster_height*(dpi==300?0.5:1.0)){
+         height!=(dpi==300?(selected->raster_height+1)/2:selected->raster_height)){
         fprintf(stderr,"ERROR: PageSize %s does not match CUPS raster geometry\n",selected->name);
         return -1;
       }
