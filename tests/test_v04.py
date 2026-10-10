@@ -60,5 +60,6 @@ with tempfile.TemporaryDirectory() as t:
  for name in ('LargePendaflexTabRotated','Multipurpose70030001Rotated','NameBadgeCard70190001Rotated','ShippingLabel70180001Rotated'):
   run_case(name)
  run_case('LargePendaflexTabRotated',300)
+ run_case('Continuous112')
  run_case('Multipurpose70030001',empty=True)
  print('PASS offline media checks')
