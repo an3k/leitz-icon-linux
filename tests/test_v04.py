@@ -4,16 +4,22 @@ import json,os,subprocess,tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 CAT=json.loads((ROOT/'media.json').read_text())
-assert len(CAT)==81 and len({m['name'] for m in CAT})==81
+assert len(CAT)==86 and len({m['name'] for m in CAT})==86
+assert len(CAT[:43])==len(CAT[43:])==43
+assert all(not m['name'].startswith('Leitz') for m in CAT[:43])
+assert [m['name'] for m in CAT[43:]]==['Leitz'+m['name'] for m in CAT[:43]]
+assert [m['name'].lower() for m in CAT[:43]]==sorted(m['name'].lower() for m in CAT[:43])
 SOURCE_ADDITIONS=json.loads((ROOT/'tools/source_media_additions.json').read_text())
 assert len(SOURCE_ADDITIONS)==6
-assert [m['name'] for m in CAT[-6:]]==[m['name'] for m in SOURCE_ADDITIONS]
+assert all(any(m['name']==original['name'] for m in CAT) for original in SOURCE_ADDITIONS)
 for original in SOURCE_ADDITIONS:
   current=next(m for m in CAT if m['name']==original['name'])
   for field in ('page','area','origin','command_length','command_width','continuous'):
     assert current[field]==original[field],(original['name'],field,current[field],original[field])
-assert CAT[-3]['name']=='Multipurpose70030001Rotated'
-print('PASS 75 Windows GPD physical sizes + 6 Linux/macOS-only profiles, source values intact')
+assert next(m for m in CAT if m['name']=='LeverArchFile1005')['page']==next(m for m in CAT if m['name']=='LeitzLeverArchFile1005')['page']
+assert [m['name'] for m in CAT if m['name'].startswith('Leitz') and m['name'][5:] not in {x['name'] for x in CAT[:43]}]==[]
+assert {a['name'] for a in CAT[:43] if any(a.get(field)!=next(x for x in CAT if x['name']=='Leitz'+a['name']).get(field) for field in ('page','area','origin','command_length','command_width','continuous'))}=={'LargePendaflexTabRotated','Multipurpose70030001Rotated','NameBadgeCard70190001Rotated','ShippingLabel70180001Rotated'}
+print('PASS 43 A + 43 B media profiles; four vendor geometry differences preserved')
 ppd=(ROOT/'cups/LeitzIcon.ppd').read_text()
 for m in CAT:
   name=m['name'];assert f'*PageSize {name}/' in ppd and f'*PageRegion {name}:' in ppd
@@ -24,7 +30,11 @@ assert '*PageSize ShippingLabel70180001/Shipping Label 2" x 3 1/2"' in ppd
 assert '*PageSize Continuous70070001/Continuous - 1 1/2"' in ppd
 assert '*Resolution 300x300dpi/300 x 300 dpi:' in ppd
 print('PASS vendor-readable CUPS media labels and confirmed 300x300 dpi option')
-print('PASS 76 Windows GPD and 5 original Linux/macOS media entries exposed')
+assert len([line for line in ppd.splitlines() if line.startswith('*PageSize ')])==86
+assert [line.split()[1].split('/')[0] for line in ppd.splitlines() if line.startswith('*PageSize ')]==[m['name'] for m in CAT]
+assert '*PageSize LeitzWristband/*Wristband:' in ppd
+assert '*PageSize LeitzLeverArchFile1005/*Lever Arch File 1005:' in ppd
+print('PASS 86 A-then-B PPD sizes with source-matched original Windows B labels')
 
 with tempfile.TemporaryDirectory() as t:
  tmp=Path(t)
