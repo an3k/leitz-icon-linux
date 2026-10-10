@@ -53,10 +53,15 @@ for match in pages[43:]:
     assert label == labels[key]["label"], key
     assert label.startswith("*"), key
 
-structure = re.findall(
-    r'^\s+\{"([^"]+)",(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),([01])\},,
-    header, re.MULTILINE
-)
+structure = []
+for line in header.splitlines():
+    line = line.strip()
+    if not (line.startswith('{"') and line.endswith('},')):
+        continue
+    fields = line[1:-2].split(",")
+    assert len(fields) == 9, ("Malformed C header media entry", line)
+    structure.append((fields[0].strip('"'), *fields[1:]))
+
 assert len(structure) == 86, "C header count mismatch"
 for item, record in zip(catalog, structure):
     name, pw, ph, aw, ah, ox, oy, length, continuous = record
