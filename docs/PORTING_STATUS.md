@@ -62,7 +62,7 @@ No more one-change/one-label iteration. Use offline tests for protocol frames, P
 
 ## Integration since the reference-only stage (development branch)
 
-- The real CUPS filter now emits **multi-page native Linux 1.0.3** documents with a single reset/resolution at job start and a page header for each label. The original manufacturer's `LabelCutter=ON/OFF` behavior is implemented: cut each label or cut at document end. `Current` remains byte-for-byte the default and rejects unsupported `LabelCutter=OFF` rather than pretending to apply it.
+- The real CUPS filter now emits **multi-page native Linux 1.0.3** documents with a single reset/resolution at job start and a page header for each label. **Shared CUPS job policy** selects `LabelCutter=ON/OFF` for both wire dialects. Each encoder translates the same cut decision into its framing; `Current` continues to produce identical bytes by default. The newly enabled `Current` no-cut-between-pages path is experimental until physically tested.
 - `leitz-cli validate-native` now validates all pages and their boundaries, rejects mixed widths/truncated final cuts, and is mandatory for native data at the USB backend. The backend's existing full-job spooling/SKU/width/USB checks remain.
 - The real backend now issues `ESC A` immediately before the first print byte, after verifying the cartridge, and permits transfer only for the physically verified ready byte `0x03`. This is a **pre-send** check, not monitoring during printing and not a mechanical-completion proof.
 - All changes remain on `port/vendor-parity`. The user requested **one combined hardware test later**, not one Docker build/label after each edit. Existing test tools are retained.
