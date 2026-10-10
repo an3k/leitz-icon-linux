@@ -1,42 +1,60 @@
-# Controlled Leitz Icon status captures (development branch only)
+# Controlled Leitz Icon USB status probe (development branch only)
 
-**Purpose:** record actual, binary-safe USB replies to the already identified original manufacturer queries without changing the CUPS printing path. **Not a printer-side completion protocol**.
+The manually invoked `leitz-probe` sends **exactly one** status command to an operator-confirmed idle Leitz Icon and displays the **raw reply bytes as hexadecimal on stdout**. It is never called by CUPS. No file, directory, host mount, or proprietary driver is required for captures.
 
-## Status and limits
+## Separation of responsibilities
 
-- Experimental binary `leitz-probe` is built into the development Docker image but is **never called by CUPS, startup scripts, or status polling**. Requires explicit operator invocation.
-- Exactly **one** USB query per invocation: `--command status` → `ESC A`, `version` → `ESC V`, or `printed-lines` → `ESC P`. No `ESC G`, `ESC E`, cutter, media feed, or print raster data sent.
-- Requires `--idle-confirmed` and a separately verified **mechanically stopped**, not printing/cutting printer. This flag records **operator confirmation**, not an automated idle test. Do **not** run it while a CUPS print is active or the device is moving.
-- Requires root in the isolated CUPS container; strictly allows `/dev/usb/lpN`, verifies exact USB vendor 289e/product 1000 in sysfs, and rejects symlink device paths.
-- Takes the same per-port advisory `flock` lock `/run/leitz-icon/lpN.lock` as `leitzusb` and `leitz-status`. Busy device/failed lock → abort without query. No other container or tool is protected unless it uses the same shared lock and filesystem.
-- Opens USB nonblocking, sends a single two-byte query, and receives raw bytes using `poll`. Deadline **5 seconds for A/V**, **7 seconds for P**. A **1-second response-idle gap** is used because actual reply framing is not yet established; this is a capture heuristic, **not** a protocol specification. If the overall timeout expires before the idle gap, the capture is rejected as incomplete.
-- Maximum **1,024 bytes**. A 1,025th byte causes rejection. NUL bytes and fragment boundaries are preserved in the captured payload; no Bash string processing or human-readable assumptions.
-- Captures go into a caller-specified **new file** (`O_CREAT|O_EXCL|O_NOFOLLOW`, mode 0600); existing files are never overwritten. A failed capture removes the partial output.
-- **No retries**, no automatic ESC P during an active print, no resume, no job completion claims. Only the existing `leitz-cli decode-status` can interpret saved snapshots offline.
+- The existing `cups` container runs CUPS, its raster filter, and `leitzusb`; it must **not be replaced or restarted** merely to query printer status.
+- The dedicated diagnostic runs as a **temporary container** from the experimental image, with the USB character device passed through. It never starts a separate CUPS daemon.
+- Linux kernel `usblp_open()` rejects a simultaneous second open of `/dev/usb/lpN` with `EBUSY`. Consequently `flock` and `/run/leitz-icon` are unnecessary for the kernel-device access path. This guarantee does **not** apply to other USB access methods (e.g. a libusb user that detaches the kernel driver).
+- Exclusive opening is **not** a printer-mechanical-idle check. A print backend may already have closed its descriptor while the printer is still moving or cutting.
 
-## Future one-time physical test — do not run until scheduled
+## Constraints
 
-Do not build/deploy this branch to TARS merely to run the probe; include it with the planned batched driver hardware testing. Once the development image is explicitly built/installed, the CUPS queue is idle, and all mechanical movement has stopped:
+- Explicit `--idle-confirmed` flag means that the operator has checked **both** an empty CUPS job queue and a printer that has finished all movement. It is not an automatic status gate.
+- Exact character-device path `/dev/usb/lpN`, matching sysfs USB VID/PID `289e:1000`. Unsupported paths and devices are rejected before any USB query.
+- `--command status` sends `1B 41` (ESC A); `version` sends `1B 56` (ESC V); `printed-lines` sends `1B 50` (ESC P). Each invocation sends one two-byte command, no raster, feed, cut, or recovery command.
+- Binary read, maximum 1,024 bytes; **5-second deadline** for A/V and **7-second deadline** for P. The 1-second reply gap is a provisional capture heuristic, not a known manufacturer frame boundary. Timeout, oversized reply, open failure, or invalid path produces an error and **no successful status output**.
+- No retries or automatic resume, and no claim that a successful USB reply establishes completed printing/cutting. `ESC P` while actively printing is **not authorized** by this procedure.
+
+## Test procedure on TARS (only after explicitly choosing to capture)
+
+The existing `leitz-icon-cups:probe` image was built from an **older commit** before the no-lock/hex-output rewrite. First rebuild that experimental tag from the current development branch (does not replace the running `cups` container):
 
 ```sh
-# Example for a container named cups, verified device /dev/usb/lp0:
-docker exec -u 0 cups /usr/local/bin/leitz-probe \
-  --idle-confirmed --device /dev/usb/lp0 --command status --output /tmp/leitz-A.bin
-docker cp cups:/tmp/leitz-A.bin ./leitz-A.bin
+docker build -f cups/Dockerfile -t leitz-icon-cups:probe \
+  'https://github.com/an3k/leitz-icon-linux.git#port/vendor-parity'
 ```
 
-Review that first raw capture and device behavior before choosing whether to run `version` or `printed-lines`. Use distinct output names `/tmp/leitz-V.bin` and `/tmp/leitz-P-idle.bin`. Only use `ESC P` during printing if a **separate explicitly approved test** establishes that doing so is safe and necessary. Avoid committing raw USB data containing unknown private metadata to a public repository.
+Confirm no queued jobs and no physical printer movement:
 
-For offline analysis:
 ```sh
-leitz-cli decode-status legacy leitz-A.bin
-leitz-cli decode-status v3 leitz-A.bin
-leitz-cli decode-status version leitz-V.bin
-leitz-cli decode-status lines leitz-P-idle.bin
+docker exec cups lpstat -p LeitzIcon
+docker exec cups lpstat -o LeitzIcon
 ```
 
-These decoders yield provisional interpretations. A valid-looking `ESC A` byte or `ESC P` counter does not independently confirm physical printing/cutting completion.
+Then **only when idle** run the single status inquiry:
 
-## Offline verification
+```sh
+docker run --rm --network none --read-only \
+  --device /dev/usb/lp0:/dev/usb/lp0 \
+  --entrypoint /usr/local/bin/leitz-probe \
+  leitz-icon-cups:probe \
+  --idle-confirmed --device /dev/usb/lp0 --command status
+```
 
-`make probe-test` compiles the recorder and runs a simulated full-duplex socket-based protocol test. It checks raw `0x00`, split replies, timeouts, unexpected oversized replies, and unsupported commands. This is **not** a USB device test. The recorder also fails closed on a machine without a matching USB device. Full CUPS image and live hardware behavior remain untested at this step.
+Expected output structure (illustration only; **not a measured response**):
+
+```text
+COMMAND=ESC A
+REPLY_BYTES=<actual length>
+REPLY_HEX=<actual bytes in hexadecimal>
+```
+
+Review that **actual** output before scheduling `--command version` or `--command printed-lines`. This is one controlled sequence, not an automatic polling system. No extra host directories, bind mounts, status files or background services. Do not claim `ESC P` is safe during printing from an idle-only test.
+
+The offline parser `leitz-cli decode-status legacy|v3|lines|version FILE` remains available for saved binary fixtures and does not access USB; it is **not** required merely to read the hex output.
+
+## Verification
+
+`make probe-test` compiles `leitz-probe` and exercises the binary transport with simulated duplex responses: zero bytes, fragments, timeout before a complete idle gap, oversized data, and unsupported commands. This is not a printer hardware test. The image build and actual `ESC A` response must be verified again on TARS after the branch updates.
