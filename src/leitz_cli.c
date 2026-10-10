@@ -1,5 +1,6 @@
 /* Standalone offline generator and validator. PDF processing is not included. */
 #include "leitz_codec.h"
+#include "leitz_native_reference.h"
 #include "leitz_status.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +20,17 @@ int main(int argc,char **argv){
   FILE *f=fopen(argv[2],"rb");if(!f){perror(argv[2]);return 1;}
   unsigned pages;char msg[160]={0};int ok=leitz_validate(f,&pages,msg,sizeof msg);
   fclose(f);fprintf(stderr,"%s\n",msg);return ok?1:0;
+ }
+ if(argc==3 && !strcmp(argv[1],"validate-native")){
+  /* Manufacturer Linux 1.0.3 framing; validation only, never USB. */
+  FILE *f=fopen(argv[2],"rb");if(!f){perror(argv[2]);return 1;}
+  unsigned width=0,rows=0; char error[160]={0};
+  int rc=leitz_native_validate(f,&width,&rows,error,sizeof error);
+  if(fclose(f)) {perror("Closing input");return 1;}
+  if(rc) {fprintf(stderr,"ERROR: %s\n",error);return 1;}
+  fprintf(stderr,"OK: native Linux 1.0.3 frame; width=%u; transmitted_rows=%u\n",
+          width,rows);
+  return 0;
  }
  if(argc==4 && !strcmp(argv[1],"decode-status")) {
   /* Decodes a regular-file snapshot; never opens a device or sends commands. */
@@ -54,7 +66,7 @@ int main(int argc,char **argv){
   return 0;
  }
  if(argc!=4||strcmp(argv[1],"pgm")){
-  fprintf(stderr,"Usage: leitz-cli validate file.bin | pgm image.pgm output.bin | decode-status legacy|v3|lines|version reply.bin\n");return 2;
+  fprintf(stderr,"Usage: leitz-cli validate file.bin | validate-native file.bin | pgm image.pgm output.bin | decode-status legacy|v3|lines|version reply.bin\n");return 2;
  }
  FILE *in=fopen(argv[2],"rb");if(!in){perror(argv[2]);return 1;}
  char word[80];unsigned w=0,h=0,max=0;int err=0;
