@@ -12,7 +12,9 @@ cups_raster_t *cupsRasterOpen(int fd,int mode){
  r->fp=fdopen(dup(fd),"rb");if(!r->fp){free(r);return NULL;}return r;
 }
 unsigned cupsRasterReadHeader2(cups_raster_t *r,cups_page_header2_t *h){
- if(r->seen)return 0;
+ /* A synthetic test file may contain several concatenated P5 pages.
+  * A new header becomes available only after all pixels of the prior page. */
+ if(r->seen && r->y < r->height)return 0;
  unsigned width,height,max;
  if(fscanf(r->fp,"P5\n%u %u\n%u\n",&width,&height,&max)!=3||width<1||width>960||height<1||max!=255)return 0;
  const char *name=getenv("MOCK_MEDIA_NAME");if(!name)name="Continuous70030001";
@@ -30,7 +32,7 @@ unsigned cupsRasterReadHeader2(cups_raster_t *r,cups_page_header2_t *h){
  h->cupsBytesPerLine=(width+7)/8;
  h->cupsColorOrder=CUPS_ORDER_CHUNKED;
  h->cupsColorSpace=getenv("MOCK_COLORSPACE_W")?CUPS_CSPACE_W:CUPS_CSPACE_K;
- r->seen=1;r->width=width;r->height=height;return 1;
+ r->seen++;r->y=0;r->width=width;r->height=height;return 1;
 }
 unsigned cupsRasterReadPixels(cups_raster_t *r,unsigned char *p,unsigned len){
  if(r->y>=r->height||len!=(r->width+7)/8)return 0;
