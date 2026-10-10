@@ -41,7 +41,7 @@ Limits: single-open enforcement is specific to the `usblp` path, **not** users t
 
 The test probe is a separate opt-in program: one manufacturer status command, 1,024-byte bounded binary response, direct stdout hex. It does not generate spool data and creates no host or container capture files. The production print path remains unchanged apart from the removal of filesystem locks. See [one-shot status procedure](CONTROLLED_STATUS_CAPTURE.md).
 
-**Validation state:** source and mocked-protocol checks; real A/V/P replies remain unverified. Only the development branch is changed; the running CUPS container on TARS and `main` are unchanged.
+**Validation state:** real idle replies for A and V confirmed; P gave zero bytes and a timeout on idle. Printed-line counting and mechanical completion remain unverified. Only the development branch is changed; the running CUPS container on TARS and `main` are unchanged.
 
 ## Offline status-decoder implementation (development only)
 
@@ -52,6 +52,20 @@ Added `src/leitz_status.c/.h` to the existing `leitz-cli`. Command: `leitz-cli d
 - `lines`: 1..4 big-endian bytes parsed as an **unverified candidate** count. Returns `COMPLETION_CONFIRMED=NO`; no continuation or resend is enabled.
 - `version`: printable ASCII with optional terminal NUL (a conservative heuristic based on macOS text handling), not an established firmware-version wire grammar.
 
-Offline verification: compiled strict C11 decoder/unit test locally and compiled the CLI with stubbed **unmodified codec dependencies**; exercised NUL-containing line counts, ambiguous status byte `C0`, version text, and invalid lengths. The full in-repository `make status-test` target was added for later end-to-end regression runs; **no physical status A/P/V reply has been captured yet**.
+Offline verification: compiled strict C11 decoder/unit test locally and compiled the CLI with stubbed **unmodified codec dependencies**; exercised NUL-containing line counts, ambiguous status byte `C0`, version text, and invalid lengths. The full in-repository `make status-test` target was added for later end-to-end regression runs; **real idle A/V replies have since been captured; P returned no bytes before timeout**.
 
 The production USB backend and `leitz-status` are **unchanged by this decoder step**. No automatic status probing or resume behavior has been activated, and neither `main` nor TARS was modified.
+
+## First real-device results — 10 October 2026
+
+Source: direct operator-provided output from TARS, Leitz Icon USB device `289e:1000`, kernel `usblp` path `/dev/usb/lp0`, using temporary `leitz-icon-cups:probe` container and `--idle-confirmed`. Operator confirmed CUPS idle/empty beforehand. **These were three separate manually invoked commands, not in-print queries.**
+
+| Query | Actual result | Interpretation |
+|---|---|---|
+| `ESC A` (`1B 41`) | `REPLY_BYTES=1; REPLY_HEX=03` | Real device returned code `03`; the original macOS legacy/V3 decoder maps that byte to ready |
+| `ESC V` (`1B 56`) | `REPLY_BYTES=34`, NUL-terminated printable ASCII `ID:[redacted];A:0129;M:0090;W:310c;;\x00` | Real response format confirmed; meanings of A/M/W not established; device ID deliberately redacted in this public repository |
+| `ESC P` (`1B 50`) | `ERROR: Status exchange failed (-2), received 0 bytes; no retry` | Seven-second deadline elapsed with **no response bytes** while idle. Does not prove command unsupported during active printing or on other firmware |
+
+**Implementation decision:** `ESC P` cannot currently be used to confirm print completion or resume an incomplete job. No automatic retries, no new in-print probes, no cutter/transport behavior change. `ESC A` READY does **not** confirm a finished mechanical cut; `ESC V` reports manufacturer fields without proven semantics. Do not extrapolate from one idle printer to all Leitz firmware variants.
+
+The development image used on TARS was built from the branch as of that test; the running `cups` container, its printing pipeline, and `main` were not replaced by this probe.
