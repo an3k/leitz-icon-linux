@@ -30,6 +30,15 @@ static void contains(const char *text, const char *value) {
 int main(void) {
     const uint8_t ready[]={0x03};
     char *out=format('A',ready,sizeof ready);
+    /* Output contract: exact field labels/values; no invented status data. */
+    const char *expected_ready =
+        "COMMAND=ESC A\\n"
+        "REPLY_BYTES=1\\n"
+        "REPLY_HEX=0x03\\n"
+        "DECODED_STATUS_HEX=0x03\\n"
+        "DECODED_STATUS_LEGACY=READY\\n"
+        "DECODED_STATUS_V3=READY\\n";
+    assert(strcmp(out,expected_ready)==0);
     contains(out,"COMMAND=ESC A\nREPLY_BYTES=1\nREPLY_HEX=0x03\n");
     contains(out,"DECODED_STATUS_HEX=0x03\n");
     contains(out,"DECODED_STATUS_LEGACY=READY\n");
@@ -56,12 +65,14 @@ int main(void) {
     contains(out,"DECODED_FIELD_M=0090\n");
     contains(out,"DECODED_FIELD_W=310c\n");
     contains(out,"DECODED_FIELD_SEMANTICS=UNVERIFIED\n");
+    assert(strstr(out,"COMPLETION_CONFIRMED")==NULL);
     free(out);
 
     const uint8_t nontext[]={'a','b',0,'x'};
     out=format('V',nontext,sizeof nontext);
     contains(out,"REPLY_HEX=0x61 0x62 0x00 0x78\n");
     contains(out,"DECODED=UNRECOGNIZED_VERSION_REPLY\n");
+    assert(strstr(out,"COMPLETION_CONFIRMED")==NULL);
     free(out);
 
     const uint8_t lines[]={0x00,0x00,0x01,0x2c};
