@@ -32,6 +32,7 @@ jobs:
       - name: Validate driver PPD against installed CUPS filter
         run: |
           sudo install -m 0755 leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
+          sudo install -m 0755 cups/leitz-command /usr/lib/cups/filter/leitz-command
           cupstestppd -v cups/LeitzIcon.ppd
       - name: Verify source package files
         run: |
