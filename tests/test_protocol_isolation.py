@@ -4,6 +4,7 @@ No USB; no changes to the checked-out working tree.
 """
 import shutil
 import subprocess
+import os
 import tempfile
 from pathlib import Path
 
@@ -31,4 +32,27 @@ for wanted, omitted, forbidden in variants:
                                "validate-native" if forbidden == "NativeLinux103" else "validate",
                                "/dev/null"], capture_output=True, text=True)
         assert code.returncode == 2 and "not installed" in code.stderr, code.stderr
-        print("PASS isolated", wanted, "without", forbidden, "and filtered PPD")
+        # The remaining encoder must still generate a real binary job from
+        # the same CUPS raster input. Selecting the removed one must fail.
+        pgm = base / "test.pgm"
+        pgm.write_bytes(b"P5\n16 8\n255\n" + b"\xff"*16*2
+                        + b"\x00"*16 + b"\xff"*16*5)
+        env = os.environ.copy()
+        env["MOCK_MEDIA_NAME"] = "Custom"
+        for requested in (wanted, forbidden):
+            args = [str(base / "leitz-rastertoicon-mock"), "1", "root",
+                    "Isolated", "1", "PageSize=Custom LeitzProtocol=" + requested,
+                    str(pgm)]
+            p = subprocess.run(args, env=env, capture_output=True, timeout=15)
+            if requested == wanted:
+                assert p.returncode == 0 and p.stdout, (requested, p.stderr)
+                payload = base / "job.bin"
+                payload.write_bytes(p.stdout)
+                valid = subprocess.run([str(base / "leitz-cli"),
+                       "validate-native" if wanted == "NativeLinux103" else "validate",
+                       str(payload)], capture_output=True)
+                assert valid.returncode == 0, (wanted, valid.stderr)
+            else:
+                assert p.returncode != 0 and not p.stdout, (requested, p.stderr)
+        print("PASS isolated", wanted, "without", forbidden,
+              "and filtered PPD; CUPS print-path verified")
