@@ -64,7 +64,11 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
     !height || height>LEITZ_MAX_ROWS || h->cupsBitsPerPixel!=1 ||
     h->cupsBitsPerColor!=1 || h->cupsColorOrder!=CUPS_ORDER_CHUNKED ||
     (h->cupsColorSpace!=CUPS_CSPACE_K&&h->cupsColorSpace!=CUPS_CSPACE_W) ||
-    h->cupsBytesPerLine!=(width+7)/8){
+    h->cupsBytesPerLine<(width+7)/8 ||
+    h->cupsBytesPerLine>(width+7)/8+63){
+    /* CUPS raster can pad the physical row stride. The first ceil(width/8)
+     * bytes contain the meaningful pixels; trailing stride bytes are padding.
+     * Limit accepted padding to one 64-byte alignment unit. */
      fprintf(stderr,"ERROR: Unsupported raster: %u x %u @ %u x %u, depth=%u, bpl=%u\n",
       width,height,h->HWResolution[0],dpi,h->cupsBitsPerPixel,h->cupsBytesPerLine);
      return -1;
@@ -75,7 +79,9 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
   * its raster geometry matches. Do not reinterpret malformed vendor pages
   * as a custom size and transmit them. */
  for(size_t i=0;i<LEITZ_MEDIA_COUNT;i++){
-   if(!custom_page && option(options,"PageSize",leitz_media_catalog[i].name)){
+   if(!custom_page &&
+      (option(options,"PageSize",leitz_media_catalog[i].name) ||
+       option(options,"media",leitz_media_catalog[i].name))){
       const struct leitz_media *selected=&leitz_media_catalog[i];
       if(selected->page_width*72.0/300.0 < h->cupsPageSize[0]-.4 ||
          selected->page_width*72.0/300.0 > h->cupsPageSize[0]+.4 ||
