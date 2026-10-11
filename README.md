@@ -1,46 +1,41 @@
-# Frozen CUPS base for Unraid
+# Unraid CUPS source and package builder
 
-This branch is **not** the Leitz printer driver. It owns the independent,
-read-only upstream CUPS snapshot and the two package operations.
+This branch contains only the frozen upstream CUPS source and the tooling
+for producing a complete container from the **approved** driver on `main`.
+The development driver and its tests are maintained in independent branches.
 
-- `upgrade`: compare the upstream `olbat/cupsd:latest` linux/amd64 image
-  with the pinned source; only when changed, download once, archive the
-  original Docker image, extract its layers once, and save **both**
-  immutable files as versioned GitHub Release assets. Update
-  `cups/source.lock` to select that immutable version. Previous source
-  archives are never overwritten.
-- `build`: consume only the selected saved unpacked source archive; combine the
-  independently checked-out `main` release driver with a temporary CUPS
-  build environment. Produce a separate loadable Unraid Docker image.
-  This operation must never pull a moving CUPS source tag or edit
-  an upstream source archive.
+## Local immutable source
 
-The original CUPS image's startup command, user setup, installed drivers,
-and printer configuration are preserved. There is no custom Leitz
-container entrypoint; add the new printer using the usual CUPS interface.
+`source/<SHA-256>/original/part-000...` is the unchanged upstream Docker
+archive, stored as numbered 32 MiB files.
+`source/<SHA-256>/unpacked/part-000...` is its once-extracted/repacked
+Docker layer representation, also retained unchanged.
+`source/<SHA-256>/SHA256SUMS` verifies both exact archives.
+`source/source.lock` identifies the selected revision.
 
-`driver` provides separately installable development driver packages.
-`tests` verifies installation into this same CUPS base in an isolated
-CI workspace, without changing the original files.
+The numbered files are needed because GitHub limits individual file
+sizes. They are committed as normal Git objects so the snapshot is visible
+and locally available in the `cups` branch. Neither `build` nor any tests
+change their bytes.
 
-**Initial source state:** No snapshot exists until `upgrade` succeeds.
-A Docker image is a collection of filesystem layers and an image
-configuration, rather than an unpackable Unraid application executable.
-The two source archive files retain both the original image and the
-unpacked layer representation.
+## Independent functions
 
-## Run the independent operations from the GitHub web interface
+- **Upgrade:** `build/upgrade.sh` checks upstream for a new digest. If
+  missing, it archives the original and extracted source into a new
+  version-specific directory and selects it in `source/source.lock`.
+  Previously saved versions remain unchanged.
+- **Build:** `build/build.sh` reads the selected unpacked source exclusively,
+  verifies its checksum, and adds the current `main` release driver in a
+  disposable build environment. It publishes a loadable Unraid Docker image.
 
-The workflows live on the isolated `cups` branch, not on the default
-`main` branch. To run either operation without a local shell, open that
-branch on GitHub, edit the corresponding trigger file and commit the edit
-**to the same `cups` branch**:
+To invoke through GitHub Actions, use the `cups` branch and edit either
+`requests/upgrade.trigger` or `requests/build.trigger`. The actions are
+independent. Upgrading CUPS is never implicit in building the image.
 
-- `requests/upgrade.trigger` starts the upstream digest check and freezes a
-  new upstream version only when it differs from the pinned release.
-- `requests/build.trigger` rebuilds the complete Unraid image against the
-  current `main` revision and the already frozen CUPS source.
+The image preserves the upstream CUPS configuration and entrypoint. The
+Leitz Icon driver is not required for the base CUPS image to function.
+For development installations, the separate `driver` branch builds a
+driver-only archive which `tests` installs into a temporary CUPS environment.
 
-These commits run different GitHub Actions workflows. Build does not
-implicitly invoke upgrade. The upstream snapshots are immutable GitHub
-Release assets and are not edited by either operation.
+**Verification:** Successful compilation and installation testing is not
+a substitute for hardware print and cutter validation.

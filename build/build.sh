@@ -7,17 +7,16 @@ set -euo pipefail
 [[ -f cups/source.lock ]] || {
   echo 'ERROR: No frozen CUPS source. Run upgrade before build.' >&2; exit 1;
 }
-source cups/source.lock
+source source/source.lock
 [[ "$SOURCE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]] || exit 1
 [[ "$SOURCE_RELEASE" == "cups-source-${SOURCE_DIGEST#sha256:}" ]] || exit 1
 [[ "$UPSTREAM_IMAGE" == 'docker.io/olbat/cupsd:latest' ]] || exit 1
-mkdir -p /tmp/leitz-cups-frozen
-# Build only from the frozen, once-unpacked source snapshot.
-# The original image archive is preserved and never read by the build.
-gh release download "$SOURCE_RELEASE" -R "$GITHUB_REPOSITORY" --dir /tmp/leitz-cups-frozen \
-  -p 'cups-unpacked.tar.gz' -p 'SHA256SUMS'
-(cd /tmp/leitz-cups-frozen && sha256sum -c SHA256SUMS --ignore-missing)
-docker load -i /tmp/leitz-cups-frozen/cups-unpacked.tar.gz
+workspace=$(mktemp -d)
+trap 'rm -rf -- "$workspace"' EXIT
+# Build uses the unpacked archive stored in this branch, not a moving tag
+# and not a mutable GitHub Release attachment.
+bash build/reconstruct.sh unpacked "$workspace/cups-unpacked.tar.gz"
+docker load -i "$workspace/cups-unpacked.tar.gz"
 docker tag "$UPSTREAM_IMAGE" leitz-cups-frozen:source
 
 # 'release' is an independent checkout of the approved main branch.
@@ -25,7 +24,7 @@ docker tag "$UPSTREAM_IMAGE" leitz-cups-frozen:source
   echo 'ERROR: Missing main release checkout' >&2; exit 1;
 }
 docker build --build-arg BASE_IMAGE=leitz-cups-frozen:source \
-  -f cups/Dockerfile.release -t leitz-cups-complete:build .
+  -f build/Dockerfile -t leitz-cups-complete:build .
 docker run --rm --entrypoint /bin/bash leitz-cups-complete:build -ec '
   test -x /usr/lib/cups/filter/leitz-rastertoicon
   test -x /usr/lib/cups/filter/leitz-cli
