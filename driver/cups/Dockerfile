@@ -1,6 +1,6 @@
 # Build without test sources; both protocol modules remain independent.
 FROM debian:bookworm-slim AS build
-RUN apt-get update && apt-get install -y --no-install-recommends gcc make libcups2-dev python3-minimal ca-certificates \
+RUN apt-get update && apt-get install -y --no-install-recommends gcc make libcups2-dev python3 ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 COPY driver /build/driver
 COPY Makefile /build/Makefile

@@ -4,7 +4,7 @@ from pathlib import Path
 from subprocess import run
 from tempfile import TemporaryDirectory
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 with TemporaryDirectory() as td:
     root = Path(td)
     pgm = root / "test.pgm"
