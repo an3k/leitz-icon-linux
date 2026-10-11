@@ -16,12 +16,12 @@ static int fail(char *e,size_t cap,const char *msg) {
 static int take(FILE *f,int expected) {return fgetc(f)==expected?0:-1;}
 
 int leitz_native_validate_job(FILE *in, unsigned *pages_out,
-                              unsigned *first_width, char *error,
+                              unsigned *max_width, char *error,
                               size_t error_size) {
-  if (!in || !pages_out || !first_width)
+  if (!in || !pages_out || !max_width)
     return fail(error,error_size,"Missing native document inputs");
   *pages_out=0;
-  *first_width=0;
+  *max_width=0;
   if(take(in,ESC)||take(in,'@')||take(in,ESC))
     return fail(error,error_size,"Native job reset missing");
   int dpi=fgetc(in);
@@ -43,9 +43,9 @@ int leitz_native_validate_job(FILE *in, unsigned *pages_out,
     if(hi<0||lo<0)return fail(error,error_size,"Truncated native width");
     unsigned width=(unsigned)hi*256u+(unsigned)lo;
     if(width==0||width>960)return fail(error,error_size,"Native width out of range");
-    if(page && width!=*first_width)
-      return fail(error,error_size,"Mixed raster widths require separate jobs");
-    if(!page)*first_width=width;
+    /* ESC w is per page. Validate every page and return the maximum
+     * width so later pages cannot bypass the USB cartridge-width gate. */
+    if(width>*max_width)*max_width=width;
     if(take(in,ESC)||take(in,'B')||take(in,0))
       return fail(error,error_size,"Missing native page B0");
     unsigned rows=0,ink_rows=0;

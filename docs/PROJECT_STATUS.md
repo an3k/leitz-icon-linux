@@ -37,7 +37,7 @@ Papierkassette/SKU, physische Breite, gewähltes CUPS-Papierformat und tatsächl
 | --- | --- | --- |
 | `Current` USB-Druck auf weißer 88-mm-Endlosrolle | Vorhanden | 300×300 und 300×600 dpi, benutzerdefinierte Länge, mehrseitige Aufträge und automatischer Schnitt bereits getestet |
 | `Current` als Standard / gemeinsamer Jobcontroller | Implementiert | Refaktorierte/neue Teilpfade nicht erneut vollständig am Gerät geprüft |
-| `NativeLinux103`, mehrere Seiten, Cutter ON/OFF | Implementiert und offline validiert; kontinuierliches/custom Material erhält expliziten abschließenden Vorschub statt ungesendeter Leerzeilen | Kein Hardwaretest |
+| `NativeLinux103`, mehrere Seiten, Cutter ON/OFF | Implementiert und offline validiert; Seitenbreiten können wechseln, die Auflösung bleibt einheitlich, maximale Breite wird für USB geprüft; kontinuierliches/custom Material erhält expliziten abschließenden Vorschub | Kein Hardwaretest |
 | `ESC U` Kassettenabfrage | Implementiert | Reale ASCII/SKU-Antworten gemessen |
 | `ESC A` Bereitschaft vor Versand | Implementiert | Reale Einzelantwort `0x03` im Leerlauf; vollständiger Druck-Preflight noch nicht separat validiert |
 | `ESC V` Diagnose | Im manuellen Probe-Werkzeug | 34-Byte-Textantwort real gemessen; Feldsemantik unbekannt |

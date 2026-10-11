@@ -29,7 +29,7 @@ int leitz_native_flush_pending(leitz_native_reference *p);
 int leitz_native_finish_page(leitz_native_reference *p, int cut);
 int leitz_native_finish_job(leitz_native_reference *p);
 int leitz_native_validate_job(FILE *in, unsigned *pages_out,
-                              unsigned *first_width, char *error,
+                              unsigned *max_width, char *error,
                               size_t error_size);
 
 int leitz_native_validate(FILE *in, unsigned *width, unsigned *row_count,

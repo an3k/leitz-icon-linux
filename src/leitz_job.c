@@ -13,7 +13,7 @@ struct leitz_job {
     FILE *out;
     leitz_protocol protocol;
     int cut_each_page;
-    unsigned pages, first_width, first_dpi, width, remaining, bottom;
+    unsigned pages, max_width, first_dpi, width, remaining, bottom;
     int page_open, completed, failed, native_exact_roll_length;
     union {
         leitz_encoder current;
@@ -42,11 +42,13 @@ int leitz_job_begin_page(leitz_job *job, unsigned width, unsigned total_rows,
         top>total_rows || raster_rows>total_rows-top ||
         bottom!=total_rows-top-raster_rows ||
         (dpi_y!=300 && dpi_y!=600) || length_code>65535) return -1;
-    /* The original Linux stream sets the resolution once per document.
-     * Do not permit a silently inconsistent subsequent native page. */
+    /* The native stream sets resolution once per document, but each page
+     * has its own ESC w width. Reject mixed resolutions, not mixed widths.
+     * Keep the largest width for the cartridge safety gate. */
     if (job->pages && job->protocol==LEITZ_PROTOCOL_NATIVE_LINUX_103 &&
-        (width!=job->first_width || dpi_y!=job->first_dpi)) return -1;
-    if (job->pages==0) {job->first_width=width;job->first_dpi=dpi_y;}
+        dpi_y!=job->first_dpi) return -1;
+    if (job->pages==0) job->first_dpi=dpi_y;
+    if (width>job->max_width) job->max_width=width;
     job->width=width;
     job->remaining=raster_rows;
     job->bottom=bottom;
@@ -143,7 +145,7 @@ int leitz_job_validate(leitz_job *job, char *reason, size_t reason_size) {
     } else {
         unsigned width=0;
         if(leitz_native_validate_job(job->out,&pages,&width,reason,reason_size) ||
-           width!=job->first_width) return -1;
+           width!=job->max_width) return -1;
     }
     return pages==job->pages ? 0 : -1;
 }
