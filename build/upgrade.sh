@@ -11,9 +11,10 @@ if ! active=$(active_version); then
     extract_version "$local_version"
     activate_version "$local_version"
     commit_sources "source(cups): recover archived Debian CUPS $local_version"
-    exit 0
+    active=$local_version
+  else
+    active=''
   fi
-  active=''
 fi
 
 retry_file=requests/.upgrade-failures
@@ -40,7 +41,7 @@ chmod 0777 "$workspace"
 
 download_latest() {
   rm -rf -- "$workspace"/*
-  docker run --rm --volume "$workspace:/work" --workdir /work debian:bookworm-slim \
+  docker run --rm --env "CURRENT_VERSION=$active" --volume "$workspace:/work" --workdir /work debian:bookworm-slim \
     /bin/bash -euo pipefail -c '
       cat > /etc/apt/sources.list.d/cups-src.list <<EOF
 deb-src http://deb.debian.org/debian bookworm main
@@ -56,10 +57,16 @@ EOF
       done < <(apt-cache showsrc cups | sed -n "s/^Version: //p")
       [[ -n "$latest" ]]
       printf "%s\n" "$latest" > /work/.version
+      if [[ -n "$CURRENT_VERSION" ]] && ! dpkg --compare-versions "$latest" gt "$CURRENT_VERSION"; then
+        exit 0
+      fi
       apt-get source --download-only "cups=$latest"
     ' >&2
   local version name
   version=$(cat "$workspace/.version")
+  if [[ -n "$active" ]] && ! dpkg --compare-versions "$version" gt "$active"; then
+    return 0
+  fi
   while IFS= read -r name; do
     [[ -s "$workspace/$name" ]] || return 1
   done < <(source_filenames "$version")
