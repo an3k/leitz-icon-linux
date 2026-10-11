@@ -2,9 +2,7 @@
 # Consume only the previously archived upstream source release.
 # Never refresh CUPS or alter stored originals as part of a build.
 set -euo pipefail
-: "${GH_TOKEN:?}"
-: "${GITHUB_REPOSITORY:?}"
-[[ -f cups/source.lock ]] || {
+[[ -f source/source.lock ]] || {
   echo 'ERROR: No frozen CUPS source. Run upgrade before build.' >&2; exit 1;
 }
 source source/source.lock

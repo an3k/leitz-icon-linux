@@ -83,6 +83,8 @@ done < <(find "$snapshot" -type f | LC_ALL=C sort)
 printf 'UPSTREAM_IMAGE=%s\nSOURCE_REFERENCE=%s\nSOURCE_DIGEST=%s\nSOURCE_RELEASE=%s\n' \
   "$UPSTREAM_IMAGE" "$ref" "$digest" "$tag" > source/source.lock
 git add -- source/source.lock
-git commit -m "chore(cups): select fully archived immutable source $digest"
-git push origin HEAD:refs/heads/cups
+if ! git diff --cached --quiet; then
+  git commit -m "chore(cups): select fully archived immutable source $digest"
+  git push origin HEAD:refs/heads/cups
+fi
 echo "Frozen source and original archive are now visible under $snapshot."

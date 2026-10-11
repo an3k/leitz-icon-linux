@@ -3,9 +3,7 @@ on:
   push:
     branches: [cups]
     paths:
-      - 'build/build.sh'
-      - 'build/Dockerfile'
-      - '.github/workflows/build.yml'
+      - 'requests/build.trigger'
       - 'source/source.lock'
       - 'requests/build.trigger'
   workflow_dispatch:
