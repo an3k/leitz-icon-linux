@@ -1,87 +1,42 @@
-name: Driver verification
-
+name: Independent driver verification
 on:
   push:
-    branches: [main, port/vendor-parity]
-  pull_request:
+    branches: [tests]
   workflow_dispatch:
-
 permissions:
   contents: read
-
-env:
-  LEITZ_PROTOCOL_DIR: ${{ github.workspace }}/driver/modules
-
 jobs:
-  offline-tests:
-    name: Build, module tests, PPD validation
+  verify:
+    name: Verify separately checked-out driver
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - name: Install CUPS build dependencies
+      - name: Checkout verification branch
+        uses: actions/checkout@v4
+        with:
+          ref: tests
+          path: suite
+      - name: Checkout independent driver branch
+        uses: actions/checkout@v4
+        with:
+          ref: driver
+          path: product
+      - name: Install compiler and CUPS development headers
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gcc make libcups2-dev cups
-      - name: Compile common driver, dynamic protocols and raster mock
-        run: make clean all cups mock-filter probe
-      - name: Validate generated master catalog and immutable PPD
+          sudo apt-get install -y --no-install-recommends gcc make python3 libcups2-dev cups
+      - name: Assemble temporary verification workspace
+        run: cp -a suite/tests product/tests
+      - name: Build unmodified driver source
+        working-directory: product
+        run: make clean all cups probe ppd
+      - name: Run separate verification suite
+        working-directory: product
+        env:
+          LEITZ_PROTOCOL_DIR: ${{ github.workspace }}/product/driver/modules
+        run: make -f ../suite/Makefile verify
+      - name: Verify branch separation
         run: |
-          make ppd media-check
-          python3 driver/build/generate_media.py --check
-      - name: Protocol frames, module removal, geometry and raster integration
-        run: |
-          make native-reference-test job-geometry-test protocol-isolation-test
-          python3 tests/integration/test_core.py
-          python3 tests/integration/test_v04.py
-      - name: Status, diagnostics and maintenance tests
-        run: |
-          make status-test probe-test
-          python3 tests/integration/test_cups_command.py
-      - name: Validate driver PPD with CUPS
-        run: |
-          sudo install -m 0755 leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
-          sudo install -m 0755 driver/cups/leitz-command /usr/lib/cups/filter/leitz-command
-          cupstestppd -v driver/cups/LeitzIcon.ppd
-      - name: Verify production package
-        run: |
-          test -s driver/media/media.json
-          test -s driver/src/leitz_protocols.h
-          test -s driver/modules/leitz-current.so
-          test -s driver/modules/leitz-native.so
-          test -s driver/cups/LeitzIcon.ppd
-          bash -n driver/cups/leitzusb driver/cups/leitz-command driver/cups/leitz-status driver/cups/entrypoint.sh
-      - name: Archive production source separately from tests
-        run: |
-          mkdir -p dist
-          tar -czf dist/leitz-icon-linux-source.tar.gz driver/src driver/cups driver/media driver/build/generate_media.py Makefile README.md docs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: leitz-icon-linux-source
-          path: dist/leitz-icon-linux-source.tar.gz
-  container-image:
-    name: Docker image build (no hardware access)
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build standalone CUPS image
-        run: docker build -f driver/cups/Dockerfile -t leitz-icon-cups:ci .
-      - name: Verify CUPS modules and fixed PPD
-        run: |
-          docker run --rm --entrypoint /bin/bash leitz-icon-cups:ci -ec '
-            test -x /usr/lib/cups/filter/leitz-rastertoicon
-            test -x /usr/lib/cups/filter/leitz-cli
-            test -x /usr/lib/cups/filter/leitz-command
-            test -s /usr/lib/leitz/protocols/leitz-current.so
-            test -s /usr/lib/leitz/protocols/leitz-native.so
-            test -x /usr/lib/cups/backend/leitzusb
-            cupstestppd /usr/share/ppd/LeitzIcon.ppd
-          '
-      - name: Export loadable experimental Docker image
-        run: |
-          mkdir -p dist
-          docker save leitz-icon-cups:ci | gzip -1 > dist/leitz-icon-cups-dev-image.tar.gz
-      - uses: actions/upload-artifact@v4
-        with:
-          name: leitz-icon-cups-dev-image
-          path: dist/leitz-icon-cups-dev-image.tar.gz
-          retention-days: 14
+          test ! -e product/tests/integration/../..//driver/driver
+          test ! -e suite/driver
+          test -d product/driver/src
+          test -d suite/tests/integration

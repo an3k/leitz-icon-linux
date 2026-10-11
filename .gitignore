@@ -1,27 +1,9 @@
-# Build outputs
-leitz-cli
-leitz-rastertoicon
-leitz-rastertoicon-mock
-leitz-probe
-*.o
 __pycache__/
 *.pyc
-*.log
-# Runtime / local credentials
+*.o
+tmp/
+dist/
+build/
 .env
-.env.*
-!.env.example
-cupsd.conf
-printers.conf
-subscriptions.conf
-*.key
-# Private manufacturer material and personal USB captures
-tests/Windows-LeitzIcon.gpd
 *.pcap
 *.pcapng
-# Local scratch
-tmp/
-/build/
-driver/modules/
-*.so
-dist/
