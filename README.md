@@ -52,3 +52,9 @@ The older Current implementation physically printed white 88 mm continuous
 media at 300×300 and 300×600 dpi. Hardware qualification of the modular
 build, Native output, additional cassette types, and reliable mechanical
 completion/status reporting is still pending. No released build is claimed.
+
+## Unraid installation
+
+See [Unraid deployment notes](driver/docs/UNRAID.md) for installation
+requirements and device configuration. The current build is not yet
+qualified for a production installation.
