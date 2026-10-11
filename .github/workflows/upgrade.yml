@@ -6,6 +6,7 @@ on:
       - '.github/workflows/upgrade.yml'
       - 'scripts/upgrade.sh'
       - 'cups/upstream.env'
+      - 'requests/upgrade.trigger'
   workflow_dispatch:
 permissions:
   contents: write

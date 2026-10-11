@@ -28,3 +28,19 @@ A Docker image is a collection of filesystem layers and an image
 configuration, rather than an unpackable Unraid application executable.
 The two source archive files retain both the original image and the
 unpacked layer representation.
+
+## Run the independent operations from the GitHub web interface
+
+The workflows live on the isolated `cups` branch, not on the default
+`main` branch. To run either operation without a local shell, open that
+branch on GitHub, edit the corresponding trigger file and commit the edit
+**to the same `cups` branch**:
+
+- `requests/upgrade.trigger` starts the upstream digest check and freezes a
+  new upstream version only when it differs from the pinned release.
+- `requests/build.trigger` rebuilds the complete Unraid image against the
+  current `main` revision and the already frozen CUPS source.
+
+These commits run different GitHub Actions workflows. Build does not
+implicitly invoke upgrade. The upstream snapshots are immutable GitHub
+Release assets and are not edited by either operation.
