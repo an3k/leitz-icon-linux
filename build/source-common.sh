@@ -95,7 +95,11 @@ latest_local_version() {
 extract_version() {
   local version=$1 dir="$unpacked/cups-$1"
   verify_originals "$version" || { echo "ERROR: Invalid originals: $version" >&2; return 1; }
-  if verify_unpacked "$version"; then return 0; fi
+  # A present directory is not necessarily intact: verify every file and
+  # the upstream signature before reusing it during restore/upgrade.
+  if verify_unpacked "$version" && verify_source_tree "$version"; then
+    return 0
+  fi
   rm -rf -- "$dir"
   if ! dpkg-source -x "$original/cups_$version.dsc" "$dir"; then
     rm -rf -- "$dir"; return 1
@@ -111,7 +115,7 @@ extract_version() {
 }
 activate_version() {
   local version=$1 directory
-  verify_unpacked "$version" || return 1
+  verify_source_tree "$version" || return 1
   for directory in "$unpacked"/*; do
     [[ -e "$directory" ]] || continue
     [[ "$directory" == "$unpacked/cups-$version" ]] || rm -rf -- "$directory"

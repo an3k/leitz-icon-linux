@@ -8,6 +8,8 @@ on:
       - 'build/Dockerfile'
       - 'build/source-common.sh'
       - 'build/entrypoint.sh'
+      - 'build/restore.sh'
+      - 'build/upgrade.sh'
       - '.github/workflows/build.yml'
   workflow_dispatch:
     inputs:
@@ -86,6 +88,13 @@ jobs:
             none) tag="none-cups-$version_tag" ;;
             main|dev) tag="$mode-${driver_sha:0:12}-cups-$version_tag" ;;
             *) exit 2 ;;
+          esac
+          # Immutable identity for the precise CUPS build scripts and source
+          # branch, in addition to the packaged Debian and driver versions.
+          cups_sha=$(git rev-parse HEAD)
+          case "$mode" in
+            none) tag="none-${cups_sha:0:12}-cups-$version_tag" ;;
+            main|dev) tag="$mode-${driver_sha:0:12}-${cups_sha:0:12}-cups-$version_tag" ;;
           esac
           image="ghcr.io/${GITHUB_REPOSITORY,,}-cups:$tag"
           docker tag leitz-cups-complete:build "$image"
