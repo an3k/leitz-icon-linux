@@ -54,7 +54,8 @@ Bei der **gelben 88-mm-Kassette** wurden **49–51 mm statt 60 mm** beobachtet; 
 4. **Breiten und Medien:** Zusätzliche SKU, gestanzte Etiketten und abweichende A/B-Geometrien physisch prüfen; die SKU-Breitenzuordnung im Backend ist bislang nicht umfassend am Gerät nachgewiesen.
 5. **Herstellerparität:** CUPS-Befehlskanal, Status-/Fehlerbehandlung, Rasterqualität/Dithering, Margin-Semantik, Windows-64-Byte-Sonderfall und sichere Recovery sind noch nicht vollständig implementiert beziehungsweise geklärt.
 6. **Produktionsfreigabe:** Reproduzierbare End-to-End-Druckprüfung, installierbarer versionierter Build und belastbare Unraid-Anleitung fehlen; derzeit kein Release.
-7. **Repo-Organisation:** `main` bleibt vorerst als v0.4.1-Vergleichsbasis bestehen. Die Entwicklung wird über einen **Draft-PR gegen `main`** sichtbar; erst nach gebündelter Hardwarefreigabe zusammenführen und veröffentlichen.
+7. **Veröffentlichung und Lizenz:** Im Repository ist noch keine Lizenzdatei und keine explizit gewählte Weiterverwendungslizenz vorhanden. Ein Release benötigt eine bewusste Lizenzentscheidung; öffentlich lesbarer Quellcode ist nicht automatisch frei lizenzierter Code.
+8. **Repo-Organisation:** `main` bleibt vorerst als v0.4.1-Vergleichsbasis bestehen. Die Entwicklung wird über einen **Draft-PR gegen `main`** sichtbar; erst nach gebündelter Hardwarefreigabe zusammenführen und veröffentlichen.
 
 ## Konkrete Arbeitsreihenfolge
 
