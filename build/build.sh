@@ -16,8 +16,8 @@ version=$(active_version) || {
   echo 'ERROR: Exactly one complete sources/unpacked/cups-<version> required.' >&2
   exit 1
 }
-verify_originals "$version" || {
-  echo "ERROR: Invalid archived originals for CUPS $version" >&2
+verify_source_tree "$version" || {
+  echo "ERROR: Invalid archived originals or altered unpacked CUPS $version" >&2
   exit 1
 }
 driver_sha=none

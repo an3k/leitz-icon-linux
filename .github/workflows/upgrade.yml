@@ -21,11 +21,3 @@ jobs:
           persist-credentials: true
       - name: Download and activate verified Debian CUPS sources
         run: bash build/upgrade.sh
-      - name: Delete obsolete olbat image snapshot release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          tag=cups-source-3a9d7c319f4153c87e16db4edb6ef6c317aa7e71f8abe65c3419cc9aca851194
-          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release delete "$tag" --yes --repo "$GITHUB_REPOSITORY"
-          fi

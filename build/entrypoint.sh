@@ -72,7 +72,7 @@ if [[ ! -f /etc/cups/.cups-initialized ]]; then
     printf '\nServerAlias %s\n' "$CUPS_SERVER_ALIAS" >> /etc/cups/cupsd.conf
     kill -HUP "$cups_pid" || true
   fi
-  touch /etc/cups/.leitz-initialized
+  touch /etc/cups/.cups-initialized
 fi
 
 # The 'none' variant stays a pure CUPS image, without Leitz queues.

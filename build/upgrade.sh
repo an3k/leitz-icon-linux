@@ -77,8 +77,11 @@ save_originals() {
   local version=$1 name
   while IFS= read -r name; do
     # Retain valid archived originals; replace corrupted downloads, not valid differing bytes.
-    if [[ -e "$original/$name" && -f "$original/$name.sha256" ]] &&
-       ! (cd "$original" && sha256sum --status -c "$name.sha256"); then
+    # A missing checksum is not evidence of an intact archived original.
+    # Repair orphaned, empty, and incorrectly checksummed files together.
+    if [[ -e "$original/$name" ]] &&
+       { [[ ! -s "$original/$name" || ! -s "$original/$name.sha256" ]] ||
+         ! (cd "$original" && sha256sum --status -c "$name.sha256"); }; then
       rm -f -- "$original/$name" "$original/$name.sha256"
     fi
     if [[ -e "$original/$name" ]]; then

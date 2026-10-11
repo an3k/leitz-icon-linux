@@ -25,6 +25,20 @@ verify_unpacked() {
   actual=$(dpkg-parsechangelog -l "$dir/debian/changelog" -S Version) || return 1
   [[ "$actual" == "$version" ]]
 }
+# Full byte-for-byte verification against the already authenticated Debian
+# source package; do not build a tree whose contents differ from its archive.
+verify_source_tree() {
+  local version=$1 target="$unpacked/cups-$1" scratch
+  verify_originals "$version" && verify_unpacked "$version" || return 1
+  scratch=$(mktemp -d) || return 1
+  if ! dpkg-source -x "$original/cups_$version.dsc" "$scratch/source" >/dev/null 2>&1 ||
+     ! diff -qr -- "$scratch/source" "$target" >/dev/null; then
+    rm -rf -- "$scratch"
+    echo "ERROR: Unpacked Debian CUPS sources differ from archived originals ($version)" >&2
+    return 1
+  fi
+  rm -rf -- "$scratch"
+}
 active_version() {
   local dirs=("$unpacked"/cups-*)
   (( ${#dirs[@]} == 1 )) || return 1

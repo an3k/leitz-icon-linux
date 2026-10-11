@@ -18,3 +18,12 @@ GitHub Actions can be triggered by editing and committing `requests/upgrade.trig
 At most three unsuccessful download/verification attempts are allowed in a rolling twelve-hour window. Failure timestamps, when needed, are tracked in requests/.upgrade-failures. Successfully verified originals remain archived even if extraction fails.
 
 CI compilation and container validation do not replace hardware printing, media, or cutter verification.
+
+## Source trust and build verification
+
+The CUPS build reconstructs and compares the complete Debian source from
+archived files before compilation. The archive hashes verify stored bytes;
+Debian APT signed source indexes authenticate downloads performed with normal
+APT signature checks. The separate upstream `.asc` is retained as-is; it is
+**not independently authenticated** unless an audited trusted upstream key
+is provided. Do not claim that the detached signature was validated.
