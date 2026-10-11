@@ -53,7 +53,7 @@ done
 grep -Fxq "Version: $active" "$original/cups_$active.dsc"
 [[ "$(dpkg-parsechangelog -l "$unpacked/cups-$active/debian/changelog" -S Version)" == "$active" ]]
 tmpdir=$(mktemp -d)
-container_id="leitz-cups-verify-$"
+container_id="leitz-cups-verify-${BASHPID}"
 trap 'docker rm -f "$container_id" >/dev/null 2>&1 || :; rm -rf -- "$tmpdir"' EXIT
 dpkg-source -x "$original/cups_$active.dsc" "$tmpdir/cups-$active" >/dev/null
 diff -qr "$tmpdir/cups-$active" "$unpacked/cups-$active" || {
