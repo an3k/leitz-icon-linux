@@ -18,5 +18,5 @@ int leitz_row_media(leitz_encoder *e,const uint8_t *pixels);
 int leitz_end_page(leitz_encoder *e, int cut);
 int leitz_finish_job(leitz_encoder *e);
 int leitz_end(leitz_encoder *e);
-int leitz_validate(FILE *f,unsigned *pages,char *reason,size_t reason_size);
+int leitz_validate(FILE *f,unsigned *pages,unsigned *max_width,char *reason,size_t reason_size);
 #endif
