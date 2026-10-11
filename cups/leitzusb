@@ -17,19 +17,21 @@ if (($# == 0)); then
     read -r v < "$base/idVendor" || continue
     read -r p < "$base/idProduct" || continue
     if [[ "${v,,}" == 289e && "${p,,}" == 1000 ]]; then
-      printf 'direct leitzusb:/dev/usb/%s "Leitz Icon" "Leitz Icon USB (%s)" "MFG:Leitz;MDL:Icon;"\n' "$port" "$port"
+      printf 'direct leitzusb:/dev/usb/%s?sku=auto "Leitz Icon" "Leitz Icon USB (%s)" "MFG:Leitz;MDL:Icon;"\n' "$port" "$port"
     fi
   done
   exit 0
 fi
 
 uri=${DEVICE_URI:-}
-if [[ ! "$uri" =~ ^leitzusb:/dev/usb/(lp[0-9]+)\?sku=(auto|[0-9]{8})$ ]]; then
-  echo 'ERROR: DEVICE_URI must be leitzusb:/dev/usb/lpN?sku=auto or NNNNNNNN' >&2
+# CUPS discovery advertises sku=auto. Also accept older queue URIs
+# without a query, so pre-existing queues remain usable after upgrade.
+if [[ ! "$uri" =~ ^leitzusb:/dev/usb/(lp[0-9]+)(\?sku=(auto|[0-9]{8}))?$ ]]; then
+  echo 'ERROR: DEVICE_URI must be leitzusb:/dev/usb/lpN[?sku=auto|NNNNNNNN]' >&2
   exit 4
 fi
 port=${BASH_REMATCH[1]}
-expected=${BASH_REMATCH[2]}
+expected=${BASH_REMATCH[3]:-auto}
 usb_device="/dev/usb/$port"
 if (( $# != 5 && $# != 6 )); then echo 'ERROR: invalid CUPS backend arguments' >&2;exit 4;fi
 if [[ "$4" != 1 ]]; then
@@ -47,7 +49,11 @@ tmp=$(mktemp "${TMPDIR:-/tmp}/leitzjob.XXXXXXXX") || exit 4
 trap 'rm -f -- "$tmp"' EXIT
 if (($# == 6)); then cp -- "$6" "$tmp" || exit 4; else cat > "$tmp" || exit 4;fi
 size=$(stat -c %s -- "$tmp")
-if ((size < 130 || size > 25000000)); then
+# The raster filter supports up to 64 pages, each with up to 64000
+# rows of 960 pixels. A valid multi-page job can exceed 25 MB by far.
+# Both encoders have a worst-case payload below 544 MiB for 64 pages.
+max_job_bytes=$((544 * 1024 * 1024))
+if ((size < 130 || size > max_job_bytes)); then
   echo "ERROR: Suspicious job length $size; not sent" >&2; exit 4
 fi
 # Determine framing from the first four bytes, then validate the *entire*
@@ -75,10 +81,6 @@ fi
 if ((job_width<1 || job_width>960));then
   echo "ERROR: Unsupported raster width $job_width" >&2; exit 4
 fi
-if ((size % 64 == 0)); then
-  echo 'WARNING: USB job size divisible by 64; the link to earlier cut failures remains UNPROVEN' >&2
-fi
-
 root=$(readlink -f "/sys/class/usbmisc/$port/device") || exit 4
 root=${root%/*}
 read -r vid < "$root/idVendor" || exit 4
@@ -91,6 +93,7 @@ exec 3<>"$usb_device" || { echo 'ERROR: Cannot open Leitz USB printer (busy or i
 printf '\033U' >&3 || { echo 'ERROR: ESC U failed' >&2;exit 4; }
 IFS= read -r -d '' -n 1024 -t 5 response <&3 || { echo 'ERROR: No status response' >&2;exit 4; }
 if [[ "$response" == 'SKU:No Cartridge;;;' ]]; then
+  echo 'STATE: +media-empty' >&2
   echo 'ERROR: No cartridge; job blocked' >&2;exit 4
 fi
 if [[ "$response" =~ ^SKU:([0-9]{8})\;INIT:([0-9]+)\;USED:([0-9]+)\;$ ]]; then
@@ -98,6 +101,7 @@ if [[ "$response" =~ ^SKU:([0-9]{8})\;INIT:([0-9]+)\;USED:([0-9]+)\;$ ]]; then
 else
   echo 'ERROR: Unknown cartridge response; job blocked' >&2;exit 4
 fi
+echo 'STATE: -media-empty' >&2
 if [[ "$expected" != auto && "$actual_sku" != "$expected" ]]; then
   echo "ERROR: Wrong cartridge; expected $expected, got $response" >&2;exit 4
 fi
