@@ -1,4 +1,4 @@
-name: Tests – Verify
+name: Independent driver verification
 on:
   push:
     branches: [tests]
