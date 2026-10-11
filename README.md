@@ -68,16 +68,16 @@ The development `leitzusb` backend now checks the installed cartridge with `ESC 
 `leitz-rastertoicon` uses `leitz_cups_filter.c` for the **common**
 CUPS/media/raster path and `leitz_job.c` for **one common**
 page, label-length, cutter-policy and document controller. That controller
-switches **only the wire encoder** between `leitz_codec.c` (`Current`)
-and `leitz_native_reference.c` (`NativeLinux103`). Both protocols now
+switches **only the wire encoder** between `src/leitz_protocol_current.c` (`Current`)
+and `src/leitz_protocol_native_linux_103.c` (`NativeLinux103`). Both protocols now
 implement `LabelCutter=ON/OFF` and multi-page documents through the
 same job controller. Validation still checks the exact selected framing.
-The development goal remains **one** final hardware-verified protocol;
+Each protocol is an independently selectable optional module; either can be omitted from a build.
 the temporary alternate codec and tests are retained during comparison.
 
 ## Actual CUPS print protocol selection (development only)
 
-The development-branch CUPS queue has `LeitzProtocol`: `Current` (**default; existing tested implementation**) or `NativeLinux103` (**original Linux 1.0.3 framing, experimental**). The same `leitz-rastertoicon` filter processes media, raster data and length selection, then encodes in the chosen protocol. The `leitzusb` backend independently validates the selected binary stream before USB and performs the same cartridge-width preflight. Both protocols support multiple labels at a **single print width and resolution per job**, with variable lengths on continuous media. The common controller and both spool validators reject page-width changes. The shared `LabelCutter=ON` option (default) cuts each label; `OFF` emits a final cut after the whole job **in either wire dialect**. The no-cut-between-pages path in `Current` is newly implemented and remains hardware-unverified. This functionality has not been tested on the actual printer. This is a transitional experimental option, not a plan to maintain two distinct printer systems indefinitely.
+The development-branch CUPS queue has `LeitzProtocol`: `Current` (**default; existing tested implementation**) or `NativeLinux103` (**original Linux 1.0.3 framing, experimental**). The same `leitz-rastertoicon` filter processes media, raster data and length selection, then encodes in the chosen protocol. The `leitzusb` backend independently validates the selected binary stream before USB and performs the same cartridge-width preflight. Both protocols support multiple labels at a **single print width and resolution per job**, with variable lengths on continuous media. The common controller and both spool validators reject page-width changes. The shared `LabelCutter=ON` option (default) cuts each label; `OFF` emits a final cut after the whole job **in either wire dialect**. The no-cut-between-pages path in `Current` is newly implemented and remains hardware-unverified. This functionality has not been tested on the actual printer. This is a single driver with two independently removable wire encoders, not two separate printer systems.
 
 ## Original Linux protocol validation (offline only)
 
@@ -92,3 +92,24 @@ The original Linux 1.0.3 raw-reference framing is checked independently with `le
 ## Manual device status probe (development branch only)
 
 `port/vendor-parity` includes the optional `leitz-probe`. It sends **one** operator-approved `ESC A`, `ESC V`, or `ESC P` query to an idle printer and displays **both the original binary reply as hexadecimal and its conservative decoding** (status mappings, printable ASCII and fields, or an unverified printed-line candidate), without files or bind mounts. Linux kernel `usblp` prevents concurrent opens of `/dev/usb/lpN`; no extra `flock` paths are needed. This does **not** establish mechanical idle or verified print completion. See [controlled status probe](docs/CONTROLLED_STATUS_CAPTURE.md). Offline tests: `make probe-test`. The new probe code has not yet been tested on TARS.
+
+## Optional wire modules and single-source paper catalog
+
+The production wire implementations are **exactly two independent C files**:
+`src/leitz_protocol_current.c` and `src/leitz_protocol_native_linux_103.c`.
+Every page goes through the shared `src/leitz_job.c` and `src/leitz_cups_filter.c`;
+each codec independently owns its binary encoder and validator. No codec-specific
+media rules are applied by the shared controller. The common `src/leitz_protocol.h`
+API is implemented by either module and dispatched by `src/leitz_protocol_registry.c`.
+
+Deleting either source file from a source distribution removes that codec from
+the resulting driver binary. `make all cups ppd` generates a filtered
+`dist/LeitzIcon.ppd`: when both are present, CUPS offers both choices; with
+only one source, only the installed protocol is selectable and is the default.
+The Docker image installs this **generated** PPD, not the unfiltered template.
+`make protocol-isolation-test` builds and checks both reduced variants offline.
+
+The authoritative maintained format catalog is `media.json`. The synchronized
+C header (`src/leitz_media.h`) and CUPS template (`cups/LeitzIcon.ppd`)
+remain separate representations of the same 86 profiles, verified by
+`make media-check`. They are not yet generated from a single source.
