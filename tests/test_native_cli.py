@@ -53,6 +53,13 @@ with tempfile.TemporaryDirectory() as tmp:
     path.write_bytes(native + b"\x00")  # Extra data after native footer.
     check("validate-native", path, False)
 
+    # Width 9 requires seven zero padding bits in the last raster byte.
+    path.write_bytes(native.replace(b"w\x00\x10", b"w\x00\x09"))
+    check("validate-native", path, True)
+    path.write_bytes(native.replace(b"w\x00\x10", b"w\x00\x09").replace(
+        b"\x16\x80\x00", b"\x16\x80\x01"))
+    check("validate-native", path, False)
+
     path.write_bytes(b"")
     check("validate-native", path, False)
 

@@ -68,6 +68,9 @@ int leitz_native_validate_job(FILE *in, unsigned *pages_out,
         for(int i=0;i<n;i++){
           int b=fgetc(in);
           if(b<0)return fail(error,error_size,"Truncated native raster");
+          if(i==n-1 && (width&7u) &&
+             (b & ((1u<<(8u-(width&7u)))-1u)))
+            return fail(error,error_size,"Ink outside native raster width");
           any|=b;
         }
         if(!any||rows>=64000)return fail(error,error_size,"Invalid native ink row");

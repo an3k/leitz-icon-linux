@@ -34,6 +34,19 @@ with TemporaryDirectory() as td:
     combined.write_bytes(joined[:-len(trailer)] + b"\x1bG")
     assert run([str(ROOT / "leitz-cli"), "validate", str(combined)],
                capture_output=True).returncode != 0
+    # USB must never receive a syntactically framed but blank or invalid
+    # raster row: the spool validator is an independent safety boundary.
+    prefix = original[:135]
+    for body in (
+        b"\x1bf\x00\x01",                       # Feed-only label
+        b"\x1bD\x01\x1bB\x00\x16\x00", # Empty raw raster row
+        b"\x1bD\x01\x1bB\x00\x17\x07", # All-white compressed row
+        b"\x1bf\x00\x00\x1bD\x01\x1bB\x00\x16\x80", # Zero feed
+    ):
+        bad = root / "blank_or_invalid.bin"
+        bad.write_bytes(prefix + body + trailer)
+        assert run([str(ROOT / "leitz-cli"), "validate", str(bad)],
+                   capture_output=True).returncode != 0
     for drop in (1, 9, 150):
         bad = root / "bad.bin"
         bad.write_bytes(original[:-drop])

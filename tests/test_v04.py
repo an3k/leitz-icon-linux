@@ -72,6 +72,12 @@ with tempfile.TemporaryDirectory() as t:
   assert (f'{pages} validated label(s)' in status.stderr.decode() if not native else f'pages={pages};' in status.stderr.decode()), status.stderr
   if native:
     assert result.stdout[:4] in (b'\x1b@\x1bi',b'\x1b@\x1bh')
+    if m['continuous']:
+      # Production native roll labels must actually advance the bottom
+      # margin before cutting; the separate vendor reference stays faithful
+      # to the original source's unflushed-blank quirk.
+      bottom=181 if dpi==600 else 91
+      assert result.stdout.endswith(b'\x1bf' + bottom.to_bytes(2,'big') + b'\x1bG\x1bE'),result.stdout[-20:]
     width=(result.stdout[130]<<8)|result.stdout[131]
     other=subprocess.run([str(ROOT/'leitz-cli'),'validate',str(out)],capture_output=True)
     assert other.returncode!=0,other.stderr
@@ -110,6 +116,8 @@ with tempfile.TemporaryDirectory() as t:
  # vendor framing, but the tested current path remains the default.
  run_case('FileFolderLabel',native=True)
  run_case('FileFolderLabel',native=True,dpi=300)
+ run_case('Continuous70030001',native=True)
+ run_case('Continuous70030001',native=True,dpi=300)
  # Both codecs must honor the same job-level cutter and page-count choices.
  for use_native in (False,True):
   one_cut=run_case('FileFolderLabel',native=use_native)

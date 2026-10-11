@@ -14,7 +14,7 @@ struct leitz_job {
     leitz_protocol protocol;
     int cut_each_page;
     unsigned pages, first_width, first_dpi, width, remaining, bottom;
-    int page_open, completed, failed;
+    int page_open, completed, failed, native_exact_roll_length;
     union {
         leitz_encoder current;
         leitz_native_reference native;
@@ -50,6 +50,12 @@ int leitz_job_begin_page(leitz_job *job, unsigned width, unsigned total_rows,
     job->width=width;
     job->remaining=raster_rows;
     job->bottom=bottom;
+    /* ESC L = 0xffff denotes a variable-length roll/custom job.
+     * The original Linux codec drops the final blank feed; that silently
+     * shortens roll labels. Preserve its independent source reference,
+     * but advance those rows in the actual CUPS printing path. */
+    job->native_exact_roll_length=(job->protocol==LEITZ_PROTOCOL_NATIVE_LINUX_103 &&
+                                   length_code==65535u);
     if (job->protocol==LEITZ_PROTOCOL_CURRENT) {
         if (leitz_begin_media(&job->wire.current,job->out,width,total_rows,
                               raster_rows,top,bottom,length_code,dpi_y)) goto fail;
@@ -101,6 +107,10 @@ int leitz_job_end_page(leitz_job *job) {
         const unsigned packed=(job->width+7)/8;
         for(unsigned i=0;i<job->bottom;i++)
             if(leitz_native_row(n,empty,packed)){job->failed=1;return -1;}
+        if (job->native_exact_roll_length && leitz_native_flush_pending(n)) {
+            job->failed=1;
+            return -1;
+        }
         rc=leitz_native_finish_page(n,job->cut_each_page);
     }
     if(rc){job->failed=1;return -1;}

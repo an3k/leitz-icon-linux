@@ -64,6 +64,13 @@ int leitz_native_row(leitz_native_reference *p, const uint8_t *packed,
       send(p->out, packed, row_bytes)) return p->failed = -1;
   return 0;
 }
+int leitz_native_flush_pending(leitz_native_reference *p) {
+  if (!p || p->failed || p->finished || p->rows_written != p->total_rows)
+    return -1;
+  if (skip_rows(p, p->pending_blank)) return p->failed = -1;
+  p->pending_blank = 0;
+  return 0;
+}
 int leitz_native_finish_page(leitz_native_reference *p, int cut) {
   if (!p || p->failed || p->finished || p->rows_written != p->total_rows) return -1;
   /* Original 1.0.3 optimization-1 leaves trailing blank rows pending.
