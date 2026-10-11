@@ -41,3 +41,10 @@ delivery does not prove mechanical completion. No production release is
 claimed.
 
 No project-wide redistribution license has yet been selected.
+
+## Workflow identity
+
+`Driver - Main Build` creates the baseline standalone package. `Driver - Main
+Release` publishes a versioned experimental prerelease for a `v*` tag.
+Development driver builds and releases are separate workflows using `driver`
+source and, for development releases, `dev-v*` tags.
