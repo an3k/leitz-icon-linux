@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-FILTER = ROOT / "driver" / "cups" / "leitz-command"
+FILTER = ROOT / "cups" / "leitz-command"
 
 def run(data):
     with tempfile.TemporaryDirectory() as td:
