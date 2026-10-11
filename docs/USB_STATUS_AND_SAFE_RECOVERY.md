@@ -19,7 +19,7 @@ This proves **ASCII key-value text terminated by NUL for this particular ESC U r
 
 Static `LeitzLm.dll` (amd64, driver version 2.17.4.112) disassembly confirms that the request mapping dispatches a two-byte command and uses an asynchronous read worker with a **0x400 (1024) byte receive buffer**, **0x1388 (5000 ms) wait**, and termination condition tied to requested length or a zero byte. That wait is specific to the examined Windows monitor function and must **not** be generalized to all device operations.
 
-The current development backend and status command still **send only ESC U**. Their reads are now capped at 1024 bytes with a five-second shell timeout and their cartridge grammar is strictly checked. ESC A and ESC V are **not yet implemented** because response frames/values and safe coordination with printing remain unproven. For A/V, a read-only USB capture of those queries/answers is the next decisive primary evidence.
+The current development backend sends **ESC U** to verify the cartridge and **ESC A** for a strict one-byte readiness check before transmitting job bytes. The separate `leitz-status` shell command sends only ESC U; the manually invoked `leitz-probe` supports ESC A/V/P diagnostics. Actual idle A/V responses are documented below. There is still **no status query during printing** and no confirmed completion signal.
 
 ## Incomplete jobs and completion
 
@@ -54,7 +54,7 @@ Added `src/leitz_status.c/.h` to the existing `leitz-cli`. Command: `leitz-cli d
 
 Offline verification: compiled strict C11 decoder/unit test locally and compiled the CLI with stubbed **unmodified codec dependencies**; exercised NUL-containing line counts, ambiguous status byte `C0`, version text, and invalid lengths. The full in-repository `make status-test` target was added for later end-to-end regression runs; **real idle A/V replies have since been captured; P returned no bytes before timeout**.
 
-The production USB backend and `leitz-status` are **unchanged by this decoder step**. No automatic status probing or resume behavior has been activated, and neither `main` nor TARS was modified.
+At the time of the decoder-only change, the USB backend and `leitz-status` were unchanged. **Subsequently, the development backend added ESC A readiness preflight.** No during-print status polling, automatic resume or completion confirmation is enabled. `main` and the running TARS container were not changed by these development-branch steps.
 
 ## First real-device results — 10 October 2026
 
