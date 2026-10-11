@@ -23,7 +23,7 @@ This is an **evidence-based gap inventory**, not a claim of full parity. The ori
 | CUPS command channel | **Not implemented** | macOS `command2leitzV3` exposes GetPrinterStatus, GetUnitedStatus, GetFirmwareVersion, GetWiFiStatus and ReportStatus; do not add PPD `cupsCommands` until a working Linux command filter exists |
 | Print quality | Linux accepts one-bit CUPS raster | macOS PPD offers Draft plus several dither/halftone algorithms (Bayer, SuperCell and others). Requires filter integration, not merely PPD options |
 | Cutter controls | **Shared `LabelCutter` policy in development:** `ON` requests a cut after every label; `OFF` requests one at job end. Both `Current` and `NativeLinux103` encoders serialize the same decision in their own framing. The previous `Current` default byte stream remains unchanged. | The new `Current` no-cut-between-pages sequence and native cutter behavior are not yet hardware-verified; macOS-specific semantics remain open |
-| 64-byte boundary | Linux **only warns** if job size is a multiple of 64 | Windows LeitzRp.DLL includes a *conditional* code path that sends an additional ESC byte. The precise predicate and correct insertion point must be established from the renderer; do not blindly append bytes |
+| 64-byte boundary | The current development filter/backend **neither pads nor applies a validated 64-byte correction** | Windows LeitzRp.DLL includes a *conditional* code path that sends an additional ESC byte. The precise predicate and correct insertion point must be established from the renderer; do not blindly append bytes |
 
 ## Original Linux source comparison
 
@@ -49,7 +49,7 @@ No more one-change/one-label iteration. Use offline tests for protocol frames, P
 
 **Current native restrictions:** NativeLinux103 supports multiple labels with the same raster width and resolution, and its original unflushed trailing blank rows mean physical label length must not be assumed to match the CUPS page height. `ESC P` and physical completion remain unverified. The native dialect has **not** been tested on actual TARS hardware. The separate offline reference source and its tools remain present; nothing was deleted. The goal is to converge on one verified final encoding after hardware comparison.
 
-**Tests:** The existing `tests/test_v04.py` now exercises the real raster-filter native option at 300×300 and 300×600 dpi in addition to the unmodified Current path. Entire development-branch Docker build and live printer test remain pending.
+**Tests:** The existing `tests/test_v04.py` now exercises the real raster-filter native option at 300×300 and 300×600 dpi in addition to the unmodified Current path. The development-branch Docker image build has passed GitHub Actions; the integrated native-protocol live printer test remains pending.
 
 ## Native Linux 1.0.3 wire-reference implementation — offline only
 
