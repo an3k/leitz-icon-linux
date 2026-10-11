@@ -27,9 +27,15 @@ if [[ "${vid,,}" != 289e || "${pid,,}" != 1000 ]];then
 fi
 exec 3<>"$DEVICE" || { echo 'STATE=USB_BUSY_OR_UNAVAILABLE'; exit 4; }
 printf '\033U' >&3 || exit 4
+# ESC U responses need not include a NUL terminator. The timed read
+# can return a complete partial buffer; accept only the exact forms
+# below and never interpret arbitrary partial data as a cartridge.
 response=''
-IFS= read -r -d '' -n 1024 -t 5 response <&3 || { echo 'STATE=NO_REPLY';exit 4; }
+IFS= read -r -d '' -n 1024 -t 5 response <&3 || :
 exec 3>&-
+if [[ -z "$response" ]]; then
+  echo 'STATE=NO_REPLY';exit 4
+fi
 if [[ "$response" == 'SKU:No Cartridge;;;' ]];then
   echo "RAW=$response"
   echo 'STATE=NO_CARTRIDGE';exit 4
