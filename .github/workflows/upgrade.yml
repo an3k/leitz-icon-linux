@@ -1,4 +1,4 @@
-name: Upgrade Debian Bookworm CUPS sources
+name: CUPS - Upgrade
 on:
   push:
     branches: [cups]
