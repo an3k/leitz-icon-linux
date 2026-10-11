@@ -1,32 +1,46 @@
-# Unraid deployment — not released yet
+# Leitz Icon on Unraid and existing CUPS servers
 
-**Current status:** The repository's development driver has not completed hardware validation. Do not treat a successful GitHub Actions run as a printer hardware qualification.
+## Scope
 
-The existing, previously verified v0.2 CUPS image has been deleted from the user's Unraid installation. Deployment will use a **fresh build from this GitHub repository**, with no reliance on old appdata, stale locally tagged images or old containers.
+The **driver** is an independent CUPS integration, not a CUPS server.
+It can be installed in an existing Linux or Unraid CUPS environment.
+This development branch has passed offline build and installation checks,
+but its current modular printer output has not been qualified on hardware.
 
-## Intended Unraid container configuration
+## Development driver: add to existing CUPS
 
-- Name: `cups`
-- Network: `bridge`
-- TCP port: host `631` → container `631`
-- Persistence: `/mnt/cache/appdata/cups/etc` → `/etc/cups`
-- Persistence: `/mnt/cache/appdata/cups/spool` → `/var/spool/cups`
-- USB character device: host `/dev/usb/lpN` → container `/dev/usb/lpN` (verify that the host node actually belongs to the Leitz printer)
-- Environment: `LEITZ_DEVICE=/dev/usb/lpN` (optional; defaults to `/dev/usb/lp0`; used only when the LeitzIcon queue is first created, and by `leitz-status`)
-- Environment: `CUPS_ADMIN_USER`, `CUPS_ADMIN_PASSWORD` (at least 12 characters, unique and not committed)
-- `--privileged` is not required by design.
+The driver-only archive is produced by
+`bash driver/install/package.sh`, or by the matching CI build.
+It contains the compiled raster filter, USB backend, status command,
+PPD, protocol libraries, and `install.sh`.
 
-**Security:** The setup exposes a CUPS administrative web UI. Restrict host port 631 to trusted networks. Do not publish it to the internet.
+Install the extracted package **inside the existing CUPS environment**,
+then add the Leitz Icon as an ordinary printer through CUPS administration.
+The installer does not configure users, change `cupsd.conf`, create queues,
+or alter other printers. A USB device must be available to the CUPS
+environment as a real `/dev/usb/lpN` character device for actual printing;
+the correct device must be identified on the host before exposing it.
 
-**Work in progress:** Once CI has passed and the driver is hardware-tested, this document will give a single version-pinned installation/update path. Until then, no specific image tag is claimed to be publicly available.
+## Frozen Unraid Community Applications CUPS base
 
-## Dynamische Druckprotokolle (Entwicklungsstand)
+The separate Git branch `cups` provides a versioned copy of the
+upstream `olbat/cupsd` container image. Its `upgrade` operation stores
+original and extracted layer archives immutably. Its `build` operation
+combines the frozen base **only with the approved `main` driver**.
+It does not include development changes from `driver`.
 
-Das Docker-Image installiert beide `.so`-Module nach
-`/usr/lib/leitz/protocols/`. Der gemeinsame CUPS-Treiber wählt per
-`LeitzProtocol=Auto` zuerst Current und andernfalls Native; manuelle
-Auswahl bleibt möglich. Die PPD muss für das Entfernen oder Ergänzen einer
-Moduldatei nicht aktualisiert werden. Ein optionales Host-Bind-Mount auf
-`/usr/lib/leitz/protocols` kann die Module austauschbar machen; es muss
-dann die gewünschten `.so`-Dateien enthalten, weil es die im Image
-enthaltenen Dateien verdeckt. Es ist kein zusätzlicher Dienst notwendig.
+The resulting image retains upstream CUPS startup, configuration and
+installed drivers. It does not run a custom CUPS initialization script.
+To test the development driver, install the driver-only package into an
+ephemeral instance of that frozen CUPS base, just as an end user would
+install it into any other CUPS installation. The `tests` branch verifies
+this procedure independently in CI.
+
+## Security and verification boundaries
+
+Do not expose CUPS administration directly to the public internet.
+The USB backend validates print data, printer identity, cartridge and
+status before transmitting data. Completing a USB write does **not**
+prove that the printer physically finished printing and cutting.
+Until the batched hardware verification succeeds, neither the current
+development driver nor the integrated image is production-qualified.
