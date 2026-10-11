@@ -7,7 +7,7 @@ workspace=$(pwd -P)
 source "$workspace/frozen/cups/source.lock"
 [[ "$SOURCE_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]] || exit 1
 mkdir -p "$workspace/frozen/download"
-gh release download "$SOURCE_RELEASE" --dir "$workspace/frozen/download" \
+gh release download "$SOURCE_RELEASE" -R "$GITHUB_REPOSITORY" --dir "$workspace/frozen/download" \
   -p cups-original.tar.gz -p SHA256SUMS
 (cd "$workspace/frozen/download" && sha256sum --ignore-missing -c SHA256SUMS)
 gzip -dc "$workspace/frozen/download/cups-original.tar.gz" | docker load
