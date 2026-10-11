@@ -18,8 +18,12 @@ static int cp(FILE *in,FILE *out){char b[8192];size_t n;while((n=fread(b,1,sizeo
 int main(int argc,char **argv){
  if(argc==3&&!strcmp(argv[1],"validate")){
   FILE *f=fopen(argv[2],"rb");if(!f){perror(argv[2]);return 1;}
-  unsigned pages;char msg[160]={0};int ok=leitz_validate(f,&pages,msg,sizeof msg);
-  fclose(f);fprintf(stderr,"%s\n",msg);return ok?1:0;
+  unsigned pages=0,max_width=0;char msg[160]={0};int ok=leitz_validate(f,&pages,&max_width,msg,sizeof msg);
+  if(fclose(f)){perror("Closing input");return 1;}
+  fprintf(stderr,"%s\n",msg);
+  if(ok)return 1;
+  printf("MAX_WIDTH=%u\n",max_width);
+  return 0;
  }
  if(argc==3 && !strcmp(argv[1],"validate-native")){
   /* Manufacturer Linux 1.0.3 framing; validation only, never USB. */
@@ -30,6 +34,7 @@ int main(int argc,char **argv){
   if(rc) {fprintf(stderr,"ERROR: %s\n",error);return 1;}
   fprintf(stderr,"OK: native Linux 1.0.3 document; pages=%u; width=%u\n",
           pages,width);
+  printf("MAX_WIDTH=%u\n",width);
   return 0;
  }
  if(argc==4 && !strcmp(argv[1],"decode-status")) {
@@ -88,7 +93,8 @@ int main(int argc,char **argv){
  if(!err && leitz_end(&e))err=1;
  if(!err){
   rewind(temp);unsigned pages;char msg[160]={0};
-  if(leitz_validate(temp,&pages,msg,sizeof msg))err=1;
+  unsigned max_width=0;
+  if(leitz_validate(temp,&pages,&max_width,msg,sizeof msg))err=1;
  }
  if(!err){
   FILE *out=fopen(argv[3],"wb");if(!out){perror(argv[3]);err=1;}
