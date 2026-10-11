@@ -1,6 +1,6 @@
-#ifndef LEITZ_JOB_H
-#define LEITZ_JOB_H
-#include "leitz_protocol.h"
+#ifndef LEITZ_JOBS_H
+#define LEITZ_JOBS_H
+#include "leitz_protocols.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>

@@ -1,7 +1,7 @@
 /* Protocol-neutral page/job controller.
  * Only the protocol_ops vtable changes wire encoding. Every media, geometry,
  * raster, pagination and cutter policy applies identically to both codecs. */
-#include "leitz_job.h"
+#include "leitz_jobs.h"
 #include <stdlib.h>
 
 struct leitz_job {

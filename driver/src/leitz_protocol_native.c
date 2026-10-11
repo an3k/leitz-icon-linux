@@ -1,7 +1,7 @@
 /* Independent wire-format reference for Esselte's 2014 Linux v1.0.3 driver.
  * Distinct from production leitz_codec.c. No USB access or CUPS dependencies.
  */
-#include "leitz_protocol.h"
+#include "leitz_protocols.h"
 typedef struct {
   FILE *out;
   unsigned width, total_rows, rows_written, pending_blank, dpi_y, bottom_rows;
@@ -297,8 +297,9 @@ static int native_end(void *p,int cut){
  return leitz_native_finish_page(n,cut);
 }
 static int native_finish(void *p){return leitz_native_finish_job(p);}
-const leitz_protocol_ops leitz_native_driver={
- .name="NativeLinux103",.state_size=sizeof(leitz_native_reference),
+const leitz_protocol_ops leitz_protocol_driver={
+ .abi_version=LEITZ_PROTOCOL_ABI,.struct_size=sizeof(leitz_protocol_ops),
+ .name="Native",.state_size=sizeof(leitz_native_reference),
  .begin=native_begin,.row=native_row,.end_page=native_end,
  .finish=native_finish,.validate=leitz_native_validate_job
 };

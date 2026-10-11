@@ -3,7 +3,7 @@
  * Continuous roll: automatically cut after last ink row, with proven 170mm
  * hardware test offsets as conservative starting values. Other sizes UNTESTED.
  */
-#include "leitz_job.h"
+#include "leitz_jobs.h"
 #include "leitz_media.h"
 #include <cups/raster.h>
 #include <ctype.h>
@@ -208,8 +208,16 @@ int main(int argc,char **argv){
  cups_raster_t *r=cupsRasterOpen(fd,CUPS_RASTER_READ);
  if(!r){fprintf(stderr,"ERROR: Unable to open CUPS raster\n");if(argc==7)close(fd);return 1;}
  FILE *job=tmpfile();if(!job){perror("tmpfile");cupsRasterClose(r);if(argc==7)close(fd);return 1;}
- const leitz_protocol protocol=option(argv[5],"LeitzProtocol","NativeLinux103")
-   ? LEITZ_PROTOCOL_NATIVE_LINUX_103 : LEITZ_PROTOCOL_CURRENT;
+ const leitz_protocol protocol=option(argv[5],"LeitzProtocol","Current")
+   ? LEITZ_PROTOCOL_CURRENT : option(argv[5],"LeitzProtocol","Native")
+   ? LEITZ_PROTOCOL_NATIVE : LEITZ_PROTOCOL_AUTO;
+ if(strstr(argv[5],"LeitzProtocol=") &&
+    !option(argv[5],"LeitzProtocol","Current") &&
+    !option(argv[5],"LeitzProtocol","Native") &&
+    !option(argv[5],"LeitzProtocol","Auto")){
+  fprintf(stderr,"ERROR: Unknown LeitzProtocol selection\n");
+  fclose(job);cupsRasterClose(r);if(argc==7)close(fd);return 1;
+ }
  const int cut_each_page=!option(argv[5],"LabelCutter","OFF");
  leitz_job *document=leitz_job_create(job,protocol,cut_each_page);
  if(!document){fprintf(stderr,"ERROR: Could not initialize print job\n");fclose(job);cupsRasterClose(r);if(argc==7)close(fd);return 1;}

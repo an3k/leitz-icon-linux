@@ -1,5 +1,5 @@
 /* Standalone offline generator and validator. PDF processing is not included. */
-#include "leitz_job.h"
+#include "leitz_jobs.h"
 #include "leitz_status.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,19 +15,32 @@ static int token(FILE *f,char *s,size_t max){
 }
 static int cp(FILE *in,FILE *out){char b[8192];size_t n;while((n=fread(b,1,sizeof b,in)))if(fwrite(b,1,n,out)!=n)return -1;return ferror(in)?-1:0;}
 int main(int argc,char **argv){
- if(argc==3&&(!strcmp(argv[1],"validate")||!strcmp(argv[1],"validate-native"))){
-  int native=!strcmp(argv[1],"validate-native");
-  const leitz_protocol_ops *ops=leitz_protocol_get(
-    native?LEITZ_PROTOCOL_NATIVE_LINUX_103:LEITZ_PROTOCOL_CURRENT);
-  if(!ops){fprintf(stderr,"ERROR: Requested protocol module not installed\n");return 2;}
+ if(argc==3&&(!strcmp(argv[1],"validate")||
+                !strcmp(argv[1],"validate-native")||
+                !strcmp(argv[1],"validate-auto"))){
+  const int automatic=!strcmp(argv[1],"validate-auto");
+  const int native=!strcmp(argv[1],"validate-native");
+  const leitz_protocol selected=native?LEITZ_PROTOCOL_NATIVE:LEITZ_PROTOCOL_CURRENT;
+  if(!automatic && !leitz_protocol_get(selected)){
+   fprintf(stderr,"ERROR: Requested protocol module not installed\n");return 2;
+  }
   FILE *f=fopen(argv[2],"rb");if(!f){perror(argv[2]);return 1;}
-  unsigned pages=0,width=0;char msg[160]={0};
-  int ok=ops->validate(f,&pages,&width,msg,sizeof msg);
+  char msg[160]={0};unsigned pages=0,width=0;int ok=-1;
+  const leitz_protocol order[]={LEITZ_PROTOCOL_CURRENT,LEITZ_PROTOCOL_NATIVE};
+  for(unsigned i=0;i<(automatic?2u:1u);i++){
+   leitz_protocol type=automatic?order[i]:selected;
+   const leitz_protocol_ops *ops=leitz_protocol_get(type);
+   if(!ops)continue;
+   if(fseek(f,0,SEEK_SET)){perror("Rewinding spool");break;}
+   msg[0]=0;pages=width=0;
+   if(ops->validate(f,&pages,&width,msg,sizeof msg)==0){
+    ok=0;
+    fprintf(stderr,"OK: %s document; pages=%u; max_width=%u\n",ops->name,pages,width);
+    break;
+   }
+  }
   if(fclose(f)){perror("Closing input");return 1;}
-  if(ok){fprintf(stderr,"ERROR: %s\n",msg);return 1;}
-  if(native)
-   fprintf(stderr,"OK: native Linux 1.0.3 document; pages=%u; max_width=%u\n",pages,width);
-  else fprintf(stderr,"%s\n",msg);
+  if(ok){fprintf(stderr,"ERROR: No installed protocol accepted the document: %s\n",msg);return 1;}
   printf("MAX_WIDTH=%u\n",width);
   return 0;
  }
@@ -65,7 +78,7 @@ int main(int argc,char **argv){
   return 0;
  }
  if(argc!=4||strcmp(argv[1],"pgm")){
-  fprintf(stderr,"Usage: leitz-cli validate file.bin | validate-native file.bin | pgm image.pgm output.bin | decode-status legacy|v3|lines|version reply.bin\n");return 2;
+  fprintf(stderr,"Usage: leitz-cli validate file.bin | validate-native file.bin | validate-auto file.bin | pgm image.pgm output.bin | decode-status legacy|v3|lines|version reply.bin\n");return 2;
  }
  FILE *in=fopen(argv[2],"rb");if(!in){perror(argv[2]);return 1;}
  char word[80];unsigned w=0,h=0,max=0;int err=0;

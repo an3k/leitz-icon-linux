@@ -1,7 +1,7 @@
 /* Hardware verified: 960-pixel 300x600 raster protocol, 170 mm example.
  * Other widths/media/resolutions/lengths not yet physically verified.
  */
-#include "leitz_protocol.h"
+#include "leitz_protocols.h"
 typedef struct {
  FILE *out;
  unsigned width, raster_rows, total_rows, emitted_rows, printed_rows;
@@ -195,7 +195,8 @@ static int current_row(void *p,const uint8_t *pixels,unsigned width){
 }
 static int current_end(void *p,int cut){return leitz_end_page(p,cut);}
 static int current_finish(void *p){return leitz_finish_job(p);}
-const leitz_protocol_ops leitz_current_driver={
+const leitz_protocol_ops leitz_protocol_driver={
+ .abi_version=LEITZ_PROTOCOL_ABI,.struct_size=sizeof(leitz_protocol_ops),
  .name="Current",.state_size=sizeof(leitz_encoder),
  .begin=current_begin,.row=current_row,.end_page=current_end,
  .finish=current_finish,.validate=leitz_validate
