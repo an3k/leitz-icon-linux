@@ -17,6 +17,8 @@
 *LanguageLevel: "3"
 *Throughput: "1"
 *cupsFilter: "application/vnd.cups-raster 0 leitz-rastertoicon"
+*% CUPS rasterizes requested copies; the USB backend must never replay jobs.
+*cupsManualCopies: True
 *OpenUI *PageSize/Media Size: PickOne
 *OrderDependency: 10 AnySetup *PageSize
 *DefaultPageSize: Continuous70030001

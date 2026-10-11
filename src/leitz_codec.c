@@ -81,13 +81,15 @@ int leitz_validate(FILE *f,unsigned *pages,char *r,size_t n){
   int wh=rd(f),wl=rd(f);if(wh<0||wl<0)return bad(r,n,"Width truncated");
   unsigned width=(unsigned)(wh*256+wl);
   if(!width||width>LEITZ_MAX_WIDTH)return bad(r,n,"Raster width out of range");
-  unsigned count=0;int linewidth=-1,finished=0;
+  unsigned count=0,ink_rows=0;int linewidth=-1,finished=0;
   while(!finished){
    if(rd(f)!=27)return bad(r,n,"Body ESC missing");
    int cmd=rd(f);if(cmd<0)return bad(r,n,"Body truncated");
    if(cmd=='f'){
     int hi=rd(f),lo=rd(f);if(hi<0||lo<0)return bad(r,n,"Feed truncated");
-    count+=(unsigned)(hi*256+lo);
+    unsigned feed_rows=(unsigned)(hi*256+lo);
+    if(!feed_rows)return bad(r,n,"Zero-length feed");
+    count+=feed_rows;
    }else if(cmd=='D'){
     linewidth=rd(f);
     if(linewidth<1||linewidth>120)return bad(r,n,"Invalid raster width bytes");
@@ -95,12 +97,29 @@ int leitz_validate(FILE *f,unsigned *pages,char *r,size_t n){
     int x=rd(f),kind=rd(f);
     if(x<0||kind<0||linewidth<1||(unsigned)x*8+(unsigned)linewidth*8> ((width+7)/8)*8)
        return bad(r,n,"Invalid row offset/width");
-    if(kind==0x16){for(int i=0;i<linewidth;i++)if(rd(f)<0)return bad(r,n,"Raw row truncated");}
-    else if(kind==0x17){unsigned pixels=0;
-      while(pixels<(unsigned)linewidth*8){int v2=rd(f);if(v2<0)return bad(r,n,"RLE truncated");pixels+=(unsigned)(v2&127)+1;}
+    int ink=0;
+    if(kind==0x16){
+      for(int i=0;i<linewidth;i++){
+        int v2=rd(f);if(v2<0)return bad(r,n,"Raw row truncated");
+        if((width&7u) && ((unsigned)(x+i)+1u)*8u>width &&
+           (v2 & ((1u<<(8u-(width&7u)))-1u)))
+          return bad(r,n,"Ink in raster padding");
+        ink|=v2;
+      }
+    }else if(kind==0x17){
+      unsigned pixels=0;
+      while(pixels<(unsigned)linewidth*8){
+        int v2=rd(f);if(v2<0)return bad(r,n,"RLE truncated");
+        unsigned len=(unsigned)(v2&127)+1u;
+        if((v2&128) && (unsigned)x*8u+pixels+len>width)
+          return bad(r,n,"Ink in raster padding");
+        ink|=v2&128;
+        pixels+=len;
+      }
       if(pixels!=(unsigned)linewidth*8)return bad(r,n,"RLE overrun");
     }else return bad(r,n,"Raster mode unknown");
-    count++;
+    if(!ink)return bad(r,n,"Blank raster row");
+    ink_rows++;count++;
    }else if(cmd=='G'){
      static const unsigned char end[]={27,'E',27,'@',27,'Z'};
      for(size_t i=0;i<sizeof(end);i++)if(rd(f)!=end[i])return bad(r,n,"Footer missing");
@@ -108,10 +127,11 @@ int leitz_validate(FILE *f,unsigned *pages,char *r,size_t n){
    }else return bad(r,n,"Unknown command");
    if(count>LEITZ_MAX_ROWS)return bad(r,n,"Print length exceeds safety maximum");
   }
-  if(count==0)return bad(r,n,"Empty label");
+  if(count==0||!ink_rows)return bad(r,n,"Empty label");
   if((lh!=255||ll!=255) && count<(unsigned)(lh*256+ll))return bad(r,n,"Too few physical rows");
   (*pages)++;if(*pages>64)return bad(r,n,"Too many labels");
  }
+ if(ferror(f))return bad(r,n,"Spool read error");
  if(!*pages)return bad(r,n,"No labels");
  if(n)snprintf(r,n,"OK: %u validated label(s)",*pages);
  return 0;

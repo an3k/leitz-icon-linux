@@ -17,23 +17,25 @@ if (($# == 0)); then
     read -r v < "$base/idVendor" || continue
     read -r p < "$base/idProduct" || continue
     if [[ "${v,,}" == 289e && "${p,,}" == 1000 ]]; then
-      printf 'direct leitzusb:/dev/usb/%s "Leitz Icon" "Leitz Icon USB (%s)" "MFG:Leitz;MDL:Icon;"\n' "$port" "$port"
+      printf 'direct leitzusb:/dev/usb/%s?sku=auto "Leitz Icon" "Leitz Icon USB (%s)" "MFG:Leitz;MDL:Icon;"\n' "$port" "$port"
     fi
   done
   exit 0
 fi
 
 uri=${DEVICE_URI:-}
-if [[ ! "$uri" =~ ^leitzusb:/dev/usb/(lp[0-9]+)\?sku=(auto|[0-9]{8})$ ]]; then
+if [[ ! "$uri" =~ ^leitzusb:/dev/usb/(lp[0-9]+)(\?sku=(auto|[0-9]{8}))?$ ]]; then
   echo 'ERROR: DEVICE_URI must be leitzusb:/dev/usb/lpN?sku=auto or NNNNNNNN' >&2
   exit 4
 fi
 port=${BASH_REMATCH[1]}
-expected=${BASH_REMATCH[2]}
+expected=${BASH_REMATCH[3]:-auto}
 usb_device="/dev/usb/$port"
 if (( $# != 5 && $# != 6 )); then echo 'ERROR: invalid CUPS backend arguments' >&2;exit 4;fi
-if [[ "$4" != 1 ]]; then
-  echo 'ERROR: Multiple CUPS copies not supported; print one copy/job' >&2;exit 4
+# The CUPS raster pipeline expands copies because cupsManualCopies is True.
+# Replaying this byte stream at the backend would risk duplicate labels.
+if [[ ! "$4" =~ ^[1-9][0-9]*$ ]]; then
+  echo 'ERROR: Invalid CUPS copy count' >&2;exit 4
 fi
 
 # The backend, not the CUPS filter, accesses USB. CUPS should run it as root
@@ -72,7 +74,7 @@ read -r pid < "$root/idProduct" || exit 4
 if [[ "${vid,,}" != 289e || "${pid,,}" != 1000 ]]; then
   echo "ERROR: Wrong USB device: $vid:$pid" >&2;exit 4
 fi
-[[ -c "$usb_device" ]] || { echo 'ERROR: USB printer missing' >&2; exit 4; }
+[[ -c "$usb_device" && ! -L "$usb_device" ]] || { echo 'ERROR: USB printer missing or not a direct device node' >&2; exit 4; }
 exec 3<>"$usb_device" || { echo 'ERROR: Cannot access Leitz USB printer' >&2;exit 4; }
 printf '\033U' >&3 || { echo 'ERROR: ESC U failed' >&2;exit 4; }
 # ESC U replies need not contain NUL. A timeout may leave a complete
@@ -107,12 +109,8 @@ case "$actual_sku" in
   70110001) physical_width=118 ;;
   70130001) physical_width=667 ;;
   *)
-    if [[ "$expected" == auto ]]; then
-      echo "ERROR: Unknown cartridge SKU $actual_sku; no verified band width. Select explicit SKU only after checking material." >&2
-      exit 4
-    fi
-    physical_width=960
-    echo "WARNING: Width of SKU $actual_sku unknown; explicit SKU override given. Ensure the material supports $job_width pixels." >&2
+    echo "ERROR: Unknown cartridge SKU $actual_sku; physical print width not established. Job not sent." >&2
+    exit 4
     ;;
 esac
 if ((job_width>physical_width)); then
