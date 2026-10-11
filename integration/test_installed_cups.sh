@@ -96,8 +96,8 @@ for _ in $(seq 1 30); do
   sleep 1
 done
 if (( !ready )); then docker logs "$container_id" >&2; exit 1; fi
-grep -Fq '# LEITZ_CUPS_CONFIG_PRESERVATION_SENTINEL' "$tmpdir/config/cupsd.conf"
-test -f "$tmpdir/config/.cups-initialized"
+docker exec "$container_id" grep -Fq '# LEITZ_CUPS_CONFIG_PRESERVATION_SENTINEL' /etc/cups/cupsd.conf
+docker exec "$container_id" test -f /etc/cups/.cups-initialized
 docker exec "$container_id" chmod -R ugo+rwX /etc/cups /var/spool/cups
 docker rm -f "$container_id" >/dev/null
 echo 'PASS: CUPS none start/restart preserves configuration, no auto-created queue'
