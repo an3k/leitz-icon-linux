@@ -1,0 +1,51 @@
+name: Build Unraid CUPS package from frozen source and main
+on:
+  push:
+    branches: [cups]
+    paths:
+      - 'scripts/build.sh'
+      - 'cups/Dockerfile.release'
+      - '.github/workflows/build.yml'
+      - 'cups/source.lock'
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+jobs:
+  build:
+    name: Complete Unraid CUPS package (main only)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout frozen build tooling
+        uses: actions/checkout@v4
+        with:
+          ref: cups
+      - name: Checkout approved Leitz release from main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: release
+      - name: Preserve exact release commit in manifest
+        run: echo "RELEASE_SHA=$(git -C release rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Build from archived original CUPS and approved main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/build.sh
+      - name: Publish build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: leitz-icon-unraid-cups-main-image
+          path: dist/
+          retention-days: 30
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish immutable experimental image tag
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}-cups:main-${RELEASE_SHA:0:12}"
+          docker tag leitz-cups-complete:build "$image"
+          docker push "$image"
