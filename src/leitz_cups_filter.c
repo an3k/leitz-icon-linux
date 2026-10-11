@@ -71,6 +71,10 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
         fprintf(stderr,"ERROR: PageSize %s does not match CUPS raster geometry\n",selected->name);
         return -1;
       }
+      /* Preserve the explicitly selected vendor profile, including
+       * its source-specific length code and geometry. Some A/B entries
+       * deliberately share dimensions but not necessarily semantics. */
+      m=selected;
       break;
    }
  }
@@ -78,11 +82,19 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
  int continuous=m&&m->continuous;
  int page_mode=option(options,"LeitzCutMode","Page");
  int force_content=option(options,"LeitzCutMode","Content");
+ /* Content-length cutting is supported only for roll/custom media.
+  * Using it on a pre-cut label changes the physical label length and
+  * can cut through the installed stock. Do not silently override the
+  * fixed manufacturer's length command. */
+ if(force_content && fixed){
+   fprintf(stderr,"ERROR: Content cut mode is not valid for fixed media %s; select Automatic or Page\n",m->name);
+   return -1;
+ }
  unsigned original_total=(unsigned)lround(h->cupsPageSize[1]*dpi/72.0);
  if(original_total==0||original_total>LEITZ_MAX_ROWS)return -1;
  unsigned head=0,tail=0,device_length=65535;
  if(force_content){
-   /* Explicit roll-material override, regardless of chosen application size. */
+   /* Explicit roll-material override, regardless of chosen page size. */
    fixed=0;device_length=65535;
    head=(dpi==600)?182:91;tail=(dpi==600)?181:91;
  }else if(fixed){
