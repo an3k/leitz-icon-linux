@@ -4,8 +4,8 @@ This `main` branch preserves the older experimental v0.4.1 driver code.
 It is **not** a hardware-qualified final release. The active standalone
 development driver is on [`driver`](https://github.com/an3k/leitz-icon-linux/tree/driver);
 verification is isolated in [`tests`](https://github.com/an3k/leitz-icon-linux/tree/tests).
-The frozen Unraid Community Applications CUPS source and its independent
-complete-image build are maintained in [`cups`](https://github.com/an3k/leitz-icon-linux/tree/cups).
+The independent Debian Bookworm CUPS source and optional `none`/`main`/`dev`
+container builds live on [`cups`](https://github.com/an3k/leitz-icon-linux/tree/cups).
 
 ## Contents
 

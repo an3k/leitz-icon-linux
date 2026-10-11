@@ -3,8 +3,8 @@
 ## Scope
 
 This guide applies only to the older `main` driver. It does not
-install a CUPS server or a replacement Docker container. Existing
-printers and their configurations are not changed by the installer.
+install a CUPS server or a replacement Docker container. Existing Leitz queues using the `leitzusb:` backend have their active PPD
+refreshed if the CUPS scheduler is running; unrelated queues are unchanged.
 
 ## Installation
 
@@ -18,8 +18,8 @@ printers and their configurations are not changed by the installer.
    interface, selecting the installed `LeitzIcon.ppd`.
 
 The installer adds a CUPS raster filter, the `leitzusb` backend, its
-validator, a cartridge status command and the PPD. It does not create
-or modify print queues, accounts, server configuration or passwords.
+validator, a cartridge status command and the PPD. It does not create queues or change accounts, server configuration or
+passwords. Existing `leitzusb:` queues have their active PPD updated.
 
 ## USB access and printer setup
 
