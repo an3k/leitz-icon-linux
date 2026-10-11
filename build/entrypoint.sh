@@ -54,7 +54,7 @@ trap shutdown TERM INT
 
 ready=0
 for _ in $(seq 1 30); do
-  if lpstat -r >/dev/null 2>&1; then ready=1; break; fi
+  if lpstat -r 2>/dev/null | grep -qx 'scheduler is running'; then ready=1; break; fi
   if ! kill -0 "$cups_pid" 2>/dev/null; then break; fi
   sleep 1
 done
