@@ -10,6 +10,15 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify release tag belongs to main
+        run: |
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor HEAD origin/main || {
+            echo 'ERROR: Release tag does not belong to the main branch' >&2
+            exit 1
+          }
       - name: Build dependencies
         run: |
           sudo apt-get update
