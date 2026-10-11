@@ -127,9 +127,9 @@ int leitz_job_finish(leitz_job *job) {
 int leitz_job_validate(leitz_job *job, char *reason, size_t reason_size) {
     if(!job || !job->completed || job->failed) return -1;
     if(fseek(job->out,0,SEEK_SET)) return -1;
-    unsigned pages=0;
+    unsigned pages=0,max_width=0;
     if(job->protocol==LEITZ_PROTOCOL_CURRENT) {
-        if(leitz_validate(job->out,&pages,reason,reason_size)) return -1;
+        if(leitz_validate(job->out,&pages,&max_width,reason,reason_size)) return -1;
     } else {
         unsigned width=0;
         if(leitz_native_validate_job(job->out,&pages,&width,reason,reason_size) ||
