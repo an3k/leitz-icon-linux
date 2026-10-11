@@ -1,5 +1,7 @@
-/* Hardware verified: 960-pixel 300x600 raster protocol, 170 mm example.
- * Other widths/media/resolutions/lengths not yet physically verified.
+/* Current wire encoder, preserving the established v0.4.1 default bytes.
+ * Historical white 88 mm tests covered both supported resolutions and
+ * variable lengths; this modular implementation still needs hardware tests.
+ * No fixed 170 mm job-length restriction is imposed.
  */
 #include "leitz_protocols.h"
 typedef struct {
@@ -99,6 +101,7 @@ int leitz_validate(FILE *f,unsigned *pages,unsigned *max_width,char *r,size_t n)
  *max_width=0;
  unsigned pending_preamble=0;
  int last_page_cut=0;
+ int document_dpi=0;
  while(1){
   int v=pending_preamble?27:rd(f);
   if(v==EOF)break;
@@ -112,6 +115,13 @@ int leitz_validate(FILE *f,unsigned *pages,unsigned *max_width,char *r,size_t n)
   int lh=rd(f),ll=rd(f);if(lh<0||ll<0)return bad(r,n,"Missing length code");
   int b=rd(f),c=rd(f),d=rd(f),e=rd(f);
   if(b!=27||(c!='i'&&c!='h')||d!=27||e!='w')return bad(r,n,"Missing resolution/width");
+  /* The original Linux 1.0.3 sets resolution once per document.
+   * Current keeps its own per-page headers, but must enforce the same
+   * single-resolution-per-job invariant before sending bytes to USB. */
+  int page_dpi=(c=='i')?600:300;
+  if(document_dpi && document_dpi!=page_dpi)
+    return bad(r,n,"Mixed raster resolutions in one job");
+  document_dpi=page_dpi;
   int wh=rd(f),wl=rd(f);if(wh<0||wl<0)return bad(r,n,"Width truncated");
   unsigned width=(unsigned)(wh*256+wl);
   if(!width||width>LEITZ_MAX_WIDTH)return bad(r,n,"Raster width out of range");
@@ -182,6 +192,7 @@ int leitz_validate(FILE *f,unsigned *pages,unsigned *max_width,char *r,size_t n)
   if((lh!=255||ll!=255) && count<(unsigned)(lh*256+ll))return bad(r,n,"Too few physical rows");
   (*pages)++;if(*pages>64)return bad(r,n,"Too many labels");
  }
+ if(ferror(f))return bad(r,n,"Current document input read failed");
  if(!*pages)return bad(r,n,"No labels");
  if(!last_page_cut)return bad(r,n,"Final page must include cut trailer");
  if(n)snprintf(r,n,"OK: %u validated label(s)",*pages);
