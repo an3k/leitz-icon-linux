@@ -42,7 +42,7 @@ jobs:
       - name: Create reproducible source snapshot
         run: |
           mkdir -p dist
-          tar --exclude='./.git' --exclude='./dist' --exclude='./tests/Windows-LeitzIcon.gpd' --exclude='./leitz-cli' --exclude='./leitz-rastertoicon' --exclude='./leitz-rastertoicon-mock' -czf dist/leitz-icon-linux-source.tar.gz .
+          tar --exclude='./.git' --exclude='./dist' --exclude='./tests/Windows-LeitzIcon.gpd' --exclude='./leitz-cli' --exclude='./leitz-rastertoicon' --exclude='./leitz-rastertoicon-mock' --exclude='./leitz-probe' -czf dist/leitz-icon-linux-source.tar.gz .
       - uses: actions/upload-artifact@v4
         with:
           name: leitz-icon-linux-source
