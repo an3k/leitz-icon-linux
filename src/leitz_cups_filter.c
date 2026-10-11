@@ -41,7 +41,7 @@ static int explicitly_custom_page(const char *options){
  for(const char *p=options;p&&*p;){
    while(*p==' ')p++;
    if(!strncmp(p,key,len) &&
-      (p[len]==' ' || p[len]=='\\0' || p[len]=='.'))return 1;
+      (p[len]==' ' || p[len]=='\0' || p[len]=='.'))return 1;
    while(*p&&*p!=' ')p++;
  }
  return 0;
