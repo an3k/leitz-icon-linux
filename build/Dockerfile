@@ -42,7 +42,7 @@ COPY --from=driver-builder /work/leitz-rastertoicon /usr/lib/cups/filter/leitz-r
 COPY release/cups/leitzusb /usr/lib/cups/backend/leitzusb
 COPY release/cups/leitz-status /usr/local/bin/leitz-status
 COPY release/cups/LeitzIcon.ppd /usr/share/ppd/LeitzIcon.ppd
-COPY release/cups/entrypoint.sh /usr/local/bin/leitz-cups-entrypoint
+COPY build/entrypoint.sh /usr/local/bin/leitz-cups-entrypoint
 RUN chmod 0755 /usr/lib/cups/filter/leitz-cli /usr/lib/cups/filter/leitz-rastertoicon \
     /usr/local/bin/leitz-status /usr/local/bin/leitz-cups-entrypoint \
  && chmod 0700 /usr/lib/cups/backend/leitzusb \
