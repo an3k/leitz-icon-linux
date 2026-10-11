@@ -1,11 +1,9 @@
-# Leitz Icon: independent CUPS print server, no PDF cropper bundled.
+# Build without test sources; both protocol modules remain independent.
 FROM debian:bookworm-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends gcc make libcups2-dev python3-minimal ca-certificates \
  && rm -rf /var/lib/apt/lists/*
-COPY src /build/src
+COPY driver /build/driver
 COPY Makefile /build/Makefile
-COPY cups/LeitzIcon.ppd /build/cups/LeitzIcon.ppd
-COPY tools/build_ppd.py /build/tools/build_ppd.py
 WORKDIR /build
 RUN make all cups probe ppd
 
@@ -14,12 +12,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends cups cups-filte
  && rm -rf /var/lib/apt/lists/*
 COPY --from=build /build/leitz-cli /usr/lib/cups/filter/leitz-cli
 COPY --from=build /build/leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
-COPY cups/leitzusb /usr/lib/cups/backend/leitzusb
-COPY cups/leitz-command /usr/lib/cups/filter/leitz-command
-COPY cups/leitz-status /usr/local/bin/leitz-status
+COPY --from=build /build/driver/modules/ /usr/lib/leitz/protocols/
+COPY driver/cups/leitzusb /usr/lib/cups/backend/leitzusb
+COPY driver/cups/leitz-command /usr/lib/cups/filter/leitz-command
+COPY driver/cups/leitz-status /usr/local/bin/leitz-status
 COPY --from=build /build/leitz-probe /usr/local/bin/leitz-probe
-COPY --from=build /build/dist/LeitzIcon.ppd /usr/share/ppd/LeitzIcon.ppd
-COPY cups/entrypoint.sh /usr/local/bin/leitz-cups-entrypoint
+COPY --from=build /build/driver/cups/LeitzIcon.ppd /usr/share/ppd/LeitzIcon.ppd
+COPY driver/cups/entrypoint.sh /usr/local/bin/leitz-cups-entrypoint
 RUN chmod 0755 /usr/local/bin/leitz-cups-entrypoint /usr/local/bin/leitz-status \
     /usr/lib/cups/filter/leitz-cli /usr/lib/cups/filter/leitz-rastertoicon \
     /usr/lib/cups/filter/leitz-command \

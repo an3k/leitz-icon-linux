@@ -81,21 +81,10 @@ if (( ! control_request && (size < 130 || size > max_job_bytes) )); then
   echo "ERROR: Suspicious job length $size; not sent" >&2; exit 4
 fi
 if (( ! control_request )); then
-# Determine framing from the first four bytes, then validate the *entire*
-# spooled document against that dialect before opening USB. The two command
-# streams have different header/width offsets; they are never interchanged.
-read -r b0 b1 b2 b3 < <(od -An -tu1 -N 4 "$tmp")
-if ((b0==27 && b1==64 && b2==27 && (b3==104 || b3==105))); then
-  dialect=native
-  validator_mode=validate-native
-else
-  dialect=current
-  validator_mode=validate
-fi
-# The validated maximum covers EVERY page, not just the first header.
-# Never allow a later wider label to bypass the cartridge-width gate.
-width_info=$("$LEITZ_VALIDATE_BIN" "$validator_mode" "$tmp") || {
-  echo "ERROR: Rejected invalid $dialect Leitz job" >&2; exit 4;
+# Independently validate the full spool through installed protocol modules.
+# Reject unrecognised framing and mixed media widths before opening USB.
+width_info=$("$LEITZ_VALIDATE_BIN" validate-auto "$tmp") || {
+  echo 'ERROR: No installed protocol accepts the print job' >&2; exit 4;
 }
 if [[ "$width_info" =~ ^MAX_WIDTH=([0-9]+)$ ]]; then
   job_width=${BASH_REMATCH[1]}
