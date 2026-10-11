@@ -2,11 +2,15 @@ name: Tests - Verification
 on:
   push:
     branches: [tests]
+  workflow_run:
+    workflows: ['Driver - Development Build']
+    types: [completed]
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   verify:
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'driver' && github.event.workflow_run.conclusion == 'success') }}
     name: Verify separately checked-out driver
     runs-on: ubuntu-24.04
     steps:
@@ -18,7 +22,7 @@ jobs:
       - name: Checkout independent driver branch
         uses: actions/checkout@v4
         with:
-          ref: driver
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || 'driver' }}
           path: product
       - name: Install compiler and CUPS development headers
         run: |
@@ -43,6 +47,7 @@ jobs:
           test -d suite/integration
 
   cups-integration:
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'driver' && github.event.workflow_run.conclusion == 'success') }}
     name: Install development driver into verified Debian CUPS image
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -55,23 +60,16 @@ jobs:
       - name: Checkout standalone development driver
         uses: actions/checkout@v4
         with:
-          ref: driver
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || 'driver' }}
           path: product
       - name: Checkout versioned Debian CUPS sources
         uses: actions/checkout@v4
         with:
           ref: cups
           path: frozen
-      - name: Checkout approved main driver for temporary CUPS image
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          path: frozen/release
       - name: Ensure Debian source tooling is present
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends dpkg-dev gnupg gpgv
       - name: Install development driver into source-built Debian CUPS container
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: bash suite/integration/test_installed_cups.sh

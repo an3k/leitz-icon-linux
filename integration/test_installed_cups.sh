@@ -18,10 +18,6 @@ active=${active#cups-}
   echo 'ERROR: Missing selected Debian .dsc or obsolete source/ directory present' >&2
   exit 1
 }
-[[ -f "$frozen/release/Makefile" && -f "$frozen/release/cups/LeitzIcon.ppd" ]] || {
-  echo 'ERROR: Approved main checkout missing from frozen/release/' >&2
-  exit 1
-}
 archives=("$original"/cups_*)
 (( ${#archives[@]} >= 8 )) || { echo 'ERROR: Insufficient original source files' >&2; exit 1; }
 archive_count=0
@@ -62,9 +58,9 @@ diff -qr "$tmpdir/cups-$active" "$unpacked/cups-$active" || {
 }
 echo "PASS: $archive_count archived originals with individual SHA256; exact extracted Debian CUPS $active"
 
-# Build this source revision with the approved main driver as a temporary
-# base. Newer restore/upgrade versions need no manual digest edits in tests.
-docker build --build-arg "CUPS_VERSION=$active" \
+# Build the actual driver-free stage, not the Dockerfile's default
+# cups-with-driver final stage.
+docker build --target cups-base --build-arg "CUPS_VERSION=$active" \
   -f "$frozen/build/Dockerfile" -t leitz-cups-frozen:verification "$frozen"
 
 # Exercise the real CUPS entrypoint with persistent /etc/cups across a restart.
@@ -100,7 +96,7 @@ docker exec "$container_id" grep -Fq '# LEITZ_CUPS_CONFIG_PRESERVATION_SENTINEL'
 docker exec "$container_id" test -f /etc/cups/.cups-initialized
 docker exec "$container_id" chmod -R ugo+rwX /etc/cups /var/spool/cups
 docker rm -f "$container_id" >/dev/null
-echo 'PASS: CUPS none start/restart preserves configuration, no auto-created queue'
+echo 'PASS: CUPS none start/restart preserves configuration, no preinstalled driver or queue'
 
 # Build the standalone development-driver package in a disposable Debian-CUPS
 # container. The published base image remains unchanged.
@@ -120,6 +116,11 @@ docker run --rm --entrypoint /bin/bash \
   --env "CUPS_REQUIRED_VERSION=$active" leitz-cups-frozen:verification -ec '
     set -euo pipefail
     test "$(dpkg-query -W cups | cut -f2)" = "$CUPS_REQUIRED_VERSION"
+    test "$LEITZ_CUPS_DRIVER" = none
+    test ! -e /usr/lib/cups/filter/leitz-rastertoicon
+    test ! -e /usr/lib/cups/backend/leitzusb
+    test ! -e /usr/share/ppd/LeitzIcon.ppd
+    test ! -e /usr/lib/leitz/protocols/leitz-current.so
     original=$(sha256sum /etc/cups/cupsd.conf)
     original=${original%% *}
     mkdir -p /tmp/leitz-install
