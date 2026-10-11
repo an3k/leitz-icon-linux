@@ -23,7 +23,7 @@ jobs:
         run: make clean all cups mock-filter
       - name: Validate media catalog, native frame reference and raster integration
         run: |
-          make media-check native-reference-test
+          make media-check native-reference-test job-geometry-test
           python3 tests/test_core.py
           python3 tests/test_v04.py
           python3 tests/test_cups_command.py

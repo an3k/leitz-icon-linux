@@ -13,8 +13,8 @@ struct leitz_job {
     FILE *out;
     leitz_protocol protocol;
     int cut_each_page;
-    unsigned pages, max_width, first_dpi, width, remaining, bottom;
-    int page_open, completed, failed, native_exact_roll_length;
+    unsigned pages, first_width, first_dpi, width, remaining, bottom;
+    int page_open, completed, failed;
     union {
         leitz_encoder current;
         leitz_native_reference native;
@@ -42,22 +42,18 @@ int leitz_job_begin_page(leitz_job *job, unsigned width, unsigned total_rows,
         top>total_rows || raster_rows>total_rows-top ||
         bottom!=total_rows-top-raster_rows ||
         (dpi_y!=300 && dpi_y!=600) || length_code>65535) return -1;
-    /* The native stream sets resolution once per document, but each page
-     * has its own ESC w width. Reject mixed resolutions, not mixed widths.
-     * Keep the largest width for the cartridge safety gate. */
-    if (job->pages && job->protocol==LEITZ_PROTOCOL_NATIVE_LINUX_103 &&
-        dpi_y!=job->first_dpi) return -1;
-    if (job->pages==0) job->first_dpi=dpi_y;
-    if (width>job->max_width) job->max_width=width;
+    /* One loaded cassette and one physical print width per job. The same
+     * geometry and resolution policy applies to BOTH wire formats.
+     * Only label length may vary on continuous media. */
+    if (job->pages && (width!=job->first_width || dpi_y!=job->first_dpi))
+        return -1;
+    if (job->pages==0) {
+        job->first_width=width;
+        job->first_dpi=dpi_y;
+    }
     job->width=width;
     job->remaining=raster_rows;
     job->bottom=bottom;
-    /* ESC L = 0xffff denotes a variable-length roll/custom job.
-     * The original Linux codec drops the final blank feed; that silently
-     * shortens roll labels. Preserve its independent source reference,
-     * but advance those rows in the actual CUPS printing path. */
-    job->native_exact_roll_length=(job->protocol==LEITZ_PROTOCOL_NATIVE_LINUX_103 &&
-                                   length_code==65535u);
     if (job->protocol==LEITZ_PROTOCOL_CURRENT) {
         if (leitz_begin_media(&job->wire.current,job->out,width,total_rows,
                               raster_rows,top,bottom,length_code,dpi_y)) goto fail;
@@ -109,10 +105,6 @@ int leitz_job_end_page(leitz_job *job) {
         const unsigned packed=(job->width+7)/8;
         for(unsigned i=0;i<job->bottom;i++)
             if(leitz_native_row(n,empty,packed)){job->failed=1;return -1;}
-        if (job->native_exact_roll_length && leitz_native_flush_pending(n)) {
-            job->failed=1;
-            return -1;
-        }
         rc=leitz_native_finish_page(n,job->cut_each_page);
     }
     if(rc){job->failed=1;return -1;}
@@ -139,15 +131,14 @@ int leitz_job_finish(leitz_job *job) {
 int leitz_job_validate(leitz_job *job, char *reason, size_t reason_size) {
     if(!job || !job->completed || job->failed) return -1;
     if(fseek(job->out,0,SEEK_SET)) return -1;
-    unsigned pages=0,max_width=0;
+    unsigned pages=0,validated_width=0;
     if(job->protocol==LEITZ_PROTOCOL_CURRENT) {
-        if(leitz_validate(job->out,&pages,&max_width,reason,reason_size)) return -1;
+        if(leitz_validate(job->out,&pages,&validated_width,reason,reason_size)) return -1;
     } else {
-        unsigned width=0;
-        if(leitz_native_validate_job(job->out,&pages,&width,reason,reason_size) ||
-           width!=job->max_width) return -1;
+        if(leitz_native_validate_job(job->out,&pages,&validated_width,reason,reason_size))
+            return -1;
     }
-    return pages==job->pages ? 0 : -1;
+    return pages==job->pages && validated_width==job->first_width ? 0 : -1;
 }
 unsigned leitz_job_page_count(const leitz_job *job) {return job?job->pages:0;}
 const char *leitz_job_protocol_name(const leitz_job *job) {

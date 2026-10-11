@@ -76,11 +76,12 @@ with tempfile.TemporaryDirectory() as t:
   if native:
     assert result.stdout[:4] in (b'\x1b@\x1bi',b'\x1b@\x1bh')
     if m['continuous']:
-      # Production native roll labels must actually advance the bottom
-      # margin before cutting; the separate vendor reference stays faithful
-      # to the original source's unflushed-blank quirk.
+      # Original Linux 1.0.3: trailing blank lines stay pending.
+      # The common controller must not insert native-only feed commands.
       bottom=181 if dpi==600 else 91
-      assert result.stdout.endswith(b'\x1bf' + bottom.to_bytes(2,'big') + b'\x1bG\x1bE'),result.stdout[-20:]
+      assert result.stdout.endswith(b'\x1bG\x1bE'),result.stdout[-20:]
+      assert not result.stdout.endswith(
+          b'\x1bf' + bottom.to_bytes(2,'big') + b'\x1bG\x1bE')
     width=(result.stdout[130]<<8)|result.stdout[131]
     other=subprocess.run([str(ROOT/'leitz-cli'),'validate',str(out)],capture_output=True)
     assert other.returncode!=0,other.stderr

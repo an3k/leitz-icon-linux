@@ -31,6 +31,14 @@ with TemporaryDirectory() as td:
     combined.write_bytes(joined)
     assert run([str(ROOT / "leitz-cli"), "validate", str(combined)],
                capture_output=True).returncode == 0
+    # A later page with a different width must be rejected by the
+    # independent Current spool validator, before any USB transfer.
+    assert original[133:135] == (960).to_bytes(2,"big")
+    changed = bytearray(original)
+    changed[133:135] = (952).to_bytes(2,"big")
+    combined.write_bytes(original[:-len(trailer)] + b"\x1bG" + changed)
+    assert run([str(ROOT / "leitz-cli"), "validate", str(combined)],
+               capture_output=True).returncode != 0
     combined.write_bytes(joined[:-len(trailer)] + b"\x1bG")
     assert run([str(ROOT / "leitz-cli"), "validate", str(combined)],
                capture_output=True).returncode != 0

@@ -43,15 +43,11 @@ with tempfile.TemporaryDirectory() as tmp:
     path.write_bytes(cut_each)
     assert "pages=2; max_width=16" in check("validate-native", path, True)
 
-    # Each native page has an independent ESC w width. The validator must
-    # return the largest width, so a later wide page cannot evade the USB
-    # cartridge-capacity check performed by leitzusb.
+    # All pages share one loaded cartridge and a single print width.
     wider = native[4:].replace(b"w\x00\x10", b"w\x00\x18").replace(
         b"D\x02\x16\x80\x00", b"D\x03\x16\x80\x00\x00")
     path.write_bytes(native[:-2] + wider)
-    query=subprocess.run([str(CLI),"validate-native",str(path)],capture_output=True,text=True)
-    assert query.returncode==0,query.stderr
-    assert "MAX_WIDTH=24" in query.stdout,query.stdout
+    check("validate-native", path, False)
 
     path.write_bytes(no_intermediate_cut[:-2])
     check("validate-native", path, False)  # Never omit final ESC E.

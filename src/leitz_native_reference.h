@@ -22,10 +22,6 @@ int leitz_native_end(leitz_native_reference *p);
 int leitz_native_begin_page(leitz_native_reference *p, FILE *out,
                             unsigned width, unsigned rows, unsigned dpi_y,
                             unsigned length_units, int first_page);
-/* Explicitly advance accumulated blank rows. The upstream Linux 1.0.3
- * reference deliberately does not call this at end of a page; the CUPS
- * production path calls it only for variable-length roll/custom media. */
-int leitz_native_flush_pending(leitz_native_reference *p);
 int leitz_native_finish_page(leitz_native_reference *p, int cut);
 int leitz_native_finish_job(leitz_native_reference *p);
 int leitz_native_validate_job(FILE *in, unsigned *pages_out,

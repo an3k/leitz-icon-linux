@@ -1,7 +1,7 @@
 CC ?= gcc
 CFLAGS ?= -O2 -Wall -Wextra -Werror -std=c11
 LDLIBS = -lm
-.PHONY: all cups clean test mock-filter native-reference-test media-check status-test probe-test probe
+.PHONY: all cups clean test mock-filter native-reference-test media-check status-test probe-test probe job-geometry-test
 all: leitz-cli
 leitz-cli: src/leitz_cli.c src/leitz_codec.c src/leitz_codec.h src/leitz_status.c src/leitz_status.h src/leitz_native_validate.c src/leitz_native_job_validate.c src/leitz_native_reference.h
 	$(CC) $(CFLAGS) -o $@ src/leitz_cli.c src/leitz_codec.c src/leitz_status.c src/leitz_native_validate.c src/leitz_native_job_validate.c $(LDLIBS)
@@ -21,6 +21,10 @@ native-reference-test:
 	/tmp/leitz-native-validate-test
 	$(MAKE) leitz-cli
 	python3 tests/test_native_cli.py
+
+job-geometry-test:
+	$(CC) $(CFLAGS) -o /tmp/leitz-job-geometry-test tests/test_job_geometry.c src/leitz_job.c src/leitz_codec.c src/leitz_native_reference.c src/leitz_native_job_validate.c $(LDLIBS)
+	/tmp/leitz-job-geometry-test
 
 media-check:
 	python3 tools/check_media_consistency.py

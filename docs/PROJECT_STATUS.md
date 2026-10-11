@@ -37,7 +37,7 @@ Papierkassette/SKU, physische Breite, gewähltes CUPS-Papierformat und tatsächl
 | --- | --- | --- |
 | `Current` USB-Druck auf weißer 88-mm-Endlosrolle | Vorhanden | 300×300 und 300×600 dpi, benutzerdefinierte Länge, mehrseitige Aufträge und automatischer Schnitt bereits getestet |
 | `Current` als Standard / gemeinsamer Jobcontroller | Implementiert | Refaktorierte/neue Teilpfade nicht erneut vollständig am Gerät geprüft |
-| `NativeLinux103`, mehrere Seiten, Cutter ON/OFF | Implementiert und offline validiert; Seitenbreiten können wechseln, die Auflösung bleibt einheitlich, maximale Breite wird für USB geprüft; kontinuierliches/custom Material erhält expliziten abschließenden Vorschub | Kein Hardwaretest |
+| `Current` und `NativeLinux103`, Mehrseitenaufträge, Cutter ON/OFF | Ein gemeinsamer Controller verlangt dieselbe Breite/Auflösung für alle Seiten, erlaubt unterschiedliche Drucklängen bei Endlosmaterial. Beide Spoolvalidatoren prüfen die Breite erneut. | Neue Integrationspfade nicht vollständig hardwaregetestet |
 | `ESC U` Kassettenabfrage | Implementiert | Reale ASCII/SKU-Antworten gemessen |
 | `ESC A` Bereitschaft vor Versand | Implementiert | Reale Einzelantwort `0x03` im Leerlauf; vollständiger Druck-Preflight noch nicht separat validiert |
 | `ESC V` Diagnose | Im manuellen Probe-Werkzeug | 34-Byte-Textantwort real gemessen; Feldsemantik unbekannt |
@@ -51,7 +51,7 @@ Bei der **gelben 88-mm-Kassette** wurden **49–51 mm statt 60 mm** beobachtet; 
 
 1. **Mechanische Fertigstellung:** Der Backend-Erfolg bedeutet lediglich, dass USB-Schreibvorgänge abgeschlossen wurden, nicht dass Papiertransport und Schnitt nachweisbar beendet wurden. CUPS kann bereits `idle` melden. Während des Drucks fehlt validierte Status- und Fortschrittslogik.
 2. **Gelbe Kassette:** Reproduzierte Längenabweichung und Druckabbruch; keine belastbare Ursache. Änderungen an Vorschub, Endmarkern oder Protokoll ohne Vergleichsdaten vermeiden.
-3. **Original-Linux-Protokoll:** `NativeLinux103` und beide Cuttermodi müssen kontrolliert physisch mit dem Standard verglichen werden; durch originalgetreu nicht ausgegebene Leerzeilen können Längenabweichungen entstehen.
+3. **Original-Linux-Protokoll:** `NativeLinux103` und beide Cuttermodi müssen kontrolliert physisch mit dem Standard verglichen werden. Der native Encoder bleibt beim ursprünglichen Verhalten ohne Ausgabe abschließender Leerzeilen. Ein zuvor im gemeinsamen Controller ergänzter, nur nativer Vorschub wurde zurückgenommen; mögliche Längenabweichungen bleiben bis zum Hardwarevergleich offen.
 4. **Breiten und Medien:** Zusätzliche SKU, gestanzte Etiketten und abweichende A/B-Geometrien physisch prüfen; die SKU-Breitenzuordnung im Backend ist bislang nicht umfassend am Gerät nachgewiesen.
 5. **Herstellerparität:** Der CUPS-Befehlskanal unterstützt jetzt `ReportStatus` (ESC A) über den exklusiven Backend-USB-Zugang, aber noch keine weitergehende Liveüberwachung. Status-/Fehlerbehandlung, herstellerspezifische Rasteralgorithmen, Margin-Semantik, Windows-64-Byte-Sonderfall und sichere Recovery sind noch nicht vollständig implementiert beziehungsweise geklärt. Der neue 8-Bit-Graustufenpfad bietet wählbar Bayer4 und Schwellwert-Rasterung; beide sind ausschließlich offline getestet und nicht mit den proprietären macOS-Rasteralgorithmen gleichgesetzt.
 6. **Produktionsfreigabe:** Reproduzierbare End-to-End-Druckprüfung, installierbarer versionierter Build und belastbare Unraid-Anleitung fehlen; derzeit kein Release.

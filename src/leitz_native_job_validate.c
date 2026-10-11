@@ -43,9 +43,11 @@ int leitz_native_validate_job(FILE *in, unsigned *pages_out,
     if(hi<0||lo<0)return fail(error,error_size,"Truncated native width");
     unsigned width=(unsigned)hi*256u+(unsigned)lo;
     if(width==0||width>960)return fail(error,error_size,"Native width out of range");
-    /* ESC w is per page. Validate every page and return the maximum
-     * width so later pages cannot bypass the USB cartridge-width gate. */
-    if(width>*max_width)*max_width=width;
+    /* One physical cassette and one print width for the complete job.
+     * Enforce the common geometry policy at the USB spool safety gate. */
+    if(page && width!=*max_width)
+      return fail(error,error_size,"Mixed raster widths in one job");
+    if(!page)*max_width=width;
     if(take(in,ESC)||take(in,'B')||take(in,0))
       return fail(error,error_size,"Missing native page B0");
     unsigned rows=0,ink_rows=0;

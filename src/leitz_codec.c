@@ -104,7 +104,9 @@ int leitz_validate(FILE *f,unsigned *pages,unsigned *max_width,char *r,size_t n)
   int wh=rd(f),wl=rd(f);if(wh<0||wl<0)return bad(r,n,"Width truncated");
   unsigned width=(unsigned)(wh*256+wl);
   if(!width||width>LEITZ_MAX_WIDTH)return bad(r,n,"Raster width out of range");
-  if(width>*max_width)*max_width=width;
+  if(*pages && width!=*max_width)
+    return bad(r,n,"Mixed raster widths in one job");
+  if(!*pages)*max_width=width;
   unsigned count=0,ink_rows=0;int linewidth=-1,finished=0;
   while(!finished){
    if(rd(f)!=27)return bad(r,n,"Body ESC missing");
