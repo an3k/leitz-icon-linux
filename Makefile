@@ -4,7 +4,7 @@ LDLIBS = -lm -ldl
 SRC := driver/src
 CORE_SOURCES := $(SRC)/leitz_jobs.c $(SRC)/leitz_protocols.c
 
-.PHONY: verify mock-filter media-check native-reference-test job-geometry-test protocol-isolation-test status-test probe-test integration
+.PHONY: verify mock-filter media-check native-reference-test job-geometry-test protocol-isolation-test status-test probe-test integration backend-safety-test
 
 verify: mock-filter media-check native-reference-test job-geometry-test protocol-isolation-test status-test probe-test integration
 
@@ -40,6 +40,9 @@ probe-test:
 	$(CC) $(CFLAGS) -I$(SRC) -o /tmp/leitz-probe-format-test $(SRC)/leitz_probe_format.c $(SRC)/leitz_status.c tests/unit/test_probe_format.c
 	/tmp/leitz-probe-format-test
 	python3 tests/integration/test_probe_cli.py
+
+backend-safety-test:
+	python3 tests/integration/test_cups_backend_safety.py
 
 integration:
 	python3 tests/integration/test_core.py
