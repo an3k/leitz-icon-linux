@@ -1,5 +1,5 @@
 /* Per-job width/resolution are shared media policy, never codec features. */
-#include "../src/leitz_job.h"
+#include "../../driver/src/leitz_jobs.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -41,7 +41,7 @@ static void rejected(leitz_protocol protocol,unsigned width,unsigned dpi) {
 }
 int main(void) {
   for(int i=0;i<2;i++){
-    leitz_protocol proto=i?LEITZ_PROTOCOL_NATIVE_LINUX_103:LEITZ_PROTOCOL_CURRENT;
+    leitz_protocol proto=i?LEITZ_PROTOCOL_NATIVE:LEITZ_PROTOCOL_CURRENT;
     accepted(proto,0);
     accepted(proto,1);
     rejected(proto,24,600);

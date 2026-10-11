@@ -1,5 +1,5 @@
 /* Offline output tests: no USB device, Docker, or live printer needed. */
-#include "../src/leitz_probe_format.h"
+#include "../../driver/src/leitz_probe_format.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>

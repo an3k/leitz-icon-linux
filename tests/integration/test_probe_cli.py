@@ -3,7 +3,7 @@
 import subprocess
 from pathlib import Path
 
-exe = Path(__file__).resolve().parents[1] / "leitz-probe"
+exe = Path(__file__).resolve().parents[2] / "leitz-probe"
 
 def must_reject(*args):
     p = subprocess.run([str(exe), *args], capture_output=True,

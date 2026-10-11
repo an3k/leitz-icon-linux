@@ -4,7 +4,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-CLI = Path(__file__).resolve().parents[1] / "leitz-cli"
+CLI = Path(__file__).resolve().parents[2] / "leitz-cli"
 ESC = b"\x1b"
 native = (
     ESC + b"@" + ESC + b"i"                # manufacturer Linux 600 dpi

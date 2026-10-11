@@ -38,9 +38,9 @@ clean:
 	rm -f leitz-cli leitz-rastertoicon leitz-rastertoicon-mock leitz-probe $(MOD)/*.so
 
 native-reference-test: all
-	$(CC) $(CFLAGS) -o /tmp/leitz-native-reference-test tests/unit/test_native_reference.c $(SRC)/leitz_protocol_native.c $(LDLIBS)
+	$(CC) $(CFLAGS) -o /tmp/leitz-native-reference-test tests/unit/test_native_reference.c $(SRC)/leitz_protocols.c $(LDLIBS)
 	/tmp/leitz-native-reference-test
-	$(CC) $(CFLAGS) -o /tmp/leitz-native-validate-test tests/unit/test_native_validate.c $(SRC)/leitz_protocol_native.c $(LDLIBS)
+	$(CC) $(CFLAGS) -o /tmp/leitz-native-validate-test tests/unit/test_native_validate.c $(SRC)/leitz_protocols.c $(LDLIBS)
 	/tmp/leitz-native-validate-test
 	LEITZ_PROTOCOL_DIR=$(CURDIR)/$(MOD) python3 tests/integration/test_native_cli.py
 job-geometry-test:

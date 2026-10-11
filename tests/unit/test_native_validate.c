@@ -1,10 +1,10 @@
-#include "../src/leitz_protocol.h"
+#include "../../driver/src/leitz_protocols.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 static void check(unsigned dpi){
- const leitz_protocol_ops *ops=leitz_protocol_get(LEITZ_PROTOCOL_NATIVE_LINUX_103);
+ const leitz_protocol_ops *ops=leitz_protocol_get(LEITZ_PROTOCOL_NATIVE);
  assert(ops);
  FILE *f=tmpfile();assert(f);
  void *state=calloc(1,ops->state_size);assert(state);

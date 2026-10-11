@@ -1,5 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
-#include "../src/leitz_probe_io.h"
+#include "../../driver/src/leitz_probe_io.h"
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
