@@ -4,6 +4,11 @@ on:
     branches: [cups]
     paths:
       - 'requests/build.trigger'
+      - 'build/build.sh'
+      - 'build/Dockerfile'
+      - 'build/source-common.sh'
+      - 'build/entrypoint.sh'
+      - '.github/workflows/build.yml'
   workflow_dispatch:
     inputs:
       driver:
@@ -52,6 +57,10 @@ jobs:
       - name: Record driver revision
         if: env.CUPS_DRIVER != 'none'
         run: echo "RELEASE_SHA=$(git -C release rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Install source verification utilities
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends gnupg gpgv dpkg-dev
       - name: Build and verify requested CUPS variant
         run: bash build/build.sh "$CUPS_DRIVER"
       - name: Publish separately loadable archive
