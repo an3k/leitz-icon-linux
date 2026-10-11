@@ -75,6 +75,30 @@ if [[ ! -f /etc/cups/.cups-initialized ]]; then
   touch /etc/cups/.cups-initialized
 fi
 
+# A driver-free CUPS image can load a separate, explicitly mounted driver
+# archive. Reinstall at startup so container recreation does not remove it.
+# Both archive and matching SHA256 file must be mounted read-only.
+driver_archive=/opt/leitz-driver/leitz-icon-driver-linux-amd64.tar.gz
+if [[ -f "$driver_archive" ]]; then
+  if [[ ! -f "$driver_archive.sha256" ]] ||
+     ! (cd /opt/leitz-driver && sha256sum --status -c leitz-icon-driver-linux-amd64.tar.gz.sha256); then
+    echo 'ERROR: Missing/invalid standalone driver archive checksum' >&2
+    shutdown
+    exit 1
+  fi
+  driver_stage=$(mktemp -d)
+  if ! tar -xzf "$driver_archive" -C "$driver_stage" ||
+     [[ ! -x "$driver_stage/install.sh" ]] ||
+     ! "$driver_stage/install.sh"; then
+    rm -rf -- "$driver_stage"
+    echo 'ERROR: Standalone Leitz driver installation failed' >&2
+    shutdown
+    exit 1
+  fi
+  rm -rf -- "$driver_stage"
+  echo 'INFO: Installed standalone Leitz driver from verified mounted archive.'
+fi
+
 # The 'none' variant stays a pure CUPS image, without Leitz queues.
 # Preserve the historical automatic first-queue setup only for integrated
 # main/dev variants. On 'none' the driver is installed separately by the user.
