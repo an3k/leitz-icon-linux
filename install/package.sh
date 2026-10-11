@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build a stand-alone CUPS driver package; no server and no test code included.
 set -euo pipefail
-root=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)
+root=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 cd "$root"
 make all cups probe ppd
 mkdir -p dist

@@ -22,7 +22,7 @@ jobs:
           bash -n cups/leitzusb cups/leitz-status install/*.sh
       - name: Prepare signed-off source archive and checksums
         run: |
-          tar -czf "dist/leitz-icon-linux-${GITHUB_REF_NAME}-source.tar.gz" driver Makefile README.md
+          tar -czf "dist/leitz-icon-linux-${GITHUB_REF_NAME}-source.tar.gz" src cups media build install docs Makefile README.md
           (cd dist && sha256sum *.tar.gz > SHA256SUMS)
       - name: Publish experimental prerelease
         env:
