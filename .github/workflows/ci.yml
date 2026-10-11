@@ -94,13 +94,13 @@ jobs:
             cupstestppd /usr/share/ppd/LeitzIcon.ppd 2>&1 | grep -Fq "LeitzIcon.ppd: PASS"
           ' -- "$CUPS_VERSION"
           docker push "$DEV_IMAGE"
-          printf '%s\n' "$BASE_IMAGE" > dist/cups-base-image.txt
-          printf '%s\n' "$DEV_IMAGE" > dist/development-image.txt
+          printf '%s\n' "$BASE_IMAGE" > cups-base-image.txt
+          printf '%s\n' "$DEV_IMAGE" > development-image.txt
       - name: Upload development image references
         uses: actions/upload-artifact@v4
         with:
           name: leitz-icon-development-image-references
           path: |
-            dist/cups-base-image.txt
-            dist/development-image.txt
+            cups-base-image.txt
+            development-image.txt
           retention-days: 14
