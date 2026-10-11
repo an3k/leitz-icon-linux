@@ -13,7 +13,7 @@ struct leitz_job {
     FILE *out;
     leitz_protocol protocol;
     int cut_each_page;
-    unsigned pages, first_width, first_dpi, width, remaining;
+    unsigned pages, first_width, first_dpi, width, remaining, bottom;
     int page_open, completed, failed;
     union {
         leitz_encoder current;
@@ -49,6 +49,7 @@ int leitz_job_begin_page(leitz_job *job, unsigned width, unsigned total_rows,
     if (job->pages==0) {job->first_width=width;job->first_dpi=dpi_y;}
     job->width=width;
     job->remaining=raster_rows;
+    job->bottom=bottom;
     if (job->protocol==LEITZ_PROTOCOL_CURRENT) {
         if (leitz_begin_media(&job->wire.current,job->out,width,total_rows,
                               raster_rows,top,bottom,length_code,dpi_y)) goto fail;
@@ -90,8 +91,18 @@ int leitz_job_end_page(leitz_job *job) {
     int rc=0;
     if (job->protocol==LEITZ_PROTOCOL_CURRENT)
         rc=leitz_end_page(&job->wire.current,job->cut_each_page);
-    else
-        rc=leitz_native_finish_page(&job->wire.native,job->cut_each_page);
+    else {
+        /* A native page is composed of TOP + raster rows + BOTTOM.
+         * Keep page geometry in this protocol-neutral coordinator.
+         * The native encoder itself controls whether accumulated trailing
+         * blank lines become USB feed commands. */
+        leitz_native_reference *n=&job->wire.native;
+        const uint8_t empty[120]={0};
+        const unsigned packed=(job->width+7)/8;
+        for(unsigned i=0;i<job->bottom;i++)
+            if(leitz_native_row(n,empty,packed)){job->failed=1;return -1;}
+        rc=leitz_native_finish_page(n,job->cut_each_page);
+    }
     if(rc){job->failed=1;return -1;}
     job->page_open=0;
     job->pages++;
