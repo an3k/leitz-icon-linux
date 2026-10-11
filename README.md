@@ -1,4 +1,6 @@
 # Leitz Icon Linux — USB/CUPS driver
+> **Aktive Weiterentwicklung:** Dieser Standardbranch `main` ist der ältere experimentelle v0.4.1-Stand, **nicht** der neueste Treiber. Maßgeblich ist [`port/vendor-parity`](https://github.com/an3k/leitz-icon-linux/tree/port/vendor-parity) mit der [vollständigen Projektübersicht](https://github.com/an3k/leitz-icon-linux/blob/port/vendor-parity/docs/PROJECT_STATUS.md). Die neueren Funktionen sind noch nicht hardwarefreigegeben; `main` bleibt bis zur Freigabe als Vergleichsbasis erhalten.
+
 
 An independent **Linux / CUPS driver** for the Leitz Icon USB label printer (USB VID:PID `289e:1000`).
 
