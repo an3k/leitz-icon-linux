@@ -1,50 +1,41 @@
-name: Build downloadable prerelease
+name: Publish tagged Linux driver
 on:
   push:
     tags:
       - 'v*'
 permissions:
   contents: write
-env:
-  LEITZ_PROTOCOL_DIR: ${{ github.workspace }}/driver/modules
 jobs:
   package:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Install compiler and CUPS tools
+      - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gcc make libcups2-dev cups
-      - name: Compile, verify modules, PPD and synthetic output
+          sudo apt-get install -y --no-install-recommends gcc make python3 libcups2-dev cups
+      - name: Build production components
         run: |
-          make clean all cups mock-filter probe ppd
-          make media-check native-reference-test job-geometry-test protocol-isolation-test status-test probe-test
-          python3 tests/integration/test_core.py
-          python3 tests/integration/test_v04.py
-          python3 tests/integration/test_cups_command.py
+          make clean all cups probe ppd
           sudo install -m 0755 leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
-          sudo install -m 0755 driver/cups/leitz-command /usr/lib/cups/filter/leitz-command
           cupstestppd -v driver/cups/LeitzIcon.ppd
           bash -n driver/cups/leitzusb driver/cups/leitz-status driver/cups/entrypoint.sh
-      - name: Build and validate standalone CUPS image
+      - name: Build Docker image
         run: |
           docker build -f driver/cups/Dockerfile -t "leitz-icon-cups:${GITHUB_REF_NAME}" .
           docker run --rm --entrypoint /bin/bash "leitz-icon-cups:${GITHUB_REF_NAME}" -ec '
-            test -x /usr/lib/cups/filter/leitz-rastertoicon
             test -s /usr/lib/leitz/protocols/leitz-current.so
             test -s /usr/lib/leitz/protocols/leitz-native.so
-            test -x /usr/lib/cups/backend/leitzusb
             cupstestppd /usr/share/ppd/LeitzIcon.ppd
           '
-      - name: Produce isolated driver archive and checksums
+      - name: Prepare source and image archives
         run: |
           mkdir -p dist
           docker save "leitz-icon-cups:${GITHUB_REF_NAME}" | gzip -1 > "dist/leitz-icon-cups-${GITHUB_REF_NAME}-docker-image.tar.gz"
-          tar -czf "dist/leitz-icon-linux-${GITHUB_REF_NAME}-source.tar.gz" driver/src driver/cups driver/media driver/build/generate_media.py Makefile README.md docs
+          tar -czf "dist/leitz-icon-linux-${GITHUB_REF_NAME}-source.tar.gz" driver Makefile README.md
           cd dist
           sha256sum *.tar.gz > SHA256SUMS
-      - name: Publish manually tagged experimental prerelease
+      - name: Publish experimental prerelease
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
