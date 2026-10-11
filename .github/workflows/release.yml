@@ -20,6 +20,7 @@ jobs:
       - name: Compile and validate driver source
         run: |
           make clean all cups mock-filter
+          make media-check native-reference-test status-test probe-test
           python3 tests/test_core.py
           python3 tests/test_v04.py
           sudo install -m 0755 leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
@@ -37,7 +38,7 @@ jobs:
           '
           mkdir -p dist
           docker save "leitz-icon-cups:${GITHUB_REF_NAME}" | gzip -1 > "dist/leitz-icon-cups-${GITHUB_REF_NAME}-docker-image.tar.gz"
-          tar --exclude='./.git' --exclude='./dist' --exclude='./leitz-cli' --exclude='./leitz-rastertoicon' --exclude='./leitz-rastertoicon-mock' -czf "dist/leitz-icon-linux-${GITHUB_REF_NAME}-source.tar.gz" .
+          tar --exclude='./.git' --exclude='./dist' --exclude='./leitz-cli' --exclude='./leitz-rastertoicon' --exclude='./leitz-rastertoicon-mock' --exclude='./leitz-probe' -czf "dist/leitz-icon-linux-${GITHUB_REF_NAME}-source.tar.gz" .
           cd dist
           sha256sum *.tar.gz > SHA256SUMS
       - name: Publish explicit experimental prerelease
