@@ -228,7 +228,8 @@ int main(int argc,char **argv){
  if(!document || leitz_job_set_current_full_width_raw(document,current_raw)){
   fprintf(stderr,"ERROR: Current raw mode requires the Current protocol module\n");
   leitz_job_destroy(document);fclose(job);cupsRasterClose(r);
-  if(argc==7)close(fd);return 1;
+  if(argc==7)close(fd);
+  return 1;
  }
  cups_page_header2_t h;int pages=0,failed=0;
  while(!failed && cupsRasterReadHeader2(r,&h)){
