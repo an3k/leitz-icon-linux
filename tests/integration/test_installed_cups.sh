@@ -44,19 +44,31 @@ docker run --rm --entrypoint /bin/bash \
     cupstestppd /usr/share/ppd/LeitzIcon.ppd
     after=$(sha256sum /etc/cups/cupsd.conf)
     test "$original" = "${after%% *}"
-    /usr/sbin/cupsd -f &
+    # The stock upstream image listens on TCP port 631. CUPS command-line
+    # defaults may instead try a missing local domain socket.
+    export CUPS_SERVER=127.0.0.1:631
+    /usr/sbin/cupsd -f > /tmp/leitz-cupsd.log 2>&1 &
     cupsd_pid=$!
     trap "kill -TERM $cupsd_pid 2>/dev/null || true" EXIT
     ready=0
-    for n in 1 2 3 4 5 6 7 8 9 10; do
-      if lpstat -r >/dev/null 2>&1; then ready=1; break; fi
+    for n in $(seq 1 20); do
+      if lpstat -r 2>/dev/null | grep -qx "scheduler is running"; then ready=1; break; fi
+      if ! kill -0 "$cupsd_pid" 2>/dev/null; then break; fi
       sleep 1
     done
-    test "$ready" = 1
-    lpadmin -p LeitzIcon -E \
+    if test "$ready" != 1; then
+      cat /tmp/leitz-cupsd.log >&2
+      test ! -f /var/log/cups/error_log || tail -n 40 /var/log/cups/error_log >&2
+      exit 1
+    fi
+    if ! lpadmin -h 127.0.0.1:631 -p LeitzIcon -E \
       -v "leitzusb:/dev/usb/lp0?sku=auto" \
       -P /usr/share/ppd/LeitzIcon.ppd \
-      -o printer-error-policy=stop-printer
+      -o printer-error-policy=stop-printer; then
+      cat /tmp/leitz-cupsd.log >&2
+      test ! -f /var/log/cups/error_log || tail -n 40 /var/log/cups/error_log >&2
+      exit 1
+    fi
     lpstat -p LeitzIcon
     test "$(stat -c %a /usr/lib/cups/backend/leitzusb)" = 700
     echo "PASS: production driver installed and registered in unchanged CUPS source"
