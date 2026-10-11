@@ -38,7 +38,7 @@ jobs:
           '
           mkdir -p dist
           docker save "leitz-icon-cups:${GITHUB_REF_NAME}" | gzip -1 > "dist/leitz-icon-cups-${GITHUB_REF_NAME}-docker-image.tar.gz"
-          tar --exclude='./.git' --exclude='./dist' --exclude='./leitz-cli' --exclude='./leitz-rastertoicon' --exclude='./leitz-rastertoicon-mock' --exclude='./leitz-probe' -czf "dist/leitz-icon-linux-${GITHUB_REF_NAME}-source.tar.gz" .
+          tar --exclude='./.git' --exclude='./dist' --exclude='./tests/Windows-LeitzIcon.gpd' --exclude='./leitz-cli' --exclude='./leitz-rastertoicon' --exclude='./leitz-rastertoicon-mock' --exclude='./leitz-probe' -czf "dist/leitz-icon-linux-${GITHUB_REF_NAME}-source.tar.gz" .
           cd dist
           sha256sum *.tar.gz > SHA256SUMS
       - name: Publish explicit experimental prerelease
