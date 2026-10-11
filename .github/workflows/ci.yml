@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  packages: write
 jobs:
   package:
     name: Compile, validate and package standalone driver
@@ -15,8 +16,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends gcc make python3 libcups2-dev cups
-      - name: Build complete driver package
-        run: bash install/package.sh
+      - name: Build complete driver package against Debian Bookworm ABI
+        run: |
+          docker run --rm --volume "$PWD:/work" --workdir /work debian:bookworm-slim \
+            /bin/bash -euc '
+              apt-get update -qq
+              apt-get install -y --no-install-recommends gcc make python3 libcups2-dev
+              bash install/package.sh
+            '
       - name: Verify package and installed PPD
         run: |
           python3 build/generate_media.py --check
@@ -37,4 +44,63 @@ jobs:
         with:
           name: leitz-icon-standalone-driver
           path: dist/leitz-icon-driver-linux-amd64.tar.gz
+          retention-days: 14
+      - name: Checkout selected Debian CUPS source version
+        uses: actions/checkout@v4
+        with:
+          ref: cups
+          path: frozen
+      - name: Checkout approved main revision for base image identity
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: approved
+      - name: Identify source-built CUPS base and development image
+        shell: bash
+        run: |
+          shopt -s nullglob
+          dirs=(frozen/sources/unpacked/cups-*)
+          test "${#dirs[@]}" -eq 1
+          version=${dirs[0]#frozen/sources/unpacked/cups-}
+          grep -Fxq "Version: $version" "frozen/sources/original/cups_$version.dsc"
+          main_sha=$(git -C approved rev-parse HEAD)
+          version_tag=${version//+/_}
+          image="ghcr.io/${GITHUB_REPOSITORY,,}-cups"
+          echo "BASE_IMAGE=$image:main-${main_sha:0:12}-cups-$version_tag" >> "$GITHUB_ENV"
+          echo "DEV_IMAGE=$image:driver-${GITHUB_SHA:0:12}-cups-$version_tag" >> "$GITHUB_ENV"
+          echo "CUPS_VERSION=$version" >> "$GITHUB_ENV"
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build development container by installing standalone driver onto CUPS
+        shell: bash
+        run: |
+          docker pull "$BASE_IMAGE"
+          docker build --build-arg "CUPS_BASE_IMAGE=$BASE_IMAGE" \
+            -f build/Dockerfile.development -t "$DEV_IMAGE" .
+          docker run --rm --entrypoint /bin/bash "$DEV_IMAGE" -euc '
+            test "$(dpkg-query -W cups | cut -f2)" = "$1"
+            test -x /usr/lib/cups/filter/leitz-rastertoicon
+            ! ldd /usr/lib/cups/filter/leitz-rastertoicon | grep -q 'not found'
+            ! ldd /usr/lib/cups/filter/leitz-cli | grep -q 'not found'
+            test -x /usr/lib/cups/filter/leitz-command
+            test -x /usr/lib/cups/backend/leitzusb
+            test -s /usr/lib/leitz/protocols/leitz-current.so
+            test -s /usr/lib/leitz/protocols/leitz-native.so
+            grep -Fq "*DefaultLeitzCurrentRaster: Optimized" /usr/share/ppd/LeitzIcon.ppd
+            cupstestppd /usr/share/ppd/LeitzIcon.ppd 2>&1 | grep -Fq "LeitzIcon.ppd: PASS"
+          ' -- "$CUPS_VERSION"
+          docker push "$DEV_IMAGE"
+          printf '%s\n' "$BASE_IMAGE" > dist/cups-base-image.txt
+          printf '%s\n' "$DEV_IMAGE" > dist/development-image.txt
+      - name: Upload development image references
+        uses: actions/upload-artifact@v4
+        with:
+          name: leitz-icon-development-image-references
+          path: |
+            dist/cups-base-image.txt
+            dist/development-image.txt
           retention-days: 14

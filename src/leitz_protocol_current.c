@@ -60,7 +60,10 @@ int leitz_row_media(leitz_encoder *e,const uint8_t *pixels){
    while(x+len<nbytes*8 && len<128 && (((packed[(x+len)/8]>>(7-((x+len)&7)))&1)==v))len++;
    runs[nr++]=(uint8_t)((v?128:0)|(len-1));x+=len;
  }
- if(e->previous_width!=(int)nbytes){
+ /* Linux 1.0.3 optimization-1 announces full raster width for each
+  * nonblank line. Keep Current's original width cache in Optimized mode;
+  * only the explicit experimental FullWidthRaw mode repeats ESC D. */
+ if(e->full_width_raw || e->previous_width!=(int)nbytes){
    if(!(put(e->out,27)&&put(e->out,'D')&&put(e->out,nbytes)))goto error;
    e->previous_width=(int)nbytes;
  }

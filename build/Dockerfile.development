@@ -1,0 +1,15 @@
+# Development-only image: source-built Debian CUPS + separate driver package.
+# CUPS base image is the approved main build, never an opaque third-party image.
+ARG CUPS_BASE_IMAGE
+FROM ${CUPS_BASE_IMAGE}
+COPY dist/leitz-icon-driver-linux-amd64.tar.gz /tmp/leitz-driver.tar.gz
+RUN mkdir -p /tmp/leitz-driver \
+ && tar -xzf /tmp/leitz-driver.tar.gz -C /tmp/leitz-driver \
+ && /tmp/leitz-driver/install.sh \
+ && test -x /usr/lib/cups/filter/leitz-rastertoicon \
+ && test -x /usr/lib/cups/filter/leitz-command \
+ && test -x /usr/lib/cups/backend/leitzusb \
+ && test -s /usr/lib/leitz/protocols/leitz-current.so \
+ && test -s /usr/lib/leitz/protocols/leitz-native.so \
+ && test -s /usr/share/ppd/LeitzIcon.ppd \
+ && rm -rf /tmp/leitz-driver /tmp/leitz-driver.tar.gz

@@ -44,8 +44,9 @@ Changes to `media.json` can be propagated using `make generate-media`.
 
 The Original Linux 1.0.3 `Native` module is kept unchanged. The `Current`
 module additionally supports `LeitzCurrentRaster=FullWidthRaw`, using
-full-width packed 1-bit rows without RLE, analogous to the original Linux
-optimization-1 raster principle but **retaining Current framing and cutting**.
+full-width packed 1-bit rows without RLE and a fresh `ESC D` width command
+per nonblank line, as in the original Linux 1.0.3 optimization-1 mode,
+but **retaining Current framing and cutting**.
 The default `Optimized` mode remains byte-identical to the previous Current
 implementation. The new mode is experimental and not hardware-qualified.
 Choosing `Native` with `FullWidthRaw` is rejected, not silently ignored.
