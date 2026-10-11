@@ -1,6 +1,6 @@
 # Leitz Icon: independent CUPS print server, no PDF cropper bundled.
 FROM debian:bookworm-slim AS build
-RUN apt-get update && apt-get install -y --no-install-recommends gcc make libcups2-dev ca-certificates \
+RUN apt-get update && apt-get install -y --no-install-recommends gcc make libcups2-dev python3-minimal ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 COPY src /build/src
 COPY Makefile /build/Makefile
