@@ -32,6 +32,9 @@ assert '*Resolution 300x300dpi/300 x 300 dpi:' in ppd
 assert '*OpenUI *LeitzProtocol/Print Protocol (development): PickOne' in ppd
 assert '*DefaultLeitzProtocol: Current' in ppd
 assert '*DefaultLabelCutter: ON' in ppd
+assert '*ColorModel Gray8/8-bit Grayscale (driver dither):' in ppd
+assert '*LeitzDither Bayer4/Ordered 4x4 Bayer:' in ppd
+assert '*LeitzDither Threshold/Black/White Threshold:' in ppd
 assert '*LabelCutter OFF/Cut At Job End (experimental):' in ppd
 assert '*LeitzProtocol NativeLinux103/Original Linux 1.0.3 (experimental): ""' in ppd
 print('PASS vendor-readable CUPS media labels and confirmed 300x300 dpi option')
@@ -127,4 +130,28 @@ with tempfile.TemporaryDirectory() as t:
   two_end=run_case('FileFolderLabel',native=use_native,pages=2,cut_each=False)
   assert two_cut!=two_end, 'Inter-label cut must differ'
   assert two_end.count(b'\x1bE')==1, 'Only final cut expected'
+ # Exercise the real filter's 8-bit grayscale path with continuous/custom
+ # media. The binary 1-bit default above must remain byte-identical.
+ gradient=tmp/'gradient.pgm'
+ gradient.write_bytes(b'P5\n32 32\n255\n' + (b'\x00'*32) + (b'\x80'*32)*31)
+ def gray_job(dither,space_w=False,native=False):
+  env=os.environ.copy();env.update(MOCK_MEDIA_NAME='Custom',MOCK_GRAY8='1')
+  if space_w:env['MOCK_COLORSPACE_W']='1'
+  options='PageSize=Custom ColorModel=Gray8 LeitzDither='+dither
+  if native:options+=' LeitzProtocol=NativeLinux103'
+  p=subprocess.run([str(ROOT/'leitz-rastertoicon-mock'),'1','root','Grayscale','1',options,str(gradient)],
+      env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+  assert p.returncode==0,p.stderr.decode()
+  binary=tmp/'gray.bin';binary.write_bytes(p.stdout)
+  check=subprocess.run([str(ROOT/'leitz-cli'),'validate-native' if native else 'validate',str(binary)],
+      capture_output=True)
+  assert check.returncode==0,check.stderr
+  return p.stdout
+ for native in (False,True):
+  ordered=gray_job('Bayer4',native=native)
+  threshold=gray_job('Threshold',native=native)
+  assert ordered!=threshold,'Halftone setting must change the raster'
+  assert ordered==gray_job('Bayer4',space_w=True,native=native),'K/W polarity mismatch'
+  assert threshold==gray_job('Threshold',space_w=True,native=native),'K/W threshold mismatch'
+ print('PASS grayscale 8-bit Bayer4/threshold, K/W polarity, both wire protocols')
  print('PASS offline media checks for both actual print protocols')

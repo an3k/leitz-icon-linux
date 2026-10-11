@@ -415,4 +415,11 @@
 *OrderDependency: 30 AnySetup *ColorModel
 *DefaultColorModel: Black
 *ColorModel Black/Black and White: "<</cupsColorSpace 3 /cupsBitsPerColor 1 /cupsBitsPerPixel 1>>setpagedevice"
+*ColorModel Gray8/8-bit Grayscale (driver dither): "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
 *CloseUI: *ColorModel
+*OpenUI *LeitzDither/Grayscale Rendering: PickOne
+*OrderDependency: 21 AnySetup *LeitzDither
+*DefaultLeitzDither: Bayer4
+*LeitzDither Bayer4/Ordered 4x4 Bayer: ""
+*LeitzDither Threshold/Black/White Threshold: ""
+*CloseUI: *LeitzDither

@@ -62,12 +62,15 @@ static const struct leitz_media *lookup(const cups_page_header2_t *h){
 static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,const char *options){
  unsigned dpi=h->HWResolution[1];
  unsigned width=h->cupsWidth,height=h->cupsHeight;
+ const int grayscale8=(h->cupsBitsPerPixel==8 && h->cupsBitsPerColor==8);
+ const unsigned useful_bytes=grayscale8?width:(width+7)/8;
  if(h->HWResolution[0]!=300 || (dpi!=300&&dpi!=600) || !width||width>LEITZ_MAX_WIDTH ||
-    !height || height>LEITZ_MAX_ROWS || h->cupsBitsPerPixel!=1 ||
-    h->cupsBitsPerColor!=1 || h->cupsColorOrder!=CUPS_ORDER_CHUNKED ||
+    !height || height>LEITZ_MAX_ROWS ||
+    !((h->cupsBitsPerPixel==1 && h->cupsBitsPerColor==1) || grayscale8) ||
+    h->cupsColorOrder!=CUPS_ORDER_CHUNKED ||
     (h->cupsColorSpace!=CUPS_CSPACE_K&&h->cupsColorSpace!=CUPS_CSPACE_W) ||
-    h->cupsBytesPerLine<(width+7)/8 ||
-    h->cupsBytesPerLine>(width+7)/8+63){
+    h->cupsBytesPerLine<useful_bytes ||
+    h->cupsBytesPerLine>useful_bytes+63){
     /* CUPS raster can pad the physical row stride. The first ceil(width/8)
      * bytes contain the meaningful pixels; trailing stride bytes are padding.
      * Limit accepted padding to one 64-byte alignment unit. */
@@ -158,8 +161,21 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
   if(cupsRasterReadPixels(r,row,h->cupsBytesPerLine)!=h->cupsBytesPerLine){fprintf(stderr,"ERROR: Incomplete input raster\n");goto done;}
   int present=0;
   for(unsigned x=0;x<width;x++){
-    unsigned b=(row[x/8]>>(7-(x&7)))&1;
-    bits[x]=(uint8_t)((h->cupsColorSpace==CUPS_CSPACE_K)?b:!b);
+    if(grayscale8){
+      /* CUPS DeviceK is ink coverage, while DeviceGray/W is luminance.
+       * Both paths must produce identical monochrome pixels from the same
+       * photograph. Apply dithering before either protocol encoder. */
+      static const uint8_t bayer4[4][4]={
+        {0,8,2,10},{12,4,14,6},{3,11,1,9},{15,7,13,5}
+      };
+      unsigned ink=h->cupsColorSpace==CUPS_CSPACE_K?row[x]:255u-row[x];
+      unsigned threshold=option(options,"LeitzDither","Threshold")
+        ?127u:((2u*bayer4[y&3u][x&3u]+1u)*255u/32u);
+      bits[x]=(uint8_t)(ink>threshold);
+    }else{
+      unsigned b=(row[x/8]>>(7-(x&7)))&1;
+      bits[x]=(uint8_t)((h->cupsColorSpace==CUPS_CSPACE_K)?b:!b);
+    }
     present|=bits[x];
   }
   if(fwrite(bits,1,width,cached)!=width){fprintf(stderr,"ERROR: Spool write failed\n");goto done;}
