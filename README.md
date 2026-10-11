@@ -69,10 +69,9 @@ without that integration.
 ## USB transfer result semantics
 
 The backend validates the **whole** spooled document using an installed
-protocol module before opening USB. The validator returns the exact maximum
-print width and the protocol that accepted the spool. Both fields are
-required; invalid or incomplete results block the job. The USB backend
-logs this validated protocol instead of guessing from binary header offsets.
+protocol module before opening USB. Only the validated maximum print
+width is returned; the USB transport does not select, inspect or log
+the protocol encoder. Invalid or incomplete results block the job.
 
 A successful write is **not** a verified mechanical print or cut completion.
 Uncertain transmission outcomes are never automatically retried.

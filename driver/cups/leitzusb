@@ -88,21 +88,14 @@ if (( ! control_request )); then
 width_info=$("$LEITZ_VALIDATE_BIN" validate-auto "$tmp") || {
   echo 'ERROR: No installed protocol accepts the print job' >&2; exit 4;
 }
-# validate-auto returns one physical maximum and the matching installed
-# protocol. An incomplete, unknown, or extra field aborts before USB opens.
-mapfile -t validation_fields <<< "$width_info"
-if (( ${#validation_fields[@]} != 2 )) ||
-   [[ ! "${validation_fields[0]}" =~ ^MAX_WIDTH=([0-9]+)$ ]]; then
-  echo 'ERROR: Validator returned an invalid job description' >&2
+# The backend is protocol-independent. Installed validators verify the
+# entire job before USB opens; only the validated print width is needed.
+if [[ "$width_info" =~ ^MAX_WIDTH=([0-9]+)$ ]]; then
+  job_width=${BASH_REMATCH[1]}
+else
+  echo 'ERROR: Validator returned no unambiguous print width' >&2
   exit 4
 fi
-job_width=${BASH_REMATCH[1]}
-case "${validation_fields[1]}" in
-  PROTOCOL=Current) dialect=Current ;;
-  PROTOCOL=Native)  dialect=Native ;;
-  *) echo 'ERROR: Validator reported an unknown or missing protocol' >&2
-     exit 4 ;;
-esac
 if ((job_width<1 || job_width>960));then
   echo "ERROR: Unsupported raster width $job_width" >&2; exit 4
 fi
@@ -215,5 +208,5 @@ else
   exit 4
 fi
 exec 3>&-
-echo "INFO: Leitz $dialect job transferred to USB; mechanical completion unverified" >&2
+echo 'INFO: Leitz job transferred to USB; mechanical completion unverified' >&2
 exit 0
