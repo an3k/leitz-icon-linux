@@ -106,8 +106,36 @@ docker run --rm --entrypoint /bin/bash \
     apt-get update -qq
     apt-get install -y --no-install-recommends gcc make libcups2-dev python3
     bash install/package.sh
-    test -s dist/leitz-icon-driver-linux-amd64.tar.gz
+    (cd dist && sha256sum leitz-icon-driver-linux-amd64.tar.gz > leitz-icon-driver-linux-amd64.tar.gz.sha256)
+    test -s dist/leitz-icon-driver-linux-amd64.tar.gz.sha256
   '
+
+# A driver-free image must also reinstall a mounted driver at each start,
+# including when /etc/cups was persisted across a container recreation.
+mkdir -p "$tmpdir/config-mounted" "$tmpdir/spool-mounted"
+docker run -d --name "$container_id" \
+  -e CUPS_ADMIN_USER=admin -e CUPS_ADMIN_PASSWORD=TemporaryTestPassword42 \
+  --mount "type=bind,source=$tmpdir/config-mounted,target=/etc/cups" \
+  --mount "type=bind,source=$tmpdir/spool-mounted,target=/var/spool/cups" \
+  --mount "type=bind,source=$workspace/product/dist,target=/opt/leitz-driver,readonly" \
+  leitz-cups-frozen:verification >/dev/null
+for _ in $(seq 1 30); do
+  if docker exec "$container_id" test -x /usr/lib/cups/filter/leitz-rastertoicon; then break; fi
+  sleep 1
+done
+docker exec "$container_id" test -x /usr/lib/cups/filter/leitz-rastertoicon
+docker exec "$container_id" test -x /usr/lib/cups/backend/leitzusb
+docker exec "$container_id" test -f /usr/lib/leitz/protocols/leitz-native.so
+docker restart "$container_id" >/dev/null
+for _ in $(seq 1 30); do
+  if docker exec "$container_id" test -x /usr/lib/cups/filter/leitz-rastertoicon; then break; fi
+  sleep 1
+done
+docker exec "$container_id" test -x /usr/lib/cups/filter/leitz-rastertoicon
+docker exec "$container_id" test -s /usr/share/ppd/LeitzIcon.ppd
+docker exec "$container_id" chmod -R ugo+rwX /etc/cups /var/spool/cups
+docker rm -f "$container_id" >/dev/null
+echo 'PASS: mounted standalone driver automatically installed on container startup and restart'
 
 # Repeat the exact install.sh distribution workflow in a separate,
 # disposable container whose CUPS configuration starts untouched.
