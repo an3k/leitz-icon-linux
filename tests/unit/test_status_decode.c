@@ -1,4 +1,4 @@
-#include "../src/leitz_status.h"
+#include "../../driver/src/leitz_status.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
