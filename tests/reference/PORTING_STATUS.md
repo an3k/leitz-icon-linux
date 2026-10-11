@@ -60,25 +60,25 @@ No more one-change/one-label iteration. Use offline tests for protocol frames, P
 - **Offline validator integrated:** `leitz-cli validate-native file.bin` now checks the original Linux 1.0.3 framing separately, without changing the existing `leitz-cli validate` dialect. `make native-reference-test` additionally verifies that native frames are rejected by the production validator and tests truncation/extra data. Now supported by the development-branch CUPS filter and backend, with full-document multi-page native validation; **not yet physically verified**.
 - Exact framing comparison: [VENDOR_LINUX_PROTOCOL.md](VENDOR_LINUX_PROTOCOL.md).
 
-## Architekturkorrektur: gemeinsame Auftragssteuerung (10.10.2026)
+## Architectural correction: shared job controller (10 October 2026)
 
-Die beiden Projektquellen zur IST- und Zielarchitektur legen die Trennung fest:
-`leitz_cups_filter.c` verwaltet **Medien, Raster und Druckoptionen**, die neue
-`leitz_job.c` als internes Modul **Mehrseitenablauf, gemeinsamen Vorschubaufruf
-und Schnittentscheidung**. Die Auswahl `Current`/`NativeLinux103` erfolgt
-erst in `leitz_job.c` beim Aufruf der beiden Byte-Encoder
-`leitz_protocol_current.c`/`leitz_protocol_native_linux_103.c`. Codec-spezifische Bytes für den
-letzten Schnitt bleiben dort gekapselt. `leitzusb`, `usblp`, der PPD-Katalog
-und der PDF-Konverter sind unverändert.
+The examined project sources distinguish these responsibilities:
+`leitz_cups_filter.c` handles **media, raster and print options**,
+while `leitz_job.c` handles **multipage sequencing, shared feed operations,
+and cutting decisions**. It selects the `Current` or `NativeLinux103`
+byte encoder (`leitz_protocol_current.c` or
+`leitz_protocol_native_linux_103.c`) only after resolving the common
+job semantics. Each encoder retains its protocol-specific end-cut bytes.
+The USB backend, kernel usblp path, PPD catalog and PDF converter were
+unchanged at that historical stage.
 
-Die Schnittoption `LabelCutter=OFF` gehört jetzt **nicht mehr exklusiv zum
-alten Linux-Protokoll**; beide Encoder werden durch dieselbe
-Auftragssteuerung behandelt. Bei einem einzelnen Etikett ist der resultierende
-Datenstrom identisch, unabhängig davon, ob `LabelCutter=ON` oder `OFF`
-gewählt wurde. Die ursprünglichen Einzelblatt-/Standardkodierfunktionen
-bleiben erhalten; nur ihre übergeordnete Ansteuerung wurde neu geordnet.
-Ein abschließender physischer Test ist noch ausstehend, die Änderung läuft
-ausschließlich auf `port/vendor-parity`.
+`LabelCutter=OFF` was no longer exclusive to the original Linux
+protocol; the common controller applied that option to both encoders.
+For a single label, the emitted document remained identical whether
+`LabelCutter=ON` or `OFF` was selected. Existing single-page coding
+functions were preserved; only their orchestration changed. Physical
+completion and cutting remained unverified. These historical changes
+were developed on the now-retired `port/vendor-parity` branch.
 
 ## Integration since the reference-only stage (development branch)
 

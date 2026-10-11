@@ -1,109 +1,122 @@
-# Projektstand Leitz Icon Linux — 11.10.2026
+# Leitz Icon Linux — development evidence and status (11 October 2026)
 
-## Architekturaktualisierung (11.10.2026; noch ohne Hardwarefreigabe)
+> This document preserves the historical project record in English.
+> It is not a declaration of hardware release readiness. Earlier paths and
+> branch names below are explicitly historical; the current active branches
+> are `main` (approved baseline), `driver` (standalone driver),
+> `tests` (independent verification) and `cups` (frozen CUPS base).
 
-Die Entwicklungsimplementierung ist nun in `driver/` und `tests/`
-aufgeteilt. Die beiden vollständigen Protokollencoder inklusive Validatoren
-werden getrennt als `leitz-current.so` und `leitz-native.so` kompiliert.
-`leitz_protocols.c/.h` lädt sie mit ABI-Prüfung; bei jedem neu gestarteten
-Filter ist `Auto` die PPD-Standardoption (Current vor Native). Die PPD bleibt
-beim nachträglichen Entfernen oder Hinzufügen von Bibliotheksdateien
-unverändert. Im USB-Backend erfolgt die vollständige Binärvalidierung durch
-die installierten Module, nicht mehr über fest kodierte Frame-Offsets.
+## Architecture and source inventory
 
-`driver/media/media.json` enthält die verbindlichen 86 Medienprofile mit
-allen bereits vorhandenen lesbaren PPD-Namen; das Skript
-`driver/build/generate_media.py` erzeugt `leitz_media.h` und die PPD.
-Die bisherigen 344 PPD-Mediendefinitionszeilen wurden ohne Änderung
-der Formatdaten übernommen. Die ergänzenden Medien-JSON-Dateien sind
-entfallen. Die originale Linux-Protokollparität, insbesondere Optimierungs-
-und Längensemantik, bleibt gemäß Benutzerentscheidung zurückgestellt.
+The shared CUPS raster and job controller is protocol-neutral.
+The Current and Native Linux 1.0.3 encoders and binary validators are built
+as independent shared libraries, `leitz-current.so` and `leitz-native.so`.
+The runtime loader checks the ABI and resolves a module for each newly
+started print filter. `LeitzProtocol=Auto` prefers Current and falls back to
+Native. The CUPS PPD does not change when a protocol module is removed.
+The USB backend validates an entire job before sending anything to USB.
+The previous backend defect that referenced an unset dialect variable was
+subsequently corrected. The hardware qualification of this modular code
+remains outstanding.
 
-Der vorherige Inhalt dieses Dokuments beschreibt historische Zwischenstände.
-Die aktuellen Dateinamen und Modulbedingungen sind im README dokumentiert.
+The authoritative development media catalog has **86 PPD profiles**:
+43 A profiles and 43 `Leitz`-prefixed B profiles, comprising 64 fixed-length
+and 22 continuous profiles. The generator produces the CUPS PPD and media
+header, preserving 344 PPD media definitions (four per profile).
+These entries do not imply 86 distinct physical media. Four A/B geometries
+are intentionally not identical:
+`LargePendaflexTabRotated`, `Multipurpose70030001Rotated`,
+`NameBadgeCard70190001Rotated`, `ShippingLabel70180001Rotated`.
+Of the B display names, 39 originated from Windows resources and four
+were derived. The older `tools/media_b_original_labels.json` was a
+historical intermediate source and is no longer part of the driver.
 
----
+Original vendor catalogs independently contained **40** Linux 1.0.3 PPD
+formats, **41** macOS 1.2.190 PPD formats and **76** Windows GPD options
+(75 fixed plus `CUSTOMSIZE`). The complete original vendor archives
+are not committed here. Their examined behavior is recorded in
+`PORTING_STATUS.md` and `VENDOR_LINUX_PROTOCOL.md`.
 
-> **Maßgeblicher Entwicklungsbranch:** `port/vendor-parity`. **Produktiv freigegebener Treiber: keiner.** `main` enthält den älteren experimentellen v0.4.1-Stand. Erfolgreiche GitHub Actions bestätigen Offline-Prüfungen, nicht die mechanische Fertigstellung eines Ausdrucks. Dieser Bericht trennt Quellcode, CI und reale Messungen.
+Physical cassette/SKU, physical stock width, CUPS page selection and the
+printable raster area remain distinct properties. The previously used
+170 mm value was a test length, not a general driver limit. Continuous
+materials need job-dependent length and cutting behavior.
 
-## Orientierung
+## Hardware observations versus offline implementation
 
-| Ort | Funktion | Stand |
+| Feature | Current evidence | Remaining verification |
 | --- | --- | --- |
-| `main` | Älterer, separat erhaltener experimenteller Stand | Nicht die aktuelle Portierung |
-| `port/vendor-parity` | Integrierte laufende Entwicklung | Maßgeblich für neue Änderungen |
-| `src/leitz_cups_filter.c` | CUPS-Raster, Medienabgleich, Auftragslänge | Ein gemeinsamer Pfad |
-| `src/leitz_job.c` | Seitenfolge, gemeinsames `LabelCutter`-Verhalten, Encoderwahl | Implementiert |
-| `src/leitz_protocol_current.c` | `Current`: komplette Kodierung und Validierung in einer optionalen Datei | Standard bei vorhandenem Modul |
-| `src/leitz_protocol_native_linux_103.c` | `NativeLinux103`: komplette Kodierung und Validierung in einer optionalen Datei | Experimentell, kein realer Drucktest |
-| `src/leitz_protocol.h`, `src/leitz_protocol_registry.c` | Einheitliche VTable-Schnittstelle und Modulregistrierung ohne Protokollkodierung | Einzelmodul-Builds werden offline geprüft |
-| `cups/leitzusb` | Prüfung vor USB-Übertragung, Kassettenstatus, Einmalübertragung, ESC A für CUPS-ReportStatus | Keine während/nach dem Druck gemessene Fertigstellung |
-| `cups/leitz-command` | Eng begrenzter CUPS-Befehlskanal: nur `ReportStatus`, ohne Druck-/Schnittdaten | Nur offline geprüft; live noch nicht erprobt |
-| `cups/entrypoint.sh`, `cups/Dockerfile` | CUPS-Docker/Unraid-Bereitstellung | Image in CI erstellt; Betrieb des aktuellen Builds auf TARS nicht bestätigt |
-| `cups/LeitzIcon.ppd`, `media.json`, `src/leitz_media.h` | Papierprofile, Formate, Geometrien | Katalogkonsistenz offline geprüft |
-| `src/leitz_probe*.c`, `src/leitz_status.c` | Manuelles Statuswerkzeug und Offline-Dekoder | Einzelne echte Antworten bekannt, keine Laufzeitüberwachung |
-| `tests/`, `tools/check_media_consistency.py` | Offline-Regressionen | Keine Ersatzprüfung für Hardware |
-| `docs/PORTING_STATUS.md` | Detaillierte, historisch fortgeschriebene Portierungsnotizen | Einzelne ältere Aussagen darin nur im jeweiligen Zeitkontext lesen |
+| White 88 mm continuous paper | Historical Current encoder printed successfully at 300×300 and 300×600 dpi, including variable lengths, multiple labels and automatic cuts | Re-qualify the modular driver and native encoder |
+| Yellow 88 mm plastic | A 60 mm request produced approximately 49–51 mm; a subsequent 100 mm request stalled partway through the first printed row | Cause unknown; investigate as one controlled batch |
+| ESC U cartridge query | Physical ASCII/SKU replies captured | Other cartridge SKUs and capacity semantics unverified |
+| ESC A ready query | One physical idle response, byte `0x03`, and original binary decoder evidence | Do not infer successful mechanical job completion |
+| ESC V manual version query | 34-byte NUL-terminated textual response observed | Exact contents and firmware behavior not established |
+| ESC P printed-lines query | Idle request yielded zero bytes and timed out after seven seconds | Device progress and safe recovery not established |
+| CUPS ReportStatus | Offline implementation via restricted command filter and backend | Live behavior not physically verified |
+| Cutter ON/OFF | Shared multipage policy implemented in Current and Native paths; equal width and resolution per job, variable page length permitted | Native and revised multi-page cutting not physically verified |
+| Grayscale conversion | 8-bit input, selectable Bayer4 dithering/threshold; offline regressions | No proven equivalence to original macOS rendering algorithms |
+| Media profiles | 86 profiles structurally validated | Most cassettes, die-cut materials and four A/B geometry differences not physically tested |
 
-Vor der Bestandsaufnahme war `main` bei `1afdab16`, `port/vendor-parity` bei `2fb8a9d9` (**187 Commits voraus, 0 zurück**). Auf diesem Entwicklungsstand meldete GitHub Actions `38125541659` Erfolg für Build, Tests, PPD und Docker. Der Bericht selbst und folgende Korrekturen erzeugen weitere Commits.
+An `ESC U` response can show a changing usage counter, but this is not
+independent proof that a particular label finished printing.
+Completion of USB writes also does not prove printing or cutting has ended.
+Any uncertain partially delivered print job must not be retried blindly.
 
-## Originalquellen und Medien
+## Remaining work
 
-Die bisherige Auswertung der Herstellerquellen dokumentiert **40** benannte Linux-1.0.3-PPD-Formate, **41** macOS-1.2.190-PPD-Formate sowie **76** Windows-GPD-Optionen (**75 feste + `CUSTOMSIZE`**). Die jeweiligen Quellen sind **nicht im öffentlichen Repository vollständig enthalten**. Eine erneute Vollverifikation der Herstellerarchive benötigt diese Originaldaten; ihre bisherige Auswertung ist in `docs/PORTING_STATUS.md` und `docs/VENDOR_LINUX_PROTOCOL.md` festgehalten.
+1. Validate actual printer motion, completed printing and cutting after
+   transfer; identify safe during-print status and progress behavior.
+2. Investigate the yellow cassette geometry and partial-job failure without
+   introducing speculative transport commands or arbitrary fixed-length limits.
+3. Compare Native Linux 1.0.3 printing and both cut policies against Current
+   on hardware. The native encoder intentionally does not flush all trailing
+   blank rows, consistent with its original reference behavior.
+4. Verify cassette SKU-to-print-width mappings, die-cut stocks, remaining
+   material sizes and actual printable regions.
+5. Resolve vendor feature gaps: status and error handling, original raster
+   algorithms, margins, conditional Windows 64-byte behavior, and safe
+   recovery. Do not introduce speculative padding.
+6. Complete real end-to-end compatibility, packaging, and Unraid procedures.
+   CI builds and mock tests do not constitute a hardware release.
+7. Choose and publish the intended redistribution license. Publicly visible
+   source code is not automatically licensed for arbitrary reuse.
 
-Der aktuelle Entwicklungskatalog hat **86 PPD-Profile**: 43 nichtpräfixierte A-Profile und 43 `Leitz`-präfixierte B-Profile; darunter **64 feste und 22 Endlos-Profile**. Die Profile sind keine Aussage über 86 physisch unabhängige Medien. Vier A/B-Geometrien unterscheiden sich nach Quellenlage bewusst: `LargePendaflexTabRotated`, `Multipurpose70030001Rotated`, `NameBadgeCard70190001Rotated`, `ShippingLabel70180001Rotated`. 39 B-Anzeigenamen stammen aus Windows-Ressourcen, vier sind abgeleitete Bezeichnungen; siehe `tools/media_b_original_labels.json`.
+## Historical development sequence (not the current repository layout)
 
-Papierkassette/SKU, physische Breite, gewähltes CUPS-Papierformat und tatsächlich bedruckbare Fläche sind **vier verschiedene Größen**. 170 mm ist ausschließlich eine historische Testlänge, kein Treiberlimit. Die maximale Länge hängt von CUPS-Seite, Auftragsinhalt, Encodergrenzen und Material ab; Endlosmaterial wird in den bekannten Betriebsarten nach Inhalt geschnitten.
+Earlier development took place on `port/vendor-parity`, with `main`
+retained as a comparison baseline. A previous snapshot placed
+`main` at `1afdab16` and `port/vendor-parity` at `2fb8a9d9`,
+with the latter 187 commits ahead at that time. GitHub Actions run
+`38125541659` passed the contemporaneous offline build, media, raster,
+status and Docker checks. Those historic results were not real printer tests.
 
-## Getestet und ungeprüft
+An earlier modular design stored `leitz_cups_filter.c`,
+`leitz_job.c`, `leitz_protocol_current.c`,
+`leitz_protocol_native_linux_103.c`, `leitz_protocol.h` and
+`leitz_protocol_registry.c` directly under `src/`. The controller
+managed raster, page sequence, feed and cutters for both encoders.
+Selecting `LabelCutter=OFF` was moved out of the Native-specific
+path into shared job control. The original Current single-label output
+was preserved while multi-label no-cut paths remained experimental.
+Standalone reference generators and validators were used to compare
+raw framing at 300×300 and 300×600 dpi.
 
-| Eigenschaft | Softwarestand | Reale Evidenz |
-| --- | --- | --- |
-| `Current` USB-Druck auf weißer 88-mm-Endlosrolle | Vorhanden | 300×300 und 300×600 dpi, benutzerdefinierte Länge, mehrseitige Aufträge und automatischer Schnitt bereits getestet |
-| `Current` als Standard / gemeinsamer Jobcontroller | Implementiert | Refaktorierte/neue Teilpfade nicht erneut vollständig am Gerät geprüft |
-| `Current` und `NativeLinux103`, Mehrseitenaufträge, Cutter ON/OFF | Ein gemeinsamer Controller verlangt dieselbe Breite/Auflösung für alle Seiten, erlaubt unterschiedliche Drucklängen bei Endlosmaterial. Beide Spoolvalidatoren prüfen die Breite erneut. | Neue Integrationspfade nicht vollständig hardwaregetestet |
-| `ESC U` Kassettenabfrage | Implementiert | Reale ASCII/SKU-Antworten gemessen |
-| `ESC A` Bereitschaft vor Versand | Implementiert | Reale Einzelantwort `0x03` im Leerlauf; vollständiger Druck-Preflight noch nicht separat validiert |
-| `ESC V` Diagnose | Im manuellen Probe-Werkzeug | 34-Byte-Textantwort real gemessen; Feldsemantik unbekannt |
-| `ESC P` Fortschrittsabfrage | Nur manueller Diagnoseversuch | Im Leerlauf 0 Antwortbytes und Timeout; aktive Druckphase unbekannt |
-| 86 Papierprofile | In PPD, JSON, Header synchron | Nur strukturell/offline; keine umfassenden Materialtests |
-| Docker-CUPS Image | GitHub Actions baut es, einschließlich neuem Status-Kommandofilter | Keine bestätigte Hardwarefreigabe für aktuellen Entwicklungsstand |
+Older media aliases added to reach the 43+43 profile arrangement included
+`LeverArchFile1005`, `LeitzContinuous112`, `LeitzDHLShippingLabel`,
+`LeitzNameBadgeCard8214`, and `LeitzWristband`. Historic test scripts
+used `make mock-filter`, `make media-check`, and
+`tests/test_v04.py`. These names are retained as a record, not as
+commands for the current source layout.
 
-Bei der **gelben 88-mm-Kassette** wurden **49–51 mm statt 60 mm** beobachtet; ein späterer 100-mm-Test blieb nach Teil der ersten Druckzeile stehen. Die Ursache ist nicht bewiesen. Der Treiber darf den Auftrag bei unsicherem Übertragungsstand nicht blind wiederholen.
+The obsolete mixed branch `port/vendor-parity` was fully inventoried
+and deleted only after its driver files, tests and research documentation
+had been preserved in dedicated branches. No claim of a mechanically
+completed print was inferred from that change.
 
-## Noch offen / priorisiert
+## Planned verification order
 
-1. **Mechanische Fertigstellung:** Der Backend-Erfolg bedeutet lediglich, dass USB-Schreibvorgänge abgeschlossen wurden, nicht dass Papiertransport und Schnitt nachweisbar beendet wurden. CUPS kann bereits `idle` melden. Während des Drucks fehlt validierte Status- und Fortschrittslogik.
-2. **Gelbe Kassette:** Reproduzierte Längenabweichung und Druckabbruch; keine belastbare Ursache. Änderungen an Vorschub, Endmarkern oder Protokoll ohne Vergleichsdaten vermeiden.
-3. **Original-Linux-Protokoll:** `NativeLinux103` und beide Cuttermodi müssen kontrolliert physisch mit dem Standard verglichen werden. Der native Encoder bleibt beim ursprünglichen Verhalten ohne Ausgabe abschließender Leerzeilen. Ein zuvor im gemeinsamen Controller ergänzter, nur nativer Vorschub wurde zurückgenommen; mögliche Längenabweichungen bleiben bis zum Hardwarevergleich offen.
-4. **Breiten und Medien:** Zusätzliche SKU, gestanzte Etiketten und abweichende A/B-Geometrien physisch prüfen; die SKU-Breitenzuordnung im Backend ist bislang nicht umfassend am Gerät nachgewiesen.
-5. **Herstellerparität:** Der CUPS-Befehlskanal unterstützt jetzt `ReportStatus` (ESC A) über den exklusiven Backend-USB-Zugang, aber noch keine weitergehende Liveüberwachung. Status-/Fehlerbehandlung, herstellerspezifische Rasteralgorithmen, Margin-Semantik, Windows-64-Byte-Sonderfall und sichere Recovery sind noch nicht vollständig implementiert beziehungsweise geklärt. Der neue 8-Bit-Graustufenpfad bietet wählbar Bayer4 und Schwellwert-Rasterung; beide sind ausschließlich offline getestet und nicht mit den proprietären macOS-Rasteralgorithmen gleichgesetzt.
-6. **Produktionsfreigabe:** Reproduzierbare End-to-End-Druckprüfung, installierbarer versionierter Build und belastbare Unraid-Anleitung fehlen; derzeit kein Release.
-7. **Veröffentlichung und Lizenz:** Im Repository ist noch keine Lizenzdatei und keine explizit gewählte Weiterverwendungslizenz vorhanden. Ein Release benötigt eine bewusste Lizenzentscheidung; öffentlich lesbarer Quellcode ist nicht automatisch frei lizenzierter Code.
-8. **Repo-Organisation:** `main` bleibt vorerst als v0.4.1-Vergleichsbasis bestehen. Die Entwicklung wird über einen **Draft-PR gegen `main`** sichtbar; erst nach gebündelter Hardwarefreigabe zusammenführen und veröffentlichen.
-
-## Konkrete Arbeitsreihenfolge
-
-1. Alle Quell-/CI-/Dokumentationsfehler offline gebündelt beheben und überprüfen; den bereits getesteten Standard-Encoder unverändert erhalten.
-2. Die ungeklärte gelbe Kassette, die beiden Protokolle, feste/variable Länge, Aufträge mit 1/2+ Etiketten, beide Auflösungen und Schnittmodi in **einer koordinierten Hardwaretestreihe** vergleichen.
-3. Danach ein nachweislich kompatibles Standardprotokoll bestimmen; unbestätigte Alternativen und Diagnosewerkzeuge bis dahin behalten. Erst dann `main`-Zusammenführung, Release, Unraid-Installation freigeben.
-
-**Nicht behaupten:** 86 physisch funktionierende Medien; `ESC P`-Fertigstellungsbestätigung; erfolgreichen Druck nur aufgrund von `cat`/USB-Write; eine bekannte Ursache für die gelbe Kassette; identischen Status aller Geräte/Firmwares.
-
-## Modularisierung der Protokolle (11.10.2026)
-
-Die zwei Druckprotokolle liegen isoliert in genau je einer Implementierungsdatei:
-`src/leitz_protocol_current.c` und `src/leitz_protocol_native_linux_103.c`.
-Beide enthalten ihre eigenen Kodierer **und** Binärvalidatoren. Die gemeinsame
-Schnittstelle liegt in `src/leitz_protocol.h`, die schwache Modulregistrierung
-in `src/leitz_protocol_registry.c`. Der gemeinsame Jobcontroller enthält
-keine protokollspezifischen Raster-/Medien-/Vorschubregeln. Die Wire-Frames
-sind wegen der verschiedenen Herstellerprotokolle absichtlich unterschiedlich.
-
-`Makefile` verwendet nur vorhandene Protokollquellen. `tools/build_ppd.py`
-generiert daraus `dist/LeitzIcon.ppd`, das im Docker-Image installiert wird.
-Bei nur einem vorhandenen Protokoll verschwindet das andere aus den Binärdateien
-und aus der CUPS-Auswahl. Tests: `tests/test_protocol_isolation.py`
-(jeweils ein Quellmodul physisch entfernt, neu kompiliert, PPD gefiltert und
-Protokollauswahl kontrolliert). Diese Prüfung ist **offline** und belegt keine
-vollständige mechanische Ausgabe am Drucker.
+First complete related offline source and CI checks. Then carry out one
+coordinated hardware session covering white/yellow stock, both encoders,
+fixed and variable label lengths, multipage jobs, both resolutions and
+both cutter modes. Only after the data supports a specific protocol and
+device behavior should it be promoted to a production release.
