@@ -54,7 +54,7 @@ grep -Fxq "Version: $active" "$original/cups_$active.dsc"
 [[ "$(dpkg-parsechangelog -l "$unpacked/cups-$active/debian/changelog" -S Version)" == "$active" ]]
 tmpdir=$(mktemp -d)
 container_id="leitz-cups-verify-${BASHPID}"
-trap 'docker rm -f "$container_id" >/dev/null 2>&1 || :; rm -rf -- "$tmpdir"' EXIT
+trap 'docker exec "$container_id" chmod -R ugo+rwX /etc/cups /var/spool/cups >/dev/null 2>&1 || :; docker rm -f "$container_id" >/dev/null 2>&1 || :; rm -rf -- "$tmpdir"' EXIT
 dpkg-source -x "$original/cups_$active.dsc" "$tmpdir/cups-$active" >/dev/null
 diff -qr "$tmpdir/cups-$active" "$unpacked/cups-$active" || {
   echo 'ERROR: Unpacked sources differ from verified Debian source package' >&2
@@ -86,7 +86,7 @@ done
 if (( !ready )); then docker logs "$container_id" >&2; exit 1; fi
 ! docker exec "$container_id" test -e /etc/cups/.leitz-initialized
 ! docker exec "$container_id" lpstat -p LeitzIcon >/dev/null 2>&1
-printf '\n# LEITZ_CUPS_CONFIG_PRESERVATION_SENTINEL\n' >> "$tmpdir/config/cupsd.conf"
+docker exec "$container_id" /bin/bash -c "printf '\n# LEITZ_CUPS_CONFIG_PRESERVATION_SENTINEL\n' >> /etc/cups/cupsd.conf"
 docker restart "$container_id" >/dev/null
 ready=0
 for _ in $(seq 1 30); do
@@ -98,6 +98,7 @@ done
 if (( !ready )); then docker logs "$container_id" >&2; exit 1; fi
 grep -Fq '# LEITZ_CUPS_CONFIG_PRESERVATION_SENTINEL' "$tmpdir/config/cupsd.conf"
 test -f "$tmpdir/config/.cups-initialized"
+docker exec "$container_id" chmod -R ugo+rwX /etc/cups /var/spool/cups
 docker rm -f "$container_id" >/dev/null
 echo 'PASS: CUPS none start/restart preserves configuration, no auto-created queue'
 
