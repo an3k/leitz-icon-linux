@@ -28,6 +28,7 @@ assert '*LeitzProtocol Auto/Automatic (Current, then Native): ""' in ppd
 assert '*DefaultLabelCutter: ON' in ppd
 assert '*DefaultLeitzCurrentRaster: Optimized' in ppd
 assert '*LeitzCurrentRaster FullWidthRaw/' in ppd
+assert '*LeitzCurrentRaster TrimmedRaw/' in ppd
 assert '*ColorModel Gray8/8-bit Grayscale (driver dither):' in ppd
 assert '*LeitzDither Bayer4/Ordered 4x4 Bayer:' in ppd
 assert '*LeitzDither Threshold/Black/White Threshold:' in ppd
@@ -42,7 +43,7 @@ print('PASS 86 A-then-B PPD sizes with source-matched original Windows B labels'
 
 with tempfile.TemporaryDirectory() as t:
  tmp=Path(t)
- def run_case(mname, dpi=600, empty=False, native=False, pages=1, cut_each=True, full_width_raw=False):
+ def run_case(mname, dpi=600, empty=False, native=False, pages=1, cut_each=True, full_width_raw=False, trimmed_raw=False):
   m=next((x for x in CAT if x['name']==mname),None)
   w=m['area'][0] if m else 960
   h=(((m['area'][1]+1)//2 if dpi==300 else m['area'][1])) if m else 1120
@@ -60,7 +61,7 @@ with tempfile.TemporaryDirectory() as t:
   env=os.environ.copy();env['MOCK_MEDIA_NAME']=mname
   if dpi==300:env['MOCK_DPI300']='1'
   result=subprocess.run([str(ROOT/'leitz-rastertoicon-mock'),'1','root','Test','1',
-      'LeitzCutMode=Automatic' + (' LeitzProtocol=Native' if native else '') + (' LabelCutter=OFF' if not cut_each else '') + (' LeitzCurrentRaster=FullWidthRaw' if full_width_raw else ''),str(pgm)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+      'LeitzCutMode=Automatic' + (' LeitzProtocol=Native' if native else '') + (' LabelCutter=OFF' if not cut_each else '') + (' LeitzCurrentRaster=FullWidthRaw' if full_width_raw else ' LeitzCurrentRaster=TrimmedRaw' if trimmed_raw else ''),str(pgm)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
   if empty:
    assert result.returncode!=0 and not result.stdout
    print('PASS blank input blocked');return
@@ -85,6 +86,13 @@ with tempfile.TemporaryDirectory() as t:
     preamble=result.stdout[120:135]
     width=(preamble[-2]<<8)|preamble[-1]
   assert width==w,(mname,width,w)
+  assert not (full_width_raw and trimmed_raw)
+  if trimmed_raw:
+    assert not native
+    # Two deliberately isolated pixels: x=15 (byte 1) and x=50 (byte 6).
+    # Original Linux optimization-2 principle removes white byte margins.
+    assert b'\x1bD\x01\x1bB\x01\x16\x01' in result.stdout
+    assert b'\x1bD\x01\x1bB\x06\x16\x20' in result.stdout
   if full_width_raw:
     assert not native, 'The option is Current-only'
     row_header=b'\x1bD'+bytes([(w+7)//8])+b'\x1bB\x00\x16'
@@ -114,7 +122,12 @@ with tempfile.TemporaryDirectory() as t:
   full=run_case('Continuous70030001',dpi=dpi,full_width_raw=True)
   assert normal!=full
   assert full.startswith(normal[:135]), 'Current header must remain unchanged'
- print('PASS opt-in full-width raw rows in Current, both resolutions')
+ for dpi in (300,600):
+  optimized=run_case('Continuous70030001',dpi=dpi)
+  trimmed=run_case('Continuous70030001',dpi=dpi,trimmed_raw=True)
+  assert optimized!=trimmed
+  assert trimmed.startswith(optimized[:135]),'Current framing must be preserved'
+ print('PASS opt-in trimmed/raw and full-width/raw in Current, both resolutions')
  # Native remains unmodified and rejects Current-specific raster options.
  env=os.environ.copy()
  env['MOCK_MEDIA_NAME']='Continuous70030001'
@@ -122,7 +135,11 @@ with tempfile.TemporaryDirectory() as t:
      'LeitzProtocol=Native LeitzCurrentRaster=FullWidthRaw',str(tmp/'media.pgm')],
      env=env,capture_output=True)
  assert rejected.returncode!=0 and not rejected.stdout
- print('PASS Native rejects Current-only raster option')
+ rejected2=subprocess.run([str(ROOT/'leitz-rastertoicon-mock'),'1','root','Trimmed','1',
+     'LeitzProtocol=Native LeitzCurrentRaster=TrimmedRaw',str(tmp/'media.pgm')],
+     env=env,capture_output=True)
+ assert rejected2.returncode!=0 and not rejected2.stdout
+ print('PASS Native rejects both Current-only raster options')
  # Every new alias must run through the same CUPS raster-to-USB-byte pipeline.
  for name in ('LeverArchFile1005','LeitzLeverArchFile1005',
               'DHLShippingLabel','LeitzDHLShippingLabel',
