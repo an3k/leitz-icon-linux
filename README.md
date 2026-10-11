@@ -1,5 +1,7 @@
 # Leitz Icon Linux — USB/CUPS driver
 
+**Projektstand und offene Punkte:** [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md). **Aktive Entwicklung:** `port/vendor-parity`; `main` ist der ältere v0.4.1-Vergleichsstand. Keine Hardwarefreigabe des aktuellen Entwicklungsbranches.
+
 An independent **Linux / CUPS driver** for the Leitz Icon USB label printer (USB VID:PID `289e:1000`).
 
 > **Status: under development.** The v0.4.1 driver has passed specific physical print-and-cut tests on white continuous paper at both 300×600 and 300×300 dpi. This is **not** a fully validated release. The expanded 86-entry development PPD is offline-checked only and is not installed on TARS.
