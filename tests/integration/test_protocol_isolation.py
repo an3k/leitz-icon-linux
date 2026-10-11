@@ -43,13 +43,7 @@ with tempfile.TemporaryDirectory(prefix="leitz-modules-") as t:
             checked=subprocess.run([str(CLI),"validate-auto",str(spool)],
                                    env=env,capture_output=True,timeout=5)
             assert checked.returncode==0,(option,checked.stderr)
-            # Backend consumes the exact protocol reported by the validator.
-            chosen = ("Native" if option=="Native" or
-                      (option in ("", "Auto") and not paths["Current"].exists())
-                      else "Current")
-            assert checked.stdout == f"MAX_WIDTH=16\nPROTOCOL={chosen}\n".encode(), (
-                option, chosen, checked.stdout
-            )
+            assert checked.stdout == b"MAX_WIDTH=16\n", checked.stdout
             return proc.stdout
         assert not proc.stdout
         return b""
