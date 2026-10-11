@@ -91,4 +91,5 @@
 *DefaultLeitzCurrentRaster: Optimized
 *LeitzCurrentRaster Optimized/Optimized (existing Current output): ""
 *LeitzCurrentRaster FullWidthRaw/Full-width raw rows (experimental, Current only): ""
+*LeitzCurrentRaster TrimmedRaw/Trimmed raw rows (experimental, Current only): ""
 *CloseUI: *LeitzCurrentRaster

@@ -8,7 +8,7 @@ typedef struct {
  FILE *out;
  unsigned width, raster_rows, total_rows, emitted_rows, printed_rows;
  unsigned pending_blank, feed_units, top, bottom;
- int previous_width, error, full_width_raw;
+ int previous_width, error, raster_mode;
 } leitz_encoder;
 #include <stdlib.h>
 #include <string.h>
@@ -43,31 +43,28 @@ int leitz_row_media(leitz_encoder *e,const uint8_t *pixels){
  for(unsigned x=0;x<e->width;x++)if(pixels[x]){if((int)x<lo)lo=(int)x;hi=(int)x;}
  if(hi<0){e->pending_blank++;return 0;}
  if(e->pending_blank){if(feed(e,e->pending_blank))goto error;e->pending_blank=0;}
- /* The original Linux 1.0.3 optimization-1 sends the full raw raster
-  * width. Reuse its known row-packing principle only on opt-in; Current
-  * framing, its default optimized rows, and Native remain unchanged. */
- unsigned left=e->full_width_raw?0u:(unsigned)lo/8u;
- unsigned byte_end=e->full_width_raw?(e->width+7u)/8u:(unsigned)hi/8u+1u;
+ /* Native Linux: level 1 full-width raw; level 2 trims white byte margins.
+  * Both are optional Current-only strategies. Optimized remains unchanged. */
+ unsigned left=e->raster_mode==1?0u:(unsigned)lo/8u;
+ unsigned byte_end=e->raster_mode==1?(e->width+7u)/8u:(unsigned)hi/8u+1u;
  unsigned nbytes=byte_end-left;
  uint8_t packed[120]={0},runs[960];unsigned nr=0;
  for(unsigned x=0;x<nbytes*8;x++){
    unsigned pos=left*8+x;
    if(pos<e->width && pixels[pos])packed[x/8]|=(uint8_t)(1u<<(7-(x&7)));
  }
- if(!e->full_width_raw)for(unsigned x=0;x<nbytes*8;){
+ if(e->raster_mode==0)for(unsigned x=0;x<nbytes*8;){
    unsigned v=(packed[x/8]>>(7-(x&7)))&1;
    unsigned len=1;
    while(x+len<nbytes*8 && len<128 && (((packed[(x+len)/8]>>(7-((x+len)&7)))&1)==v))len++;
    runs[nr++]=(uint8_t)((v?128:0)|(len-1));x+=len;
  }
- /* Linux 1.0.3 optimization-1 announces full raster width for each
-  * nonblank line. Keep Current's original width cache in Optimized mode;
-  * only the explicit experimental FullWidthRaw mode repeats ESC D. */
- if(e->full_width_raw || e->previous_width!=(int)nbytes){
+ /* Source-derived raw modes repeat the row width; Optimized caches it. */
+ if(e->raster_mode || e->previous_width!=(int)nbytes){
    if(!(put(e->out,27)&&put(e->out,'D')&&put(e->out,nbytes)))goto error;
    e->previous_width=(int)nbytes;
  }
- int compressed=!e->full_width_raw&&nr<nbytes;
+ int compressed=e->raster_mode==0&&nr<nbytes;
  if(!(put(e->out,27)&&put(e->out,'B')&&put(e->out,left)&&put(e->out,compressed?0x17:0x16)))goto error;
  if(compressed){if(fwrite(runs,1,nr,e->out)!=nr)goto error;}
  else if(fwrite(packed,1,nbytes,e->out)!=nbytes)goto error;
@@ -208,7 +205,7 @@ static int current_begin(void *p,FILE *out,const leitz_page *m,int first_page){
  leitz_encoder *e=p;
  if(leitz_begin_media(e,out,m->width,m->total_rows,m->raster_rows,
                       m->top,m->bottom,m->length_code,m->dpi_y))return -1;
- e->full_width_raw=m->current_full_width_raw;
+ e->raster_mode=m->current_raster_mode;
  return 0;
 }
 static int current_row(void *p,const uint8_t *pixels,unsigned width){

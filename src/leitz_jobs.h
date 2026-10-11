@@ -10,7 +10,7 @@
 typedef struct leitz_job leitz_job;
 leitz_job *leitz_job_create(FILE *out, leitz_protocol protocol, int cut_each_page);
 /* Optional source-derived plain/raw rows in Current; Native is unchanged. */
-int leitz_job_set_current_full_width_raw(leitz_job *job, int enabled);
+int leitz_job_set_current_raster_mode(leitz_job *job, unsigned mode);
 int leitz_job_begin_page(leitz_job *job, unsigned width, unsigned total_rows,
                          unsigned raster_rows, unsigned top, unsigned bottom,
                          unsigned length_code, unsigned dpi_y);

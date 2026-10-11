@@ -90,3 +90,12 @@ the protocol encoder. Invalid or incomplete results block the job.
 
 A successful write is **not** a verified mechanical print or cut completion.
 Uncertain transmission outcomes are never automatically retried.
+
+### Original Linux optimization-2 principle in Current
+
+`LeitzCurrentRaster=TrimmedRaw` forces uncompressed one-bit raster bytes
+with leading and trailing white-byte margins removed, analogous to the
+original Linux optimization-level-2 raster strategy. It retains Current
+framing and cutting; it does not reproduce the vendor's entire protocol.
+`Optimized` remains the byte-identical default, `FullWidthRaw` is unchanged,
+and both optional modes are experimental and rejected by Native.

@@ -218,14 +218,15 @@ int main(int argc,char **argv){
   fclose(job);cupsRasterClose(r);if(argc==7)close(fd);return 1;
  }
  const int cut_each_page=!option(argv[5],"LabelCutter","OFF");
- const int current_raw=option(argv[5],"LeitzCurrentRaster","FullWidthRaw");
- if(strstr(argv[5],"LeitzCurrentRaster=") && !current_raw &&
+ unsigned current_mode=option(argv[5],"LeitzCurrentRaster","FullWidthRaw")?1u:
+   option(argv[5],"LeitzCurrentRaster","TrimmedRaw")?2u:0u;
+ if(strstr(argv[5],"LeitzCurrentRaster=") && !current_mode &&
     !option(argv[5],"LeitzCurrentRaster","Optimized")){
   fprintf(stderr,"ERROR: Unknown LeitzCurrentRaster option\n");
   fclose(job);cupsRasterClose(r);if(argc==7)close(fd);return 1;
  }
  leitz_job *document=leitz_job_create(job,protocol,cut_each_page);
- if(!document || leitz_job_set_current_full_width_raw(document,current_raw)){
+ if(!document || leitz_job_set_current_raster_mode(document,current_mode)){
   fprintf(stderr,"ERROR: Current raw mode requires the Current protocol module\n");
   leitz_job_destroy(document);fclose(job);cupsRasterClose(r);
   if(argc==7)close(fd);
