@@ -1,2 +1,2 @@
-# Build approved driver with locally compiled Debian CUPS packages.
-request=build-after-allowing-local-debian-package-replacement-20261011
+# Build Debian CUPS and driver with PPD PASS validation.
+request=build-with-warning-tolerant-ppd-pass-20261011

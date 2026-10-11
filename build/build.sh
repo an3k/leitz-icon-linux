@@ -16,7 +16,7 @@ docker run --rm --entrypoint /bin/bash leitz-cups-complete:build -euc '
   test -x /usr/lib/cups/filter/leitz-cli
   test -x /usr/lib/cups/backend/leitzusb
   test -s /usr/share/ppd/LeitzIcon.ppd
-  cupstestppd /usr/share/ppd/LeitzIcon.ppd
+  cupstestppd /usr/share/ppd/LeitzIcon.ppd 2>&1 | grep -Fq "/usr/share/ppd/LeitzIcon.ppd: PASS"
   test "$(dpkg-query -W -f="${Version}" cups)" = "$1"
 ' -- "$version"
 mkdir -p dist

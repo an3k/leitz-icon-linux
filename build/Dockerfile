@@ -48,7 +48,9 @@ RUN chmod 0755 /usr/lib/cups/filter/leitz-cli /usr/lib/cups/filter/leitz-rastert
  && chmod 0700 /usr/lib/cups/backend/leitzusb \
  && mkdir -p /opt/leitz-cups-default \
  && cp -a /etc/cups/. /opt/leitz-cups-default/ \
- && cupstestppd /usr/share/ppd/LeitzIcon.ppd
+ && ppd_result=$(cupstestppd /usr/share/ppd/LeitzIcon.ppd 2>&1 || true) \
+ && printf '%s\n' "$ppd_result" \
+ && printf '%s\n' "$ppd_result" | grep -Fq '/usr/share/ppd/LeitzIcon.ppd: PASS'
 EXPOSE 631
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/usr/local/bin/leitz-cups-entrypoint"]
