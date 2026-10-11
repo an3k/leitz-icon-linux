@@ -50,7 +50,7 @@ grep -Fxq "Version: $active" "$original/cups_$active.dsc"
 [[ "$(dpkg-parsechangelog -l "$unpacked/cups-$active/debian/changelog" -S Version)" == "$active" ]]
 tmpdir=$(mktemp -d)
 container_id="leitz-cups-verify-${BASHPID}"
-trap 'docker exec "$container_id" chmod -R ugo+rwX /etc/cups /var/spool/cups >/dev/null 2>&1 || :; docker rm -f "$container_id" >/dev/null 2>&1 || :; rm -rf -- "$tmpdir"' EXIT
+trap 'docker rm -f "$container_id" >/dev/null 2>&1 || :; docker run --rm --entrypoint /bin/chmod --volume "$tmpdir:/verify" leitz-cups-frozen:verification -R a+rwX /verify >/dev/null 2>&1 || :; rm -rf -- "$tmpdir"' EXIT
 dpkg-source -x "$original/cups_$active.dsc" "$tmpdir/cups-$active" >/dev/null
 diff -qr "$tmpdir/cups-$active" "$unpacked/cups-$active" || {
   echo 'ERROR: Unpacked sources differ from verified Debian source package' >&2
