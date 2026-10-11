@@ -29,7 +29,7 @@ with tempfile.TemporaryDirectory() as tmp:
     path = Path(tmp) / "native.bin"
     path.write_bytes(native)
     message = check("validate-native", path, True)
-    assert "pages=1; width=16" in message, message
+    assert "pages=1; max_width=16" in message, message
     check("validate", path, False)  # No silent interchange of wire protocols.
 
     # Real manufacturer document behavior: only the first page resets the
@@ -37,11 +37,11 @@ with tempfile.TemporaryDirectory() as tmp:
     second_page = native[4:]  # Same resolution, page header, width and dots.
     no_intermediate_cut = native[:-2] + second_page
     path.write_bytes(no_intermediate_cut)
-    assert "pages=2; width=16" in check("validate-native", path, True)
+    assert "pages=2; max_width=16" in check("validate-native", path, True)
     check("validate", path, False)
     cut_each = native + second_page
     path.write_bytes(cut_each)
-    assert "pages=2; width=16" in check("validate-native", path, True)
+    assert "pages=2; max_width=16" in check("validate-native", path, True)
 
     # Each native page has an independent ESC w width. The validator must
     # return the largest width, so a later wide page cannot evade the USB
