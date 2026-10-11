@@ -16,10 +16,10 @@ jobs:
           sudo apt-get install -y --no-install-recommends gcc make python3 libcups2-dev cups
       - name: Build standalone driver archive
         run: |
-          bash driver/install/package.sh
+          bash install/package.sh
           sudo install -m 0755 leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
-          cupstestppd -v driver/cups/LeitzIcon.ppd
-          bash -n driver/cups/leitzusb driver/cups/leitz-status driver/install/*.sh
+          cupstestppd -v cups/LeitzIcon.ppd
+          bash -n cups/leitzusb cups/leitz-status install/*.sh
       - name: Prepare signed-off source archive and checksums
         run: |
           tar -czf "dist/leitz-icon-linux-${GITHUB_REF_NAME}-source.tar.gz" driver Makefile README.md

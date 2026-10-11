@@ -6,11 +6,11 @@ import argparse
 import json
 from pathlib import Path
 
-ROOT=Path(__file__).resolve().parents[2]
-MEDIA=ROOT/"driver/media/media.json"
-TEMPLATE=ROOT/"driver/cups/LeitzIcon.ppd.in"
-PPD=ROOT/"driver/cups/LeitzIcon.ppd"
-HEADER=ROOT/"driver/src/leitz_media.h"
+ROOT=Path(__file__).resolve().parents[1]
+MEDIA=ROOT/"media/media.json"
+TEMPLATE=ROOT/"cups/LeitzIcon.ppd.in"
+PPD=ROOT/"cups/LeitzIcon.ppd"
+HEADER=ROOT/"src/leitz_media.h"
 MARKERS={
  "PageSize":"@LEITZ_PAGE_SIZE@",
  "PageRegion":"@LEITZ_PAGE_REGION@",
@@ -27,7 +27,7 @@ def generate():
         raise ValueError("MASTER catalog must contain 86 unique media IDs")
     records={kind:[] for kind in MARKERS}
     hdr=[
-      "/* GENERATED from driver/media/media.json; do not edit. */",
+      "/* GENERATED from media/media.json; do not edit. */",
       "#ifndef LEITZ_MEDIA_H",
       "#define LEITZ_MEDIA_H",
       "struct leitz_media {const char *name; unsigned page_width,page_height,raster_width,raster_height,left,bottom,length_code; int continuous;};",

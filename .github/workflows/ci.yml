@@ -16,14 +16,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends gcc make python3 libcups2-dev cups
       - name: Build complete driver package
-        run: bash driver/install/package.sh
+        run: bash install/package.sh
       - name: Verify package and installed PPD
         run: |
-          python3 driver/build/generate_media.py --check
+          python3 build/generate_media.py --check
           sudo install -m 0755 leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
-          sudo install -m 0755 driver/cups/leitz-command /usr/lib/cups/filter/leitz-command
-          cupstestppd -v driver/cups/LeitzIcon.ppd
-          bash -n driver/cups/leitzusb driver/cups/leitz-status driver/cups/leitz-command driver/install/*.sh
+          sudo install -m 0755 cups/leitz-command /usr/lib/cups/filter/leitz-command
+          cupstestppd -v cups/LeitzIcon.ppd
+          bash -n cups/leitzusb cups/leitz-status cups/leitz-command install/*.sh
           mkdir -p /tmp/leitz-package-test
           tar -xzf dist/leitz-icon-driver-linux-amd64.tar.gz -C /tmp/leitz-package-test
           DESTDIR=/tmp/leitz-package-installed /tmp/leitz-package-test/install.sh

@@ -2,7 +2,7 @@
 leitz-cli
 leitz-rastertoicon
 leitz-probe
-driver/modules/
+modules/
 *.so
 *.o
 dist/
