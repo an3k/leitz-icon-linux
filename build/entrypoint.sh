@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Persistent CUPS config, password-protected admin, tested Leitz queue.
+# Generic CUPS container: Debian CUPS with optional separately bundled Leitz driver.
 set -Eeuo pipefail
 umask 027
 
@@ -20,7 +20,7 @@ fi
 mkdir -p /etc/cups /var/spool/cups
 if [[ ! -s /etc/cups/cupsd.conf ]]; then
   # Critical when Unraid bind-mounts an initially empty /etc/cups directory.
-  cp -a /opt/leitz-cups-default/. /etc/cups/
+  cp -a /opt/cups-default/. /etc/cups/
   echo 'INFO: Initial CUPS configuration copied to persistent volume.'
 fi
 if ! grep -Eq '^(Port 631|Listen (\*:631|0\.0\.0\.0:631))$' /etc/cups/cupsd.conf; then
@@ -66,7 +66,7 @@ fi
 
 # On first run, configure LAN printing and protected web administration.
 # Do not overwrite a user's later cupsd.conf changes on container restarts.
-if [[ ! -f /etc/cups/.leitz-initialized ]]; then
+if [[ ! -f /etc/cups/.cups-initialized ]]; then
   cupsctl --remote-any --remote-admin --share-printers WebInterface=Yes
   if [[ -n "$CUPS_SERVER_ALIAS" ]]; then
     printf '\nServerAlias %s\n' "$CUPS_SERVER_ALIAS" >> /etc/cups/cupsd.conf
@@ -75,13 +75,15 @@ if [[ ! -f /etc/cups/.leitz-initialized ]]; then
   touch /etc/cups/.leitz-initialized
 fi
 
-# Create the printer queue once. Preserve subsequent changes and other queues.
-if ! lpstat -p LeitzIcon >/dev/null 2>&1; then
+# The 'none' variant stays a pure CUPS image, without Leitz queues.
+# Preserve the historical automatic first-queue setup only for integrated
+# main/dev variants. On 'none' the driver is installed separately by the user.
+if [[ "${LEITZ_CUPS_DRIVER:-none}" != none ]] && ! lpstat -p LeitzIcon >/dev/null 2>&1; then
   lpadmin -p LeitzIcon -E \
     -v 'leitzusb:/dev/usb/lp0?sku=auto' \
     -P /usr/share/ppd/LeitzIcon.ppd \
     -o printer-is-shared=true
-  echo 'INFO: Created queue LeitzIcon with vendor media catalog and automatic cartridge width check.'
+  echo 'INFO: Created LeitzIcon queue for integrated driver.'
 fi
 
 echo 'INFO: CUPS initialized. Admin: authenticated; LAN web interface: port 631.'

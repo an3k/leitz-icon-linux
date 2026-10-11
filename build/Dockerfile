@@ -1,4 +1,6 @@
-# Source packages are built from the exact selected Debian bookworm revision.
+# Debian Bookworm CUPS compiled from the archived, patched Debian source.
+# --target cups-base: no Leitz driver, PPD, backend, or printer queue.
+# --target cups-with-driver: install the selected main/dev driver-only package.
 FROM debian:bookworm-slim AS cups-builder
 ARG CUPS_VERSION
 RUN printf 'deb-src http://deb.debian.org/debian bookworm main\ndeb-src http://deb.debian.org/debian bookworm-updates main\ndeb-src http://deb.debian.org/debian-security bookworm-security main\n' > /etc/apt/sources.list.d/debian-src.list \
@@ -13,14 +15,7 @@ RUN dpkg-parsechangelog -S Version | grep -Fx "$CUPS_VERSION" \
  && mkdir -p /packages \
  && mv /sources/*.deb /packages/
 
-FROM debian:bookworm-slim AS driver-builder
-RUN apt-get update && apt-get install -y --no-install-recommends gcc make libcups2-dev \
- && rm -rf /var/lib/apt/lists/*
-COPY release/ /work/
-WORKDIR /work
-RUN make clean all cups
-
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim AS cups-base
 ARG CUPS_VERSION
 COPY --from=cups-builder /packages/ /local-cups-packages/
 RUN apt-get update \
@@ -37,20 +32,35 @@ RUN apt-get update \
     /local-cups-packages/libcupsimage2_*.deb \
  && test "$(dpkg-query -W -f='${Version}' cups)" = "$CUPS_VERSION" \
  && rm -rf /var/lib/apt/lists/* /local-cups-packages
-COPY --from=driver-builder /work/leitz-cli /usr/lib/cups/filter/leitz-cli
-COPY --from=driver-builder /work/leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
-COPY release/cups/leitzusb /usr/lib/cups/backend/leitzusb
-COPY release/cups/leitz-status /usr/local/bin/leitz-status
-COPY release/cups/LeitzIcon.ppd /usr/share/ppd/LeitzIcon.ppd
-COPY build/entrypoint.sh /usr/local/bin/leitz-cups-entrypoint
-RUN chmod 0755 /usr/lib/cups/filter/leitz-cli /usr/lib/cups/filter/leitz-rastertoicon \
-    /usr/local/bin/leitz-status /usr/local/bin/leitz-cups-entrypoint \
- && chmod 0700 /usr/lib/cups/backend/leitzusb \
- && mkdir -p /opt/leitz-cups-default \
- && cp -a /etc/cups/. /opt/leitz-cups-default/ \
- && ppd_result=$(cupstestppd /usr/share/ppd/LeitzIcon.ppd 2>&1 || true) \
- && printf '%s\n' "$ppd_result" \
- && printf '%s\n' "$ppd_result" | grep -Fq '/usr/share/ppd/LeitzIcon.ppd: PASS'
+COPY build/entrypoint.sh /usr/local/bin/cups-entrypoint
+RUN chmod 0755 /usr/local/bin/cups-entrypoint \
+ && mkdir -p /opt/cups-default \
+ && cp -a /etc/cups/. /opt/cups-default/
+ENV LEITZ_CUPS_DRIVER=none
 EXPOSE 631
 STOPSIGNAL SIGTERM
-ENTRYPOINT ["/usr/local/bin/leitz-cups-entrypoint"]
+ENTRYPOINT ["/usr/local/bin/cups-entrypoint"]
+
+FROM debian:bookworm-slim AS driver-builder
+RUN apt-get update && apt-get install -y --no-install-recommends gcc make python3 libcups2-dev \
+ && rm -rf /var/lib/apt/lists/*
+COPY release/ /work/
+WORKDIR /work
+RUN bash install/package.sh \
+ && cp dist/leitz-icon-driver-*.tar.gz /tmp/leitz-driver.tar.gz
+
+FROM cups-base AS cups-with-driver
+ARG DRIVER_MODE=main
+COPY --from=driver-builder /tmp/leitz-driver.tar.gz /tmp/leitz-driver.tar.gz
+RUN mkdir -p /tmp/leitz-install \
+ && tar -xzf /tmp/leitz-driver.tar.gz -C /tmp/leitz-install \
+ && bash /tmp/leitz-install/install.sh \
+ && test -x /usr/lib/cups/filter/leitz-rastertoicon \
+ && test -x /usr/lib/cups/filter/leitz-cli \
+ && test -x /usr/lib/cups/backend/leitzusb \
+ && test -s /usr/share/ppd/LeitzIcon.ppd \
+ && ppd_result=$(cupstestppd /usr/share/ppd/LeitzIcon.ppd 2>&1 || true) \
+ && printf '%s\n' "$ppd_result" \
+ && printf '%s\n' "$ppd_result" | grep -Fq '/usr/share/ppd/LeitzIcon.ppd: PASS' \
+ && rm -rf /tmp/leitz-driver.tar.gz /tmp/leitz-install
+ENV LEITZ_CUPS_DRIVER=${DRIVER_MODE}
