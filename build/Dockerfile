@@ -25,7 +25,7 @@ ARG CUPS_VERSION
 COPY --from=cups-builder /packages/ /local-cups-packages/
 RUN apt-get update \
  && apt-get install -y --no-install-recommends cups cups-filters ghostscript ca-certificates bash passwd \
- && apt-get install -y --no-install-recommends \
+ && apt-get install -y --allow-downgrades --no-install-recommends \
     /local-cups-packages/cups_*.deb \
     /local-cups-packages/cups-daemon_*.deb \
     /local-cups-packages/cups-client_*.deb \

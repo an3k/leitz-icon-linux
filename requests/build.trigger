@@ -1,2 +1,2 @@
-# Build the selected CUPS source with the approved driver from main.
-request=build-with-own-cups-entrypoint-20261011
+# Build approved driver with locally compiled Debian CUPS packages.
+request=build-after-allowing-local-debian-package-replacement-20261011
