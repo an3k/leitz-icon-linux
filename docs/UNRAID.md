@@ -11,7 +11,8 @@ The existing, previously verified v0.2 CUPS image has been deleted from the user
 - TCP port: host `631` → container `631`
 - Persistence: `/mnt/cache/appdata/cups/etc` → `/etc/cups`
 - Persistence: `/mnt/cache/appdata/cups/spool` → `/var/spool/cups`
-- USB character device: `/dev/usb/lp0` → `/dev/usb/lp0` (only after verifying this is the current Leitz device)
+- USB character device: host `/dev/usb/lpN` → container `/dev/usb/lpN` (verify that the host node actually belongs to the Leitz printer)
+- Environment: `LEITZ_DEVICE=/dev/usb/lpN` (optional; defaults to `/dev/usb/lp0`; used only when the LeitzIcon queue is first created, and by `leitz-status`)
 - Environment: `CUPS_ADMIN_USER`, `CUPS_ADMIN_PASSWORD` (at least 12 characters, unique and not committed)
 - `--privileged` is not required by design.
 
