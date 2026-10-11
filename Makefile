@@ -6,7 +6,7 @@ CORE_SOURCES := $(SRC)/leitz_jobs.c $(SRC)/leitz_protocols.c
 
 .PHONY: verify mock-filter media-check native-reference-test job-geometry-test protocol-isolation-test status-test probe-test integration backend-safety-test
 
-verify: mock-filter media-check native-reference-test job-geometry-test protocol-isolation-test status-test probe-test integration
+verify: mock-filter media-check native-reference-test job-geometry-test protocol-isolation-test status-test probe-test backend-safety-test integration
 
 mock-filter:
 	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L -Itests/mocks/shim -o leitz-rastertoicon-mock $(SRC)/leitz_raster.c $(CORE_SOURCES) tests/mocks/mock_cups.c $(LDLIBS)

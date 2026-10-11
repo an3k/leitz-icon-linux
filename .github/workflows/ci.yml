@@ -25,7 +25,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends gcc make python3 libcups2-dev cups
       - name: Assemble temporary verification workspace
-        run: cp -a suite/tests product/tests
+        run: |
+          mkdir -p product/tests
+          cp -a suite/integration suite/unit suite/mocks product/tests/
       - name: Build unmodified driver source
         working-directory: product
         run: make clean all cups probe ppd
@@ -36,10 +38,9 @@ jobs:
         run: make -f ../suite/Makefile verify
       - name: Verify branch separation
         run: |
-          test ! -e product/tests/integration/../..//driver/driver
           test ! -e suite/driver
-          test -d product/driver/src
-          test -d suite/tests/integration
+          test -d product/src
+          test -d suite/integration
 
   cups-integration:
     name: Install driver into frozen unmodified CUPS source
@@ -64,4 +65,4 @@ jobs:
       - name: Install driver into clean original CUPS container
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash suite/tests/integration/test_installed_cups.sh
+        run: bash suite/integration/test_installed_cups.sh
