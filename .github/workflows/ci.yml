@@ -2,7 +2,7 @@ name: Driver verification
 
 on:
   push:
-    branches: [main]
+    branches: [main, port/vendor-parity]
   pull_request:
   workflow_dispatch:
 
@@ -21,8 +21,9 @@ jobs:
           sudo apt-get install -y --no-install-recommends gcc make libcups2-dev cups
       - name: Compile driver and independent raster mock
         run: make clean all cups mock-filter
-      - name: Validate synthetic raster cases and media profiles
+      - name: Validate media catalog, native frame reference and raster integration
         run: |
+          make media-check native-reference-test
           python3 tests/test_core.py
           python3 tests/test_v04.py
       - name: Regression-test status and diagnostic formatting (offline)
