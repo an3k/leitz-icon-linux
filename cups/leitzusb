@@ -50,7 +50,21 @@ if [[ -z "${LEITZ_VALIDATE_BIN:-}" ]]; then LEITZ_VALIDATE_BIN=/usr/lib/cups/fil
 # Stage entire job and validate before touching USB. Disk-space failures are
 # fatal; failed data must never reach the printer.
 tmp=$(mktemp "${TMPDIR:-/tmp}/leitzjob.XXXXXXXX") || exit 4
-trap 'rm -f -- "$tmp"' EXIT
+writer_pid=''
+cleanup() {
+  # Cancellation must not leave an orphaned writer continuing to print
+  # after CUPS has stopped the backend. Partial USB delivery is possible.
+  if [[ -n "$writer_pid" ]]; then
+    kill -TERM "$writer_pid" 2>/dev/null || :
+  fi
+  rm -f -- "$tmp"
+}
+on_cancel() {
+  echo 'ERROR: USB transfer cancelled; output may be incomplete. Inspect printer before resubmission.' >&2
+  exit 1
+}
+trap cleanup EXIT
+trap on_cancel TERM INT HUP
 if (($# == 6)); then cp -- "$6" "$tmp" || exit 4; else cat > "$tmp" || exit 4;fi
 size=$(stat -c %s -- "$tmp")
 # The raster filter supports up to 64 pages, each with up to 64000
@@ -160,8 +174,17 @@ if (( status_code != 3 )); then
   exit 4
 fi
 # A successful write means that the kernel accepted bytes, not necessarily
-# that all labels finished printing. An error must never trigger blind retry.
-if ! cat -- "$tmp" >&3; then echo 'ERROR: USB transfer failed; inspect device before retry' >&2;exit 4;fi
+# that all labels finished printing. Cancellation terminates the writer;
+# the resulting partial delivery must NEVER be automatically replayed.
+cat -- "$tmp" >&3 &
+writer_pid=$!
+if wait "$writer_pid"; then
+  writer_pid=''
+else
+  writer_pid=''
+  echo 'ERROR: USB transfer failed or interrupted; print status unknown. Inspect printer before resubmission.' >&2
+  exit 4
+fi
 exec 3>&-
-echo "INFO: Leitz $dialect job transferred to USB" >&2
+echo "INFO: Leitz $dialect job transferred to USB; mechanical completion unverified" >&2
 exit 0
