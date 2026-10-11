@@ -1,4 +1,4 @@
-name: Build Linux CUPS driver
+name: Build standalone Leitz Icon CUPS driver
 on:
   push:
     branches: [driver]
@@ -6,47 +6,35 @@ on:
 permissions:
   contents: read
 jobs:
-  native:
-    name: Compile driver and validate PPD
+  package:
+    name: Compile, validate and package standalone driver
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - run: |
+      - name: Install compiler and CUPS development headers
+        run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends gcc make python3 libcups2-dev cups
-      - name: Compile production driver
-        run: make clean all cups probe ppd
-      - name: Validate media definitions and CUPS installation files
+      - name: Build complete driver package
+        run: bash driver/install/package.sh
+      - name: Verify package and installed PPD
         run: |
           python3 driver/build/generate_media.py --check
           sudo install -m 0755 leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
           sudo install -m 0755 driver/cups/leitz-command /usr/lib/cups/filter/leitz-command
           cupstestppd -v driver/cups/LeitzIcon.ppd
-          bash -n driver/cups/leitzusb driver/cups/leitz-status driver/cups/entrypoint.sh driver/cups/leitz-command
-  image:
-    name: Build Docker image
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build standalone CUPS image
-        run: docker build -f driver/cups/Dockerfile -t leitz-icon-cups:ci .
-      - name: Verify installed production components
-        run: |
-          docker run --rm --entrypoint /bin/bash leitz-icon-cups:ci -ec '
-            test -x /usr/lib/cups/filter/leitz-rastertoicon
-            test -x /usr/lib/cups/filter/leitz-cli
-            test -x /usr/lib/cups/filter/leitz-command
-            test -s /usr/lib/leitz/protocols/leitz-current.so
-            test -s /usr/lib/leitz/protocols/leitz-native.so
-            test -x /usr/lib/cups/backend/leitzusb
-            cupstestppd /usr/share/ppd/LeitzIcon.ppd
-          '
-      - name: Export image
-        run: |
-          mkdir -p dist
-          docker save leitz-icon-cups:ci | gzip -1 > dist/leitz-icon-cups-dev-image.tar.gz
-      - uses: actions/upload-artifact@v4
+          bash -n driver/cups/leitzusb driver/cups/leitz-status driver/cups/leitz-command driver/install/*.sh
+          mkdir -p /tmp/leitz-package-test
+          tar -xzf dist/leitz-icon-driver-linux-amd64.tar.gz -C /tmp/leitz-package-test
+          DESTDIR=/tmp/leitz-package-installed /tmp/leitz-package-test/install.sh
+          test -x /tmp/leitz-package-installed/usr/lib/cups/filter/leitz-rastertoicon
+          test -x /tmp/leitz-package-installed/usr/lib/cups/backend/leitzusb
+          test -f /tmp/leitz-package-installed/usr/lib/leitz/protocols/leitz-current.so
+          test -f /tmp/leitz-package-installed/usr/share/ppd/LeitzIcon.ppd
+          test ! -e /tmp/leitz-package-installed/etc/cups
+      - name: Upload independent driver archive
+        uses: actions/upload-artifact@v4
         with:
-          name: leitz-icon-cups-dev-image
-          path: dist/leitz-icon-cups-dev-image.tar.gz
+          name: leitz-icon-standalone-driver
+          path: dist/leitz-icon-driver-linux-amd64.tar.gz
           retention-days: 14
