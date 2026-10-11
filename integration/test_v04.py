@@ -88,7 +88,10 @@ with tempfile.TemporaryDirectory() as t:
   if full_width_raw:
     assert not native, 'The option is Current-only'
     row_header=b'\x1bD'+bytes([(w+7)//8])+b'\x1bB\x00\x16'
-    assert result.stdout.count(row_header)>=2, 'Expected uncompressed full-width raw rows'
+    # Current caches ESC D width across equally sized rows. Only the first
+    # full-width row needs that command; each ink row has its own ESC B.
+    assert result.stdout.count(row_header)==1, 'Expected full-width raw row setup'
+    assert result.stdout.count(b'\x1bB\x00\x16')>=2, 'Expected two raw ink rows'
   assert (b'protocol=Native' if native else b'protocol=Current') in result.stderr
   if m['continuous']:
    assert b'cut=after-content' in result.stderr
