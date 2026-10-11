@@ -13,7 +13,7 @@ variants = [("Current", "leitz_protocol_native_linux_103.c", "NativeLinux103"),
 for wanted, omitted, forbidden in variants:
     with tempfile.TemporaryDirectory(prefix="leitz-isolation-") as t:
         base = Path(t)
-        for folder in ("src", "cups"):
+        for folder in ("src", "cups", "tests"):
             shutil.copytree(root / folder, base / folder)
         (base / "tools").mkdir()
         shutil.copy2(root / "tools/build_ppd.py", base / "tools/build_ppd.py")
