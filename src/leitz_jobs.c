@@ -3,13 +3,14 @@
  * raster, pagination and cutter policy applies identically to both codecs. */
 #include "leitz_jobs.h"
 #include <stdlib.h>
+#include <string.h>
 
 struct leitz_job {
  FILE *out;
  const leitz_protocol_ops *ops;
  void *state;
  unsigned pages,first_width,first_dpi,width,remaining;
- int cut_each_page,page_open,completed,failed;
+ int cut_each_page,page_open,completed,failed,current_full_width_raw;
 };
 
 leitz_job *leitz_job_create(FILE *out,leitz_protocol protocol,int cut_each_page){
@@ -22,6 +23,12 @@ leitz_job *leitz_job_create(FILE *out,leitz_protocol protocol,int cut_each_page)
  job->ops=ops;job->out=out;job->cut_each_page=cut_each_page;
  return job;
 }
+int leitz_job_set_current_full_width_raw(leitz_job *job,int enabled){
+ if(!job||enabled<0||enabled>1||job->pages||job->page_open||job->completed)return -1;
+ if(enabled && strcmp(job->ops->name,"Current"))return -1;
+ job->current_full_width_raw=enabled;
+ return 0;
+}
 int leitz_job_begin_page(leitz_job *job,unsigned width,unsigned total_rows,
                          unsigned raster_rows,unsigned top,unsigned bottom,
                          unsigned length_code,unsigned dpi_y){
@@ -33,7 +40,7 @@ int leitz_job_begin_page(leitz_job *job,unsigned width,unsigned total_rows,
  /* A cassette is not changed inside a print job. Length is per page. */
  if(job->pages&&(width!=job->first_width||dpi_y!=job->first_dpi))return -1;
  if(!job->pages){job->first_width=width;job->first_dpi=dpi_y;}
- leitz_page page={width,total_rows,raster_rows,top,bottom,length_code,dpi_y};
+ leitz_page page={width,total_rows,raster_rows,top,bottom,length_code,dpi_y,job->current_full_width_raw};
  if(job->ops->begin(job->state,job->out,&page,job->pages==0)){
   job->failed=1;return -1;
  }

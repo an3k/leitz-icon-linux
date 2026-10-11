@@ -1,7 +1,6 @@
 /* Independent CUPS raster filter for Leitz Icon.
- * Media catalog: vendor GPD (76 entries). No PDF cropping or application logic.
- * Continuous roll: automatically cut after last ink row, with proven 170mm
- * hardware test offsets as conservative starting values. Other sizes UNTESTED.
+ * Source-derived 86-profile media catalog; no PDF cropping or application logic.
+ * Continuous roll uses job-dependent length; historical 170 mm was one test.
  */
 #include "leitz_jobs.h"
 #include "leitz_media.h"
@@ -219,8 +218,18 @@ int main(int argc,char **argv){
   fclose(job);cupsRasterClose(r);if(argc==7)close(fd);return 1;
  }
  const int cut_each_page=!option(argv[5],"LabelCutter","OFF");
+ const int current_raw=option(argv[5],"LeitzCurrentRaster","FullWidthRaw");
+ if(strstr(argv[5],"LeitzCurrentRaster=") && !current_raw &&
+    !option(argv[5],"LeitzCurrentRaster","Optimized")){
+  fprintf(stderr,"ERROR: Unknown LeitzCurrentRaster option\n");
+  fclose(job);cupsRasterClose(r);if(argc==7)close(fd);return 1;
+ }
  leitz_job *document=leitz_job_create(job,protocol,cut_each_page);
- if(!document){fprintf(stderr,"ERROR: Could not initialize print job\n");fclose(job);cupsRasterClose(r);if(argc==7)close(fd);return 1;}
+ if(!document || leitz_job_set_current_full_width_raw(document,current_raw)){
+  fprintf(stderr,"ERROR: Current raw mode requires the Current protocol module\n");
+  leitz_job_destroy(document);fclose(job);cupsRasterClose(r);
+  if(argc==7)close(fd);return 1;
+ }
  cups_page_header2_t h;int pages=0,failed=0;
  while(!failed && cupsRasterReadHeader2(r,&h)){
    pages++;

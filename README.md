@@ -40,6 +40,16 @@ make clean all cups probe ppd
 The 86-profile catalog is the sole source for generated media options.
 Changes to `media.json` can be propagated using `make generate-media`.
 
+## Current protocol: original-Linux-derived raw-row option
+
+The Original Linux 1.0.3 `Native` module is kept unchanged. The `Current`
+module additionally supports `LeitzCurrentRaster=FullWidthRaw`, using
+full-width packed 1-bit rows without RLE, analogous to the original Linux
+optimization-1 raster principle but **retaining Current framing and cutting**.
+The default `Optimized` mode remains byte-identical to the previous Current
+implementation. The new mode is experimental and not hardware-qualified.
+Choosing `Native` with `FullWidthRaw` is rejected, not silently ignored.
+
 ## Known limitations
 
 The older Current implementation physically printed white 88 mm continuous

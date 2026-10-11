@@ -86,3 +86,9 @@
 *LeitzDither Bayer4/Ordered 4x4 Bayer: ""
 *LeitzDither Threshold/Black/White Threshold: ""
 *CloseUI: *LeitzDither
+*OpenUI *LeitzCurrentRaster/Current Raster Encoding: PickOne
+*OrderDependency: 22 AnySetup *LeitzCurrentRaster
+*DefaultLeitzCurrentRaster: Optimized
+*LeitzCurrentRaster Optimized/Optimized (existing Current output): ""
+*LeitzCurrentRaster FullWidthRaw/Full-width raw rows (experimental, Current only): ""
+*CloseUI: *LeitzCurrentRaster

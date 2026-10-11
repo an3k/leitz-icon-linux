@@ -16,6 +16,8 @@ typedef enum {
 /* Shared logical page contract; encoder owns its device byte format. */
 typedef struct {
   unsigned width, total_rows, raster_rows, top, bottom, length_code, dpi_y;
+  /* Current only; Native 1.0.3 ignores this additive job option. */
+  unsigned current_full_width_raw;
 } leitz_page;
 
 typedef struct {

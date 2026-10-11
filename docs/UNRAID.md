@@ -23,17 +23,17 @@ the correct device must be identified on the host before exposing it.
 
 ## Frozen Unraid Community Applications CUPS base
 
-The separate Git branch `cups` provides a versioned copy of the
-upstream `olbat/cupsd` container image. Its `upgrade` operation stores
-original and extracted layer archives immutably. Its `build` operation
-combines the frozen base **only with the approved `main` driver**.
+The separate Git branch `cups` stores original Debian Bookworm CUPS
+source packages in `sources/original/` and exactly one selected unpacked
+revision in `sources/unpacked/cups-<version>/`. Its `upgrade` retrieves
+new Debian versions; `restore` selects an archived revision; `build`
+compiles CUPS locally and includes **only the approved `main` driver**.
 It does not include development changes from `driver`.
 
-The resulting image retains upstream CUPS startup, configuration and
-installed drivers. It does not run a custom CUPS initialization script.
-The driver-only package can also be installed into any existing CUPS
-server, including the frozen CUPS base, using its ordinary installation
-instructions.
+The development driver can be installed with its independent driver-only
+package into this Debian-CUPS image for controlled integration testing.
+Such an installation must not be confused with the separately released
+`main`-based CUPS image.
 
 ## Security and verification boundaries
 
