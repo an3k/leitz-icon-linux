@@ -1,4 +1,4 @@
-name: CUPS – Restore
+name: Restore archived Debian CUPS version
 on:
   push:
     branches: [cups]

@@ -1,4 +1,4 @@
-name: CUPS – Build (none / main / dev)
+name: Build Debian CUPS (none, main, or dev)
 on:
   push:
     branches: [cups]
