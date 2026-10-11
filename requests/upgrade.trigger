@@ -1,2 +1,2 @@
 # Edit this file and commit to the cups branch to run upgrade.
-request: initial
+request: materialize-existing-snapshot-2026-10-11
