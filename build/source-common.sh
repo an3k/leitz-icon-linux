@@ -21,7 +21,7 @@ verify_originals() {
 }
 verify_unpacked() {
   local version=$1 dir="$unpacked/cups-$1" actual
-  [[ -f "$dir/debian/changelog" && -f "$dir/scheduler/cupsd.c" ]] || return 1
+  [[ -f "$dir/debian/changelog" && -f "$dir/scheduler/main.c" ]] || return 1
   actual=$(dpkg-parsechangelog -l "$dir/debian/changelog" -S Version) || return 1
   [[ "$actual" == "$version" ]]
 }
@@ -61,6 +61,10 @@ extract_version() {
   if ! verify_unpacked "$version"; then
     rm -rf -- "$dir"; return 1
   fi
+  # dpkg-source can create an upstream-archive sidecar beside its output directory.
+  local upstream_version
+  upstream_version=${version%%-*}
+  rm -f -- "$unpacked/cups_$upstream_version.orig.tar.gz"
 }
 activate_version() {
   local version=$1 directory

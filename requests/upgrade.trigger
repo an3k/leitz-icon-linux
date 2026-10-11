@@ -1,2 +1,2 @@
-# Commit a change to this file on cups to invoke the source upgrade.
-request=initial-debian-bookworm-source-20261011
+# Commit a change to this file on cups to invoke the Debian CUPS upgrade.
+request=repair-and-extract-verified-bookworm-20261011
