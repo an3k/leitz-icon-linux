@@ -95,6 +95,7 @@ if ! lpstat -p LeitzIcon >/dev/null 2>&1; then
   lpadmin -p LeitzIcon -E \
     -v "leitzusb:$LEITZ_DEVICE?sku=auto" \
     -P "$driver_ppd" \
+    -o printer-error-policy=stop-printer \
     -o printer-is-shared=true
   echo 'INFO: Created queue LeitzIcon with vendor media catalog and automatic cartridge width check.'
   if [[ -f "$queue_ppd" ]]; then

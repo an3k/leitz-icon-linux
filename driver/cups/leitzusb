@@ -61,7 +61,9 @@ cleanup() {
 }
 on_cancel() {
   echo 'ERROR: USB transfer cancelled; output may be incomplete. Inspect printer before resubmission.' >&2
-  exit 1
+  # CUPS_BACKEND_CANCEL=5: do not retry a possibly partly printed job.
+  # CUPS_BACKEND_FAILED=1 would delegate retry behavior to error-policy.
+  exit 5
 }
 trap cleanup EXIT
 trap on_cancel TERM INT HUP
