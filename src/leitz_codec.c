@@ -82,8 +82,10 @@ int leitz_finish_job(leitz_encoder *e){
 }
 static int rd(FILE *f){return fgetc(f);}
 static int bad(char *r,size_t n,const char *m){if(n)snprintf(r,n,"%s",m);return -1;}
-int leitz_validate(FILE *f,unsigned *pages,char *r,size_t n){
+int leitz_validate(FILE *f,unsigned *pages,unsigned *max_width,char *r,size_t n){
+ if(!f||!pages||!max_width)return bad(r,n,"Missing validation inputs");
  *pages=0;
+ *max_width=0;
  unsigned pending_preamble=0;
  int last_page_cut=0;
  while(1){
@@ -102,6 +104,7 @@ int leitz_validate(FILE *f,unsigned *pages,char *r,size_t n){
   int wh=rd(f),wl=rd(f);if(wh<0||wl<0)return bad(r,n,"Width truncated");
   unsigned width=(unsigned)(wh*256+wl);
   if(!width||width>LEITZ_MAX_WIDTH)return bad(r,n,"Raster width out of range");
+  if(width>*max_width)*max_width=width;
   unsigned count=0;int linewidth=-1,finished=0;
   while(!finished){
    if(rd(f)!=27)return bad(r,n,"Body ESC missing");
