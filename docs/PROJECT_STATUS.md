@@ -10,9 +10,9 @@
 | `port/vendor-parity` | Integrierte laufende Entwicklung | Maßgeblich für neue Änderungen |
 | `src/leitz_cups_filter.c` | CUPS-Raster, Medienabgleich, Auftragslänge | Ein gemeinsamer Pfad |
 | `src/leitz_job.c` | Seitenfolge, gemeinsames `LabelCutter`-Verhalten, Encoderwahl | Implementiert |
-| `src/leitz_codec.c` | `Current`: bisher hardwaregetestetes Protokoll | PPD-Standard |
-| `src/leitz_native_reference.c` | `NativeLinux103`: originalnaher Linux-1.0.3-Rahmen | Experimentell, kein realer Drucktest |
-| `src/leitz_native_job_validate.c` / `src/leitz_codec.c` | Separate Dokumentenvalidatoren | Offline getestet |
+| `src/leitz_protocol_current.c` | `Current`: komplette Kodierung und Validierung in einer optionalen Datei | Standard bei vorhandenem Modul |
+| `src/leitz_protocol_native_linux_103.c` | `NativeLinux103`: komplette Kodierung und Validierung in einer optionalen Datei | Experimentell, kein realer Drucktest |
+| `src/leitz_protocol.h`, `src/leitz_protocol_registry.c` | Einheitliche VTable-Schnittstelle und Modulregistrierung ohne Protokollkodierung | Einzelmodul-Builds werden offline geprüft |
 | `cups/leitzusb` | Prüfung vor USB-Übertragung, Kassettenstatus, Einmalübertragung, ESC A für CUPS-ReportStatus | Keine während/nach dem Druck gemessene Fertigstellung |
 | `cups/leitz-command` | Eng begrenzter CUPS-Befehlskanal: nur `ReportStatus`, ohne Druck-/Schnittdaten | Nur offline geprüft; live noch nicht erprobt |
 | `cups/entrypoint.sh`, `cups/Dockerfile` | CUPS-Docker/Unraid-Bereitstellung | Image in CI erstellt; Betrieb des aktuellen Builds auf TARS nicht bestätigt |
@@ -65,3 +65,21 @@ Bei der **gelben 88-mm-Kassette** wurden **49–51 mm statt 60 mm** beobachtet; 
 3. Danach ein nachweislich kompatibles Standardprotokoll bestimmen; unbestätigte Alternativen und Diagnosewerkzeuge bis dahin behalten. Erst dann `main`-Zusammenführung, Release, Unraid-Installation freigeben.
 
 **Nicht behaupten:** 86 physisch funktionierende Medien; `ESC P`-Fertigstellungsbestätigung; erfolgreichen Druck nur aufgrund von `cat`/USB-Write; eine bekannte Ursache für die gelbe Kassette; identischen Status aller Geräte/Firmwares.
+
+## Modularisierung der Protokolle (11.10.2026)
+
+Die zwei Druckprotokolle liegen isoliert in genau je einer Implementierungsdatei:
+`src/leitz_protocol_current.c` und `src/leitz_protocol_native_linux_103.c`.
+Beide enthalten ihre eigenen Kodierer **und** Binärvalidatoren. Die gemeinsame
+Schnittstelle liegt in `src/leitz_protocol.h`, die schwache Modulregistrierung
+in `src/leitz_protocol_registry.c`. Der gemeinsame Jobcontroller enthält
+keine protokollspezifischen Raster-/Medien-/Vorschubregeln. Die Wire-Frames
+sind wegen der verschiedenen Herstellerprotokolle absichtlich unterschiedlich.
+
+`Makefile` verwendet nur vorhandene Protokollquellen. `tools/build_ppd.py`
+generiert daraus `dist/LeitzIcon.ppd`, das im Docker-Image installiert wird.
+Bei nur einem vorhandenen Protokoll verschwindet das andere aus den Binärdateien
+und aus der CUPS-Auswahl. Tests: `tests/test_protocol_isolation.py`
+(jeweils ein Quellmodul physisch entfernt, neu kompiliert, PPD gefiltert und
+Protokollauswahl kontrolliert). Diese Prüfung ist **offline** und belegt keine
+vollständige mechanische Ausgabe am Drucker.
