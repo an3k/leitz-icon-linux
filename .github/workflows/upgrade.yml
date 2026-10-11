@@ -1,4 +1,4 @@
-name: CUPS – Upgrade
+name: CUPS - Upgrade
 on:
   push:
     branches: [cups]

@@ -1,4 +1,4 @@
-name: Legacy – Retired
+name: Legacy - Archived
 on:
   workflow_dispatch:
 permissions:

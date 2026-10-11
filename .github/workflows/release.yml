@@ -1,4 +1,4 @@
-name: Main – Release
+name: Driver - Main Release
 on:
   push:
     tags:

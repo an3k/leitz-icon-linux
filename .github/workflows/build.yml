@@ -1,4 +1,4 @@
-name: CUPS – Build
+name: CUPS - Build
 on:
   push:
     branches: [cups]

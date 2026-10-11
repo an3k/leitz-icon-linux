@@ -1,4 +1,4 @@
-name: CUPS – Restore
+name: CUPS - Restore
 on:
   push:
     branches: [cups]
