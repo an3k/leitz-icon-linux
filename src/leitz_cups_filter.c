@@ -32,6 +32,20 @@ static int option(const char *s,const char *key,const char *value){
  }
  return 0;
 }
+/* A custom CUPS page can happen to have the same dimensions as a
+ * vendor die-cut profile. Geometry alone must not turn that custom job
+ * into a fixed-media job with a vendor length command. */
+static int explicitly_custom_page(const char *options){
+ const char *key="PageSize=Custom";
+ const size_t len=strlen(key);
+ for(const char *p=options;p&&*p;){
+   while(*p==' ')p++;
+   if(!strncmp(p,key,len) &&
+      (p[len]==' ' || p[len]=='\\0' || p[len]=='.'))return 1;
+   while(*p&&*p!=' ')p++;
+ }
+ return 0;
+}
 static const struct leitz_media *lookup(const cups_page_header2_t *h){
  for(size_t i=0;i<LEITZ_MEDIA_COUNT;i++){
   const struct leitz_media *m=&leitz_media_catalog[i];
@@ -55,12 +69,13 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
       width,height,h->HWResolution[0],dpi,h->cupsBitsPerPixel,h->cupsBytesPerLine);
      return -1;
  }
- const struct leitz_media *m=lookup(h);
+ int custom_page=explicitly_custom_page(options);
+ const struct leitz_media *m=custom_page?NULL:lookup(h);
  /* If the print job explicitly selects a vendor media name, ensure that
   * its raster geometry matches. Do not reinterpret malformed vendor pages
   * as a custom size and transmit them. */
  for(size_t i=0;i<LEITZ_MEDIA_COUNT;i++){
-   if(option(options,"PageSize",leitz_media_catalog[i].name)){
+   if(!custom_page && option(options,"PageSize",leitz_media_catalog[i].name)){
       const struct leitz_media *selected=&leitz_media_catalog[i];
       if(selected->page_width*72.0/300.0 < h->cupsPageSize[0]-.4 ||
          selected->page_width*72.0/300.0 > h->cupsPageSize[0]+.4 ||
