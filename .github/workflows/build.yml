@@ -1,10 +1,8 @@
-name: Build Unraid CUPS package from frozen source and main
+name: Build Unraid CUPS from archived Debian source and main driver
 on:
   push:
     branches: [cups]
     paths:
-      - 'requests/build.trigger'
-      - 'source/source.lock'
       - 'requests/build.trigger'
   workflow_dispatch:
 permissions:
@@ -12,24 +10,23 @@ permissions:
   packages: write
 jobs:
   build:
-    name: Complete Unraid CUPS package (main only)
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
-      - name: Checkout frozen build tooling
+      - name: Checkout selected Debian CUPS source
         uses: actions/checkout@v4
         with:
           ref: cups
-      - name: Checkout approved Leitz release from main
+      - name: Checkout approved Leitz driver
         uses: actions/checkout@v4
         with:
           ref: main
           path: release
-      - name: Preserve exact release commit in manifest
+      - name: Record approved driver commit
         run: echo "RELEASE_SHA=$(git -C release rev-parse HEAD)" >> "$GITHUB_ENV"
-      - name: Build from archived original CUPS and approved main
+      - name: Build and validate container
         run: bash build/build.sh
-      - name: Publish build artifact
+      - name: Publish loadable image
         uses: actions/upload-artifact@v4
         with:
           name: leitz-icon-unraid-cups-main-image
@@ -41,9 +38,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish immutable experimental image tag
+      - name: Publish experimental image
         run: |
-          source source/source.lock
-          image="ghcr.io/${GITHUB_REPOSITORY,,}-cups:main-${RELEASE_SHA:0:12}-cups-${SOURCE_DIGEST:7:12}"
+          version=$(cat dist/cups-version.txt)
+          image_version=${version//+/_}
+          image="ghcr.io/${GITHUB_REPOSITORY,,}-cups:main-${RELEASE_SHA:0:12}-cups-$image_version"
           docker tag leitz-cups-complete:build "$image"
           docker push "$image"

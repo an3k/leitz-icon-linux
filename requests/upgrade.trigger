@@ -1,2 +1,2 @@
-# Edit this file and commit to the cups branch to run upgrade.
-request: materialize-existing-snapshot-2026-10-11
+# Commit a change to this file on cups to invoke the source upgrade.
+request=initial-debian-bookworm-source-20261011

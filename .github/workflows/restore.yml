@@ -1,0 +1,34 @@
+name: Restore archived Debian CUPS version
+on:
+  push:
+    branches: [cups]
+    paths:
+      - 'requests/restore.trigger'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Exact archived Debian source version'
+        required: true
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: cups-sources
+  cancel-in-progress: false
+jobs:
+  restore:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cups
+          persist-credentials: true
+      - name: Activate specified local archive
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ -z "$REQUESTED_VERSION" ]]; then
+            REQUESTED_VERSION=$(sed -n 's/^version=//p' requests/restore.trigger | tail -n 1)
+          fi
+          bash build/restore.sh "$REQUESTED_VERSION"

@@ -1,37 +1,26 @@
 #!/usr/bin/env bash
-# Consume only the previously archived upstream source release.
-# Never refresh CUPS or alter stored originals as part of a build.
+# Use the sole selected Debian source revision; no implicit upgrade.
 set -euo pipefail
-[[ -f source/source.lock ]] || {
-  echo 'ERROR: No frozen CUPS source. Run upgrade before build.' >&2; exit 1;
-}
-source source/source.lock
-[[ "$SOURCE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]] || exit 1
-[[ "$SOURCE_RELEASE" == "cups-source-${SOURCE_DIGEST#sha256:}" ]] || exit 1
-[[ "$UPSTREAM_IMAGE" == 'docker.io/olbat/cupsd:latest' ]] || exit 1
-workspace=$(mktemp -d)
-trap 'rm -rf -- "$workspace"' EXIT
-# Build uses the unpacked archive stored in this branch, not a moving tag
-# and not a mutable GitHub Release attachment.
-bash build/reconstruct.sh unpacked "$workspace/cups-unpacked.tar.gz"
-docker load -i "$workspace/cups-unpacked.tar.gz"
-docker tag "$UPSTREAM_IMAGE" leitz-cups-frozen:source
-
-# 'release' is an independent checkout of the approved main branch.
+source "$(dirname "$0")/source-common.sh"
+cd "$repo_root"
+version=$(active_version) || { echo 'ERROR: Exactly one complete sources/unpacked/cups-<version> required.' >&2; exit 1; }
+verify_originals "$version" || { echo "ERROR: Invalid originals for $version" >&2; exit 1; }
 [[ -f release/Makefile && -f release/cups/LeitzIcon.ppd ]] || {
-  echo 'ERROR: Missing main release checkout' >&2; exit 1;
+  echo 'ERROR: Missing approved main branch checkout in release/.' >&2; exit 1;
 }
-docker build --build-arg BASE_IMAGE=leitz-cups-frozen:source \
-  -f build/Dockerfile -t leitz-cups-complete:build .
-docker run --rm --entrypoint /bin/bash leitz-cups-complete:build -ec '
+: "${RELEASE_SHA:?Missing main driver commit SHA}"
+docker build --build-arg "CUPS_VERSION=$version" -f build/Dockerfile -t leitz-cups-complete:build .
+docker run --rm --entrypoint /bin/bash leitz-cups-complete:build -euc '
+  test -x /usr/sbin/cupsd
   test -x /usr/lib/cups/filter/leitz-rastertoicon
   test -x /usr/lib/cups/filter/leitz-cli
   test -x /usr/lib/cups/backend/leitzusb
+  test -s /usr/share/ppd/LeitzIcon.ppd
   cupstestppd /usr/share/ppd/LeitzIcon.ppd
-  test -x /usr/sbin/cupsd
-'
+  test "$(dpkg-query -W -f="${Version}" cups)" = "$1"
+' -- "$version"
 mkdir -p dist
 docker save leitz-cups-complete:build | gzip -1 > dist/leitz-icon-cups-unraid-image.tar.gz
-printf '%s\n' "$SOURCE_DIGEST" > dist/cups-source-digest.txt
+printf '%s\n' "$version" > dist/cups-version.txt
 printf '%s\n' "$RELEASE_SHA" > dist/leitz-main-commit.txt
-sha256sum dist/leitz-icon-cups-unraid-image.tar.gz > dist/SHA256SUMS
+(cd dist && sha256sum leitz-icon-cups-unraid-image.tar.gz > SHA256SUMS)
