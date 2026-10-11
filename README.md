@@ -74,12 +74,13 @@ This creates `dist/leitz-icon-driver-linux-amd64.tar.gz` containing an
 `install.sh` and the production binaries, protocol libraries and PPD.
 Extract it into a temporary directory and run `install.sh` as root **inside
 the existing CUPS environment**, then register the Leitz printer through
-normal CUPS administration. The installer never modifies other printers,
+normal CUPS administration. The installer updates the active PPD of existing `leitzusb:` queues
+when a CUPS scheduler is running, but does not change unrelated queues,
 `cupsd.conf`, server credentials, or container configuration.
 
-The optional frozen Unraid Community Applications CUPS integration is
-maintained independently on the `cups` branch. The `driver` branch builds
-without that integration.
+The source-built Debian CUPS integration is maintained independently on
+`cups` with `none`, `main`, and `dev` selections. The development driver
+archive builds and is tested independently of published CUPS images.
 
 ## USB transfer result semantics
 
