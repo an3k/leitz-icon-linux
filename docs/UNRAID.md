@@ -31,10 +31,9 @@ It does not include development changes from `driver`.
 
 The resulting image retains upstream CUPS startup, configuration and
 installed drivers. It does not run a custom CUPS initialization script.
-To test the development driver, install the driver-only package into an
-ephemeral instance of that frozen CUPS base, just as an end user would
-install it into any other CUPS installation. The `tests` branch verifies
-this procedure independently in CI.
+The driver-only package can also be installed into any existing CUPS
+server, including the frozen CUPS base, using its ordinary installation
+instructions.
 
 ## Security and verification boundaries
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a stand-alone CUPS driver package; no server and no test code included.
+# Build a stand-alone CUPS driver package without bundling a CUPS server.
 set -euo pipefail
 root=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 cd "$root"
