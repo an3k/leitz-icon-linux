@@ -17,6 +17,9 @@
 *LanguageLevel: "3"
 *Throughput: "1"
 *cupsFilter: "application/vnd.cups-raster 0 leitz-rastertoicon"
+*% The printer has no verified hardware copy-generation command.
+*% The upstream CUPS RIP must produce complete raster pages for each copy.
+*cupsManualCopies: True
 *OpenUI *PageSize/Media Size: PickOne
 *OrderDependency: 10 AnySetup *PageSize
 *DefaultPageSize: Continuous70030001
