@@ -58,3 +58,14 @@ completion/status reporting is still pending. No released build is claimed.
 See [Unraid deployment notes](driver/docs/UNRAID.md) for installation
 requirements and device configuration. The current build is not yet
 qualified for a production installation.
+
+## USB transfer result semantics
+
+The backend validates the **whole** spooled document using an installed
+protocol module before opening USB. The validator returns the exact maximum
+print width and the protocol that accepted the spool. Both fields are
+required; invalid or incomplete results block the job. The USB backend
+logs this validated protocol instead of guessing from binary header offsets.
+
+A successful write is **not** a verified mechanical print or cut completion.
+Uncertain transmission outcomes are never automatically retried.

@@ -26,6 +26,7 @@ int main(int argc,char **argv){
   }
   FILE *f=fopen(argv[2],"rb");if(!f){perror(argv[2]);return 1;}
   char msg[160]={0};unsigned pages=0,width=0;int ok=-1;
+  const char *validated_protocol=NULL;
   const leitz_protocol order[]={LEITZ_PROTOCOL_CURRENT,LEITZ_PROTOCOL_NATIVE};
   for(unsigned i=0;i<(automatic?2u:1u);i++){
    leitz_protocol type=automatic?order[i]:selected;
@@ -35,6 +36,7 @@ int main(int argc,char **argv){
    msg[0]=0;pages=width=0;
    if(ops->validate(f,&pages,&width,msg,sizeof msg)==0){
     ok=0;
+    validated_protocol=ops->name;
     if(automatic)
      fprintf(stderr,"OK: %s document; pages=%u; max_width=%u\n",ops->name,pages,width);
     else if(type==LEITZ_PROTOCOL_NATIVE)
@@ -46,6 +48,7 @@ int main(int argc,char **argv){
   if(fclose(f)){perror("Closing input");return 1;}
   if(ok){fprintf(stderr,"ERROR: No installed protocol accepted the document: %s\n",msg);return 1;}
   printf("MAX_WIDTH=%u\n",width);
+  if(automatic) printf("PROTOCOL=%s\n",validated_protocol);
   return 0;
  }
  if(argc==4 && !strcmp(argv[1],"decode-status")) {
