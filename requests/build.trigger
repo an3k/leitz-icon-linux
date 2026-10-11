@@ -1,2 +1,2 @@
-# Build Debian CUPS and driver with PPD PASS validation.
-request=build-with-warning-tolerant-ppd-pass-20261011
+# Trigger full build of selected local Debian CUPS and main driver.
+request=verify-built-container-package-version-and-publish-20261011
