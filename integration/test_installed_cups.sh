@@ -53,7 +53,8 @@ done
 grep -Fxq "Version: $active" "$original/cups_$active.dsc"
 [[ "$(dpkg-parsechangelog -l "$unpacked/cups-$active/debian/changelog" -S Version)" == "$active" ]]
 tmpdir=$(mktemp -d)
-trap 'rm -rf -- "$tmpdir"' EXIT
+container_id="leitz-cups-verify-$"
+trap 'docker rm -f "$container_id" >/dev/null 2>&1 || :; rm -rf -- "$tmpdir"' EXIT
 dpkg-source -x "$original/cups_$active.dsc" "$tmpdir/cups-$active" >/dev/null
 diff -qr "$tmpdir/cups-$active" "$unpacked/cups-$active" || {
   echo 'ERROR: Unpacked sources differ from verified Debian source package' >&2
@@ -65,6 +66,40 @@ echo "PASS: $archive_count archived originals with individual SHA256; exact extr
 # base. Newer restore/upgrade versions need no manual digest edits in tests.
 docker build --build-arg "CUPS_VERSION=$active" \
   -f "$frozen/build/Dockerfile" -t leitz-cups-frozen:verification "$frozen"
+
+# Exercise the real CUPS entrypoint with persistent /etc/cups across a restart.
+# This catches mismatched initialization marker names and accidental resets.
+mkdir -p "$tmpdir/config" "$tmpdir/spool"
+docker run -d --name "$container_id" \
+  -e CUPS_ADMIN_USER=admin -e CUPS_ADMIN_PASSWORD=TemporaryTestPassword42 \
+  --mount "type=bind,source=$tmpdir/config,target=/etc/cups" \
+  --mount "type=bind,source=$tmpdir/spool,target=/var/spool/cups" \
+  leitz-cups-frozen:verification >/dev/null
+ready=0
+for _ in $(seq 1 30); do
+  if docker exec "$container_id" test -f /etc/cups/.cups-initialized &&
+     docker exec "$container_id" lpstat -r 2>/dev/null | grep -qx 'scheduler is running'; then
+    ready=1; break
+  fi
+  sleep 1
+done
+if (( !ready )); then docker logs "$container_id" >&2; exit 1; fi
+! docker exec "$container_id" test -e /etc/cups/.leitz-initialized
+! docker exec "$container_id" lpstat -p LeitzIcon >/dev/null 2>&1
+printf '\n# LEITZ_CUPS_CONFIG_PRESERVATION_SENTINEL\n' >> "$tmpdir/config/cupsd.conf"
+docker restart "$container_id" >/dev/null
+ready=0
+for _ in $(seq 1 30); do
+  if docker exec "$container_id" lpstat -r 2>/dev/null | grep -qx 'scheduler is running'; then
+    ready=1; break
+  fi
+  sleep 1
+done
+if (( !ready )); then docker logs "$container_id" >&2; exit 1; fi
+grep -Fq '# LEITZ_CUPS_CONFIG_PRESERVATION_SENTINEL' "$tmpdir/config/cupsd.conf"
+test -f "$tmpdir/config/.cups-initialized"
+docker rm -f "$container_id" >/dev/null
+echo 'PASS: CUPS none start/restart preserves configuration, no auto-created queue'
 
 # Build the standalone development-driver package in a disposable Debian-CUPS
 # container. The published base image remains unchanged.
@@ -128,6 +163,12 @@ docker run --rm --entrypoint /bin/bash \
       test ! -f /var/log/cups/error_log || tail -n 40 /var/log/cups/error_log >&2
       exit 1
     fi
+    lpstat -p LeitzIcon
+    # Existing queue PPD must be refreshed by reinstalling the new driver.
+    echo "# LEITZ_OBSOLETE_ACTIVE_PPD" >> /etc/cups/ppd/LeitzIcon.ppd
+    grep -Fq LEITZ_OBSOLETE_ACTIVE_PPD /etc/cups/ppd/LeitzIcon.ppd
+    /tmp/leitz-install/install.sh
+    ! grep -Fq LEITZ_OBSOLETE_ACTIVE_PPD /etc/cups/ppd/LeitzIcon.ppd
     lpstat -p LeitzIcon
     test "$(stat -c %a /usr/lib/cups/backend/leitzusb)" = 700
     echo "PASS: development driver registered with Debian CUPS $CUPS_REQUIRED_VERSION"
