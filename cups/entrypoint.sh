@@ -17,6 +17,14 @@ if [[ -n "$CUPS_SERVER_ALIAS" && ! "$CUPS_SERVER_ALIAS" =~ ^[a-zA-Z0-9.\ _-]+$ ]
   echo 'ERROR: Invalid CUPS_SERVER_ALIAS'; exit 1
 fi
 
+# Use the same device selector as the existing leitz-status command.
+# Only first-run queue creation uses this path; do not silently rewrite
+# persistent CUPS queues on later container restarts.
+: "${LEITZ_DEVICE:=/dev/usb/lp0}"
+if [[ ! "$LEITZ_DEVICE" =~ ^/dev/usb/lp[0-9]+$ ]]; then
+  echo 'ERROR: LEITZ_DEVICE must be /dev/usb/lpN' >&2; exit 1
+fi
+
 mkdir -p /etc/cups /var/spool/cups
 if [[ ! -s /etc/cups/cupsd.conf ]]; then
   # Critical when Unraid bind-mounts an initially empty /etc/cups directory.
@@ -85,7 +93,7 @@ source_hash=$(sha256sum "$driver_ppd")
 source_hash=${source_hash%% *}
 if ! lpstat -p LeitzIcon >/dev/null 2>&1; then
   lpadmin -p LeitzIcon -E \
-    -v 'leitzusb:/dev/usb/lp0?sku=auto' \
+    -v "leitzusb:$LEITZ_DEVICE?sku=auto" \
     -P "$driver_ppd" \
     -o printer-is-shared=true
   echo 'INFO: Created queue LeitzIcon with vendor media catalog and automatic cartridge width check.'
