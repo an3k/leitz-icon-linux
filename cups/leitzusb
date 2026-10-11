@@ -34,8 +34,12 @@ port=${BASH_REMATCH[1]}
 expected=${BASH_REMATCH[3]:-auto}
 usb_device="/dev/usb/$port"
 if (( $# != 5 && $# != 6 )); then echo 'ERROR: invalid CUPS backend arguments' >&2;exit 4;fi
-if [[ "$4" != 1 ]]; then
-  echo 'ERROR: Multiple CUPS copies not supported; print one copy/job' >&2;exit 4
+# CUPS' RIP expands manual copies upstream when cupsManualCopies is True.
+# The spool arriving here already contains the final print sequence.
+# Never replay the binary job: doing so could duplicate labels after a
+# partially completed mechanical print.
+if [[ ! "$4" =~ ^[1-9][0-9]*$ ]]; then
+  echo 'ERROR: Invalid CUPS copy count' >&2;exit 4
 fi
 
 # The backend, not the CUPS filter, accesses USB. CUPS should run it as root
@@ -91,7 +95,14 @@ fi
 [[ -c "$usb_device" ]] || { echo 'ERROR: USB printer missing' >&2; exit 4; }
 exec 3<>"$usb_device" || { echo 'ERROR: Cannot open Leitz USB printer (busy or inaccessible)' >&2;exit 4; }
 printf '\033U' >&3 || { echo 'ERROR: ESC U failed' >&2;exit 4; }
-IFS= read -r -d '' -n 1024 -t 5 response <&3 || { echo 'ERROR: No status response' >&2;exit 4; }
+# Cartridge replies may end without a NUL byte. Bash can return timeout
+# with a complete partial buffer; accept it ONLY if the strict SKU parser
+# below validates the entire response. Incomplete replies remain fatal.
+response=''
+IFS= read -r -d '' -n 1024 -t 5 response <&3 || :
+if [[ -z "$response" ]]; then
+  echo 'ERROR: No cartridge response' >&2;exit 4
+fi
 if [[ "$response" == 'SKU:No Cartridge;;;' ]]; then
   echo 'STATE: +media-empty' >&2
   echo 'ERROR: No cartridge; job blocked' >&2;exit 4
