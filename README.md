@@ -28,7 +28,7 @@ mkdir -p product/tests
 cp -a suite/integration suite/unit suite/mocks product/tests/
 cd product
 make clean all cups probe ppd
-LEITZ_PROTOCOL_DIR="$PWD/driver/modules" make -f ../suite/Makefile verify
+LEITZ_PROTOCOL_DIR="$PWD/modules" make -f ../suite/Makefile verify
 ```
 
 The temporary copy is not committed to the driver branch.

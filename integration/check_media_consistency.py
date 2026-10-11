@@ -9,8 +9,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 catalog = json.loads((ROOT / "media/media.json").read_text(encoding="utf-8"))
-ppd = (ROOT / "driver/cups" / "LeitzIcon.ppd").read_text(encoding="latin-1")
-header = (ROOT / "driver/src" / "leitz_media.h").read_text(encoding="utf-8")
+ppd = (ROOT / "cups" / "LeitzIcon.ppd").read_text(encoding="latin-1")
+header = (ROOT / "src" / "leitz_media.h").read_text(encoding="utf-8")
 
 
 assert len(catalog) == 86, "Exactly 86 media profiles expected"

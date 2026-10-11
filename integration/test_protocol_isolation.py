@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 
 ROOT=Path(__file__).resolve().parents[2]
-MODULES=ROOT/"driver/modules"
+MODULES=ROOT/"modules"
 CLI=ROOT/"leitz-cli"
 FILTER=ROOT/"leitz-rastertoicon-mock"
 PPD=ROOT/"cups/LeitzIcon.ppd"
