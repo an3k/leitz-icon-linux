@@ -72,9 +72,9 @@ Any uncertain partially delivered print job must not be retried blindly.
 3. **Highest-priority software porting:** compare original Linux 1.0.3
    behavior against Current; transfer evidence-backed features to **Current
    only**. Freeze the existing original-derived Native module unchanged.
-   A full-width uncompressed raster option has been added to Current while
-   preserving previously proven default Current output. Additional source
-   optimization modes, margins and other protocol differences remain unported
+   FullWidthRaw and TrimmedRaw uncompressed raster options have been added
+   to Current while preserving its established optimized default output.
+   Other source optimization modes and protocol differences remain unported
    until supported by verified evidence.
 4. Qualify the modular development driver on real hardware: Current and
    unchanged Native, 300x300/300x600, variable lengths, multi-page jobs

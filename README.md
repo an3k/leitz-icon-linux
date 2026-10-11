@@ -45,7 +45,7 @@ the installed CUPS version, driver files, PPD and queue. It never writes
 back to `cups` and needs no pinned image digest, lockfile, old
 Docker-layer reconstruction or manual version-specific edits.
 
-The protocol suite also checks Current's opt-in full-width raw raster option,
+The protocol suite also checks Current's opt-in full-width and trimmed raw raster options,
 its unchanged default encoding, and the rejection of Current-only options
 when Native is selected. No physical printer is used by these checks.
 
