@@ -1,4 +1,4 @@
-/* GENERATED from media.json; exact source-specific A/B geometry is intentional. */
+/* GENERATED from driver/media/media.json; do not edit. */
 #ifndef LEITZ_MEDIA_H
 #define LEITZ_MEDIA_H
 struct leitz_media {const char *name; unsigned page_width,page_height,raster_width,raster_height,left,bottom,length_code; int continuous;};

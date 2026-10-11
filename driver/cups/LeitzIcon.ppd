@@ -396,9 +396,10 @@
 *CloseUI: *LabelCutter
 *OpenUI *LeitzProtocol/Print Protocol (development): PickOne
 *OrderDependency: 12 AnySetup *LeitzProtocol
-*DefaultLeitzProtocol: Current
-*LeitzProtocol Current/Current verified print protocol: ""
-*LeitzProtocol NativeLinux103/Original Linux 1.0.3 (experimental): ""
+*DefaultLeitzProtocol: Auto
+*LeitzProtocol Auto/Automatic (Current, then Native): ""
+*LeitzProtocol Current/Current: ""
+*LeitzProtocol Native/Native: ""
 *CloseUI: *LeitzProtocol
 *OpenUI *LeitzCutMode/Cut Length: PickOne
 *OrderDependency: 11 AnySetup *LeitzCutMode

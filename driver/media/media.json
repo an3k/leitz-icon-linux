@@ -15,7 +15,8 @@
     ],
     "command_length": 570,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "Appointment Card"
   },
   {
     "name": "Continuous112",
@@ -57,7 +58,8 @@
     ],
     "command_length": 65535,
     "command_width": 960,
-    "continuous": true
+    "continuous": true,
+    "label": "Continuous - 3 1/2\""
   },
   {
     "name": "Continuous70040001",
@@ -75,7 +77,8 @@
     ],
     "command_length": 65535,
     "command_width": 690,
-    "continuous": true
+    "continuous": true,
+    "label": "Continuous - 2 2/5\""
   },
   {
     "name": "Continuous70050001",
@@ -93,7 +96,8 @@
     ],
     "command_length": 65535,
     "command_width": 643,
-    "continuous": true
+    "continuous": true,
+    "label": "Continuous - 2 1/4\""
   },
   {
     "name": "Continuous70060001",
@@ -111,7 +115,8 @@
     ],
     "command_length": 65535,
     "command_width": 561,
-    "continuous": true
+    "continuous": true,
+    "label": "Continuous - 2\""
   },
   {
     "name": "Continuous70070001",
@@ -129,7 +134,8 @@
     ],
     "command_length": 65535,
     "command_width": 431,
-    "continuous": true
+    "continuous": true,
+    "label": "Continuous - 1 1/2\""
   },
   {
     "name": "Continuous70080001",
@@ -147,7 +153,8 @@
     ],
     "command_length": 65535,
     "command_width": 348,
-    "continuous": true
+    "continuous": true,
+    "label": "Continuous - 1 1/4\""
   },
   {
     "name": "Continuous70090001",
@@ -165,7 +172,8 @@
     ],
     "command_length": 65535,
     "command_width": 265,
-    "continuous": true
+    "continuous": true,
+    "label": "Continuous - 1\""
   },
   {
     "name": "Continuous70100001",
@@ -183,7 +191,8 @@
     ],
     "command_length": 65535,
     "command_width": 194,
-    "continuous": true
+    "continuous": true,
+    "label": "Continuous - 3/4\""
   },
   {
     "name": "Continuous70110001",
@@ -201,7 +210,8 @@
     ],
     "command_length": 65535,
     "command_width": 118,
-    "continuous": true
+    "continuous": true,
+    "label": "Continuous - 1/2\""
   },
   {
     "name": "Continuous70190001",
@@ -219,7 +229,8 @@
     ],
     "command_length": 65535,
     "command_width": 960,
-    "continuous": true
+    "continuous": true,
+    "label": "Continuous - 3 3/5\""
   },
   {
     "name": "DHLShippingLabel",
@@ -237,7 +248,13 @@
     ],
     "command_length": 2102,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "DHL Shipping Label",
+    "source": "Original macOS 1.2.190 PPD (not present in Windows GPD)",
+    "original_page_size_pt": [
+      249,
+      505
+    ]
   },
   {
     "name": "FileFolderLabel",
@@ -255,7 +272,8 @@
     ],
     "command_length": 1050,
     "command_width": 118,
-    "continuous": false
+    "continuous": false,
+    "label": "File Folder Label"
   },
   {
     "name": "InternationalAddressLabel",
@@ -273,7 +291,8 @@
     ],
     "command_length": 425,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "International Address Label"
   },
   {
     "name": "LargePendaflexTab",
@@ -291,7 +310,8 @@
     ],
     "command_length": 331,
     "command_width": 561,
-    "continuous": false
+    "continuous": false,
+    "label": "Large Pendaflex Tab"
   },
   {
     "name": "LargePendaflexTabRotated",
@@ -353,7 +373,8 @@
     ],
     "command_length": 600,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "Multipurpose 2\" x 3 1/2\""
   },
   {
     "name": "Multipurpose70030001Rotated",
@@ -395,7 +416,8 @@
     ],
     "command_length": 450,
     "command_width": 265,
-    "continuous": false
+    "continuous": false,
+    "label": "Multipurpose 1\" x 1 1/2\""
   },
   {
     "name": "Multipurpose70100001",
@@ -413,7 +435,8 @@
     ],
     "command_length": 750,
     "command_width": 194,
-    "continuous": false
+    "continuous": false,
+    "label": "Multipurpose 3/4\" x 2 1/2\""
   },
   {
     "name": "Multipurpose70110001",
@@ -431,7 +454,8 @@
     ],
     "command_length": 567,
     "command_width": 118,
-    "continuous": false
+    "continuous": false,
+    "label": "Multipurpose 1/2\" x 1 7/8\""
   },
   {
     "name": "NameBadgeCard70190001",
@@ -449,7 +473,8 @@
     ],
     "command_length": 675,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "Name Badge Card"
   },
   {
     "name": "NameBadgeCard70190001Rotated",
@@ -491,7 +516,8 @@
     ],
     "command_length": 638,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "Durable Label"
   },
   {
     "name": "NameBadgeLabel70030001",
@@ -509,7 +535,8 @@
     ],
     "command_length": 699,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "Name Badge"
   },
   {
     "name": "NameBadgeLabel70060001",
@@ -527,7 +554,8 @@
     ],
     "command_length": 900,
     "command_width": 561,
-    "continuous": false
+    "continuous": false,
+    "label": "Name Badge Label"
   },
   {
     "name": "NarrowLeverArchCardShort",
@@ -545,7 +573,8 @@
     ],
     "command_length": 2244,
     "command_width": 348,
-    "continuous": false
+    "continuous": false,
+    "label": "Narrow Lever Arch Card - Short"
   },
   {
     "name": "NarrowLeverArchLabelLong",
@@ -563,7 +592,8 @@
     ],
     "command_length": 3366,
     "command_width": 431,
-    "continuous": false
+    "continuous": false,
+    "label": "Narrow Lever Arch Label - Long"
   },
   {
     "name": "NarrowLeverArchLabelShort",
@@ -581,7 +611,8 @@
     ],
     "command_length": 2268,
     "command_width": 431,
-    "continuous": false
+    "continuous": false,
+    "label": "Narrow Lever Arch Label - Short"
   },
   {
     "name": "PackageShippingLabel",
@@ -599,7 +630,8 @@
     ],
     "command_length": 1800,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "Package Label"
   },
   {
     "name": "ReturnAddressLabelLarge",
@@ -617,7 +649,8 @@
     ],
     "command_length": 638,
     "command_width": 265,
-    "continuous": false
+    "continuous": false,
+    "label": "Return Address Label - Large"
   },
   {
     "name": "ReturnAddressLabelSmall",
@@ -635,7 +668,8 @@
     ],
     "command_length": 600,
     "command_width": 194,
-    "continuous": false
+    "continuous": false,
+    "label": "Return Address Label - Small"
   },
   {
     "name": "ShippingLabel70130001",
@@ -653,7 +687,8 @@
     ],
     "command_length": 1205,
     "command_width": 667,
-    "continuous": false
+    "continuous": false,
+    "label": "Shipping Label 2 1/3\" x 4\""
   },
   {
     "name": "ShippingLabel70180001",
@@ -671,7 +706,8 @@
     ],
     "command_length": 591,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "Shipping Label 2\" x 3 1/2\""
   },
   {
     "name": "ShippingLabel70180001Rotated",
@@ -713,7 +749,8 @@
     ],
     "command_length": 331,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "Standard Address Label"
   },
   {
     "name": "SuspensionFileLabel",
@@ -731,7 +768,8 @@
     ],
     "command_length": 600,
     "command_width": 118,
-    "continuous": false
+    "continuous": false,
+    "label": "Suspension File Label"
   },
   {
     "name": "WideLeverArchCardShort",
@@ -749,7 +787,8 @@
     ],
     "command_length": 2244,
     "command_width": 643,
-    "continuous": false
+    "continuous": false,
+    "label": "Wide Lever Arch Card - Short"
   },
   {
     "name": "WideLeverArchLabelLong",
@@ -767,7 +806,8 @@
     ],
     "command_length": 3366,
     "command_width": 690,
-    "continuous": false
+    "continuous": false,
+    "label": "Wide Lever Arch Label - Long"
   },
   {
     "name": "WideLeverArchLabelShort",
@@ -785,7 +825,8 @@
     ],
     "command_length": 2268,
     "command_width": 690,
-    "continuous": false
+    "continuous": false,
+    "label": "Wide Lever Arch Label - Short"
   },
   {
     "name": "Wristband",
@@ -803,7 +844,8 @@
     ],
     "command_length": 3277,
     "command_width": 306,
-    "continuous": false
+    "continuous": false,
+    "label": "Wristband"
   },
   {
     "name": "LeitzAppointmentCard",
@@ -821,7 +863,9 @@
     ],
     "command_length": 570,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "*Appointment Card",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzContinuous112",
@@ -845,7 +889,8 @@
     "original_page_size_pt": [
       111,
       7654
-    ]
+    ],
+    "label_source": "Derived alias label from Linux Eigenentwicklung_A (user requested)"
   },
   {
     "name": "LeitzContinuous70030001",
@@ -863,7 +908,9 @@
     ],
     "command_length": 65535,
     "command_width": 960,
-    "continuous": true
+    "continuous": true,
+    "label": "*Continuous - 3.5\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzContinuous70040001",
@@ -881,7 +928,9 @@
     ],
     "command_length": 65535,
     "command_width": 690,
-    "continuous": true
+    "continuous": true,
+    "label": "*Continuous - 2.4\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzContinuous70050001",
@@ -899,7 +948,9 @@
     ],
     "command_length": 65535,
     "command_width": 643,
-    "continuous": true
+    "continuous": true,
+    "label": "*Continuous - 2.25\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzContinuous70060001",
@@ -917,7 +968,9 @@
     ],
     "command_length": 65535,
     "command_width": 561,
-    "continuous": true
+    "continuous": true,
+    "label": "*Continuous - 2\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzContinuous70070001",
@@ -935,7 +988,9 @@
     ],
     "command_length": 65535,
     "command_width": 431,
-    "continuous": true
+    "continuous": true,
+    "label": "*Continuous - 1.54\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzContinuous70080001",
@@ -953,7 +1008,9 @@
     ],
     "command_length": 65535,
     "command_width": 348,
-    "continuous": true
+    "continuous": true,
+    "label": "*Continuous - 1.25\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzContinuous70090001",
@@ -971,7 +1028,9 @@
     ],
     "command_length": 65535,
     "command_width": 265,
-    "continuous": true
+    "continuous": true,
+    "label": "*Continuous - 1\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzContinuous70100001",
@@ -989,7 +1048,9 @@
     ],
     "command_length": 65535,
     "command_width": 194,
-    "continuous": true
+    "continuous": true,
+    "label": "*Continuous - 0.75\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzContinuous70110001",
@@ -1007,7 +1068,9 @@
     ],
     "command_length": 65535,
     "command_width": 118,
-    "continuous": true
+    "continuous": true,
+    "label": "*Continuous - 0.5\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzContinuous70190001",
@@ -1025,7 +1088,9 @@
     ],
     "command_length": 65535,
     "command_width": 960,
-    "continuous": true
+    "continuous": true,
+    "label": "*Continuous - 3.6\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzDHLShippingLabel",
@@ -1045,7 +1110,8 @@
     "command_width": 960,
     "continuous": false,
     "label": "*DHL Shipping Label",
-    "source": "Derived alias of original Linux/macOS or Windows-non-prefixed media; no distinct vendor Windows Leitz key"
+    "source": "Derived alias of original Linux/macOS or Windows-non-prefixed media; no distinct vendor Windows Leitz key",
+    "label_source": "Derived alias label from Linux Eigenentwicklung_A (user requested)"
   },
   {
     "name": "LeitzFileFolderLabel",
@@ -1063,7 +1129,9 @@
     ],
     "command_length": 1050,
     "command_width": 118,
-    "continuous": false
+    "continuous": false,
+    "label": "*File Folder Label",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzInternationalAddressLabel",
@@ -1081,7 +1149,9 @@
     ],
     "command_length": 425,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "*Large Address Label",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzLargePendaflexTab",
@@ -1099,7 +1169,9 @@
     ],
     "command_length": 331,
     "command_width": 561,
-    "continuous": false
+    "continuous": false,
+    "label": "*Large Pendaflex Tab",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzLargePendaflexTabRotated",
@@ -1117,7 +1189,9 @@
     ],
     "command_length": 591,
     "command_width": 301,
-    "continuous": false
+    "continuous": false,
+    "label": "*Large Pendaflex Tab R",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzLeverArchFile1005",
@@ -1135,7 +1209,9 @@
     ],
     "command_length": 1299,
     "command_width": 561,
-    "continuous": false
+    "continuous": false,
+    "label": "*Lever Arch File 1005",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzMultipurpose70030001",
@@ -1153,7 +1229,9 @@
     ],
     "command_length": 600,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "*Multipurpose 2\"x3.5\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzMultipurpose70030001Rotated",
@@ -1171,7 +1249,9 @@
     ],
     "command_length": 1039,
     "command_width": 570,
-    "continuous": false
+    "continuous": false,
+    "label": "*Multipurpose 2\"x3.5\" R",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzMultipurpose70090001",
@@ -1189,7 +1269,9 @@
     ],
     "command_length": 450,
     "command_width": 265,
-    "continuous": false
+    "continuous": false,
+    "label": "*Multipurpose 1\"x1.5\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzMultipurpose70100001",
@@ -1207,7 +1289,9 @@
     ],
     "command_length": 750,
     "command_width": 194,
-    "continuous": false
+    "continuous": false,
+    "label": "*Multipurpose 0.75\"x2.5\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzMultipurpose70110001",
@@ -1225,7 +1309,9 @@
     ],
     "command_length": 567,
     "command_width": 118,
-    "continuous": false
+    "continuous": false,
+    "label": "*Multipurpose 0.5\"x1.875\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzNameBadgeCard70190001",
@@ -1243,7 +1329,9 @@
     ],
     "command_length": 675,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "*Name Badge Card 2.25\"x3.5\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzNameBadgeCard70190001Rotated",
@@ -1261,7 +1349,9 @@
     ],
     "command_length": 1039,
     "command_width": 645,
-    "continuous": false
+    "continuous": false,
+    "label": "*Name Badge Card 2.25\"x3.5\" R",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzNameBadgeCard8214",
@@ -1281,7 +1371,8 @@
     "command_width": 960,
     "continuous": false,
     "label": "*Durable Label",
-    "source": "Derived alias of original Linux/macOS or Windows-non-prefixed media; no distinct vendor Windows Leitz key"
+    "source": "Derived alias of original Linux/macOS or Windows-non-prefixed media; no distinct vendor Windows Leitz key",
+    "label_source": "Derived alias label from Linux Eigenentwicklung_A (user requested)"
   },
   {
     "name": "LeitzNameBadgeLabel70030001",
@@ -1299,7 +1390,9 @@
     ],
     "command_length": 699,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "*Name Badge 2.33\"x3.5\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzNameBadgeLabel70060001",
@@ -1317,7 +1410,9 @@
     ],
     "command_length": 900,
     "command_width": 561,
-    "continuous": false
+    "continuous": false,
+    "label": "*Name Badge Label 2\"x3\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzNarrowLeverArchCardShort",
@@ -1335,7 +1430,9 @@
     ],
     "command_length": 2244,
     "command_width": 348,
-    "continuous": false
+    "continuous": false,
+    "label": "*Narrow Lever Arch Card Short",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzNarrowLeverArchLabelLong",
@@ -1353,7 +1450,9 @@
     ],
     "command_length": 3366,
     "command_width": 431,
-    "continuous": false
+    "continuous": false,
+    "label": "*Narrow Lever Arch Label Long",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzNarrowLeverArchLabelShort",
@@ -1371,7 +1470,9 @@
     ],
     "command_length": 2268,
     "command_width": 431,
-    "continuous": false
+    "continuous": false,
+    "label": "*Narrow Lever Arch Label Short",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzPackageShippingLabel",
@@ -1389,7 +1490,9 @@
     ],
     "command_length": 1800,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "*Package Label 6\"x3.5\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzReturnAddressLabelLarge",
@@ -1407,7 +1510,9 @@
     ],
     "command_length": 638,
     "command_width": 265,
-    "continuous": false
+    "continuous": false,
+    "label": "*Return Address Label Large",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzReturnAddressLabelSmall",
@@ -1425,7 +1530,9 @@
     ],
     "command_length": 600,
     "command_width": 194,
-    "continuous": false
+    "continuous": false,
+    "label": "*Return Address Label Small",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzShippingLabel70130001",
@@ -1443,7 +1550,9 @@
     ],
     "command_length": 1205,
     "command_width": 667,
-    "continuous": false
+    "continuous": false,
+    "label": "*Shipping Label 2.33\"x4\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzShippingLabel70180001",
@@ -1461,7 +1570,9 @@
     ],
     "command_length": 591,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "*Shipping Label 2\"x3.5\"",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzShippingLabel70180001Rotated",
@@ -1479,7 +1590,9 @@
     ],
     "command_length": 1039,
     "command_width": 561,
-    "continuous": false
+    "continuous": false,
+    "label": "*Shipping Label 2\"x3.5\" R",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzStandardAddressLabel",
@@ -1497,7 +1610,9 @@
     ],
     "command_length": 331,
     "command_width": 960,
-    "continuous": false
+    "continuous": false,
+    "label": "*Standard Address Label",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzSuspensionFileLabel",
@@ -1515,7 +1630,9 @@
     ],
     "command_length": 600,
     "command_width": 118,
-    "continuous": false
+    "continuous": false,
+    "label": "*Suspension File Label",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzWideLeverArchCardShort",
@@ -1533,7 +1650,9 @@
     ],
     "command_length": 2244,
     "command_width": 643,
-    "continuous": false
+    "continuous": false,
+    "label": "*Wide Lever Arch Card Short",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzWideLeverArchLabelLong",
@@ -1551,7 +1670,9 @@
     ],
     "command_length": 3366,
     "command_width": 690,
-    "continuous": false
+    "continuous": false,
+    "label": "*Wide Lever Arch Label Long",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzWideLeverArchLabelShort",
@@ -1569,7 +1690,9 @@
     ],
     "command_length": 2268,
     "command_width": 690,
-    "continuous": false
+    "continuous": false,
+    "label": "*Wide Lever Arch Label Short",
+    "label_source": "Original Windows LeitzUSRes.dll display string"
   },
   {
     "name": "LeitzWristband",
@@ -1589,6 +1712,7 @@
     "command_width": 306,
     "continuous": false,
     "label": "*Wristband",
-    "source": "Derived alias of original Linux/macOS or Windows-non-prefixed media; no distinct vendor Windows Leitz key"
+    "source": "Derived alias of original Linux/macOS or Windows-non-prefixed media; no distinct vendor Windows Leitz key",
+    "label_source": "Derived alias label from Linux Eigenentwicklung_A (user requested)"
   }
 ]
