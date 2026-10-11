@@ -75,13 +75,39 @@ if [[ ! -f /etc/cups/.leitz-initialized ]]; then
   touch /etc/cups/.leitz-initialized
 fi
 
-# Create the printer queue once. Preserve subsequent changes and other queues.
+# Track only the queue PPD installed by this image. Persist both hashes so
+# a later image upgrade can replace an untouched managed PPD without
+# discarding user-customized PPDs or modifying unrelated CUPS queues.
+driver_ppd=/usr/share/ppd/LeitzIcon.ppd
+queue_ppd=/etc/cups/ppd/LeitzIcon.ppd
+ppd_stamp=/etc/cups/.leitz-managed-ppd-sha256
+source_hash=$(sha256sum "$driver_ppd")
+source_hash=${source_hash%% *}
 if ! lpstat -p LeitzIcon >/dev/null 2>&1; then
   lpadmin -p LeitzIcon -E \
     -v 'leitzusb:/dev/usb/lp0?sku=auto' \
-    -P /usr/share/ppd/LeitzIcon.ppd \
+    -P "$driver_ppd" \
     -o printer-is-shared=true
   echo 'INFO: Created queue LeitzIcon with vendor media catalog and automatic cartridge width check.'
+  if [[ -f "$queue_ppd" ]]; then
+    installed_hash=$(sha256sum "$queue_ppd")
+    printf '%s %s\n' "$source_hash" "${installed_hash%% *}" > "$ppd_stamp"
+  fi
+elif [[ -f "$ppd_stamp" && -f "$queue_ppd" ]]; then
+  read -r previous_source previous_installed < "$ppd_stamp"
+  if [[ "$source_hash" != "$previous_source" ]]; then
+    installed_hash=$(sha256sum "$queue_ppd")
+    if [[ "${installed_hash%% *}" == "$previous_installed" ]]; then
+      lpadmin -p LeitzIcon -P "$driver_ppd"
+      installed_hash=$(sha256sum "$queue_ppd")
+      printf '%s %s\n' "$source_hash" "${installed_hash%% *}" > "$ppd_stamp"
+      echo 'INFO: Updated unchanged LeitzIcon queue PPD to the image version.'
+    else
+      echo 'WARNING: Existing LeitzIcon PPD was modified; preserving local changes.' >&2
+    fi
+  fi
+else
+  echo 'WARNING: Existing LeitzIcon queue is not managed by this image; PPD preserved.' >&2
 fi
 
 echo 'INFO: CUPS initialized. Admin: authenticated; LAN web interface: port 631.'
