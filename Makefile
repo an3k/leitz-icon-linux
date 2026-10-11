@@ -10,7 +10,7 @@ leitz-rastertoicon: src/leitz_cups_filter.c src/leitz_codec.c src/leitz_codec.h 
 	$(CC) $(CFLAGS) -o $@ src/leitz_cups_filter.c src/leitz_job.c src/leitz_codec.c src/leitz_native_reference.c src/leitz_native_validate.c src/leitz_native_job_validate.c -lcups $(LDLIBS)
 mock-filter: leitz-rastertoicon-mock
 leitz-rastertoicon-mock: src/leitz_cups_filter.c src/leitz_job.c src/leitz_codec.c src/leitz_native_reference.c src/leitz_native_validate.c src/leitz_native_job_validate.c tests/mock_cups.c src/leitz_media.h
-	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L -Itests/shim -o $@ src/leitz_cups_filter.c src/leitz_codec.c src/leitz_native_reference.c src/leitz_native_validate.c src/leitz_native_job_validate.c tests/mock_cups.c $(LDLIBS)
+	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L -Itests/shim -o $@ src/leitz_cups_filter.c src/leitz_job.c src/leitz_codec.c src/leitz_native_reference.c src/leitz_native_validate.c src/leitz_native_job_validate.c tests/mock_cups.c $(LDLIBS)
 clean:
 	rm -f leitz-cli leitz-rastertoicon leitz-rastertoicon-mock leitz-probe
 
