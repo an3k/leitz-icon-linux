@@ -4,8 +4,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends gcc make libcup
  && rm -rf /var/lib/apt/lists/*
 COPY src /build/src
 COPY Makefile /build/Makefile
+COPY cups/LeitzIcon.ppd /build/cups/LeitzIcon.ppd
+COPY tools/build_ppd.py /build/tools/build_ppd.py
 WORKDIR /build
-RUN make all cups probe
+RUN make all cups probe ppd
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends cups cups-filters ghostscript ca-certificates bash passwd \
@@ -16,7 +18,7 @@ COPY cups/leitzusb /usr/lib/cups/backend/leitzusb
 COPY cups/leitz-command /usr/lib/cups/filter/leitz-command
 COPY cups/leitz-status /usr/local/bin/leitz-status
 COPY --from=build /build/leitz-probe /usr/local/bin/leitz-probe
-COPY cups/LeitzIcon.ppd /usr/share/ppd/LeitzIcon.ppd
+COPY --from=build /build/dist/LeitzIcon.ppd /usr/share/ppd/LeitzIcon.ppd
 COPY cups/entrypoint.sh /usr/local/bin/leitz-cups-entrypoint
 RUN chmod 0755 /usr/local/bin/leitz-cups-entrypoint /usr/local/bin/leitz-status \
     /usr/lib/cups/filter/leitz-cli /usr/lib/cups/filter/leitz-rastertoicon \

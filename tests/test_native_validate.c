@@ -1,28 +1,31 @@
-#include "../src/leitz_native_reference.h"
+#include "../src/leitz_protocol.h"
 #include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
-static void verify(unsigned dpi) {
-  FILE *f = tmpfile();assert(f);
-  leitz_native_reference x;
-  assert(!leitz_native_begin(&x,f,16,5,dpi,3));
-  const uint8_t zero[2]={0,0}, one[2]={0xA5,0x80};
-  assert(!leitz_native_row(&x,zero,2));
-  assert(!leitz_native_row(&x,one,2));
-  assert(!leitz_native_row(&x,zero,2));
-  assert(!leitz_native_row(&x,one,2));
-  assert(!leitz_native_row(&x,zero,2));
-  assert(!leitz_native_end(&x));
-  rewind(f);
-  unsigned w=0,r=0; char error[100]={0};
-  assert(!leitz_native_validate(f,&w,&r,error,sizeof error));
-  assert(w==16 && r==4); /* Original native Linux omits last blank row */
-  rewind(f);
-  assert(fseek(f,-1,SEEK_END)==0);
-  assert(fputc('X',f)=='X');
-  rewind(f);
-  assert(leitz_native_validate(f,&w,&r,error,sizeof error)==-1);
-  fclose(f);
+static void check(unsigned dpi){
+ const leitz_protocol_ops *ops=leitz_protocol_get(LEITZ_PROTOCOL_NATIVE_LINUX_103);
+ assert(ops);
+ FILE *f=tmpfile();assert(f);
+ void *state=calloc(1,ops->state_size);assert(state);
+ leitz_page page={16,5,5,0,0,3,dpi};
+ uint8_t zero[16]={0},ink[16]={0};
+ ink[0]=ink[2]=ink[5]=ink[7]=ink[8]=1;
+ assert(ops->begin(state,f,&page,1)==0);
+ assert(ops->row(state,zero,16)==0);
+ assert(ops->row(state,ink,16)==0);
+ assert(ops->row(state,zero,16)==0);
+ assert(ops->row(state,ink,16)==0);
+ assert(ops->row(state,zero,16)==0);
+ assert(ops->end_page(state,1)==0);
+ rewind(f);
+ unsigned pages=0,width=0;char why[100]={0};
+ assert(ops->validate(f,&pages,&width,why,sizeof why)==0);
+ assert(pages==1&&width==16);
+ assert(fseek(f,-1,SEEK_END)==0);
+ assert(fputc('X',f)=='X');
+ rewind(f);
+ assert(ops->validate(f,&pages,&width,why,sizeof why)!=0);
+ free(state);fclose(f);
 }
-int main(void) {verify(300);verify(600); puts("PASS native protocol validator and malformed-footer rejection");return 0;}
+int main(void){check(300);check(600);puts("PASS native validator/footer (offline)");return 0;}

@@ -1,6 +1,5 @@
 /* Standalone offline generator and validator. PDF processing is not included. */
-#include "leitz_codec.h"
-#include "leitz_native_reference.h"
+#include "leitz_job.h"
 #include "leitz_status.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,25 +15,20 @@ static int token(FILE *f,char *s,size_t max){
 }
 static int cp(FILE *in,FILE *out){char b[8192];size_t n;while((n=fread(b,1,sizeof b,in)))if(fwrite(b,1,n,out)!=n)return -1;return ferror(in)?-1:0;}
 int main(int argc,char **argv){
- if(argc==3&&!strcmp(argv[1],"validate")){
+ if(argc==3&&(!strcmp(argv[1],"validate")||!strcmp(argv[1],"validate-native"))){
+  int native=!strcmp(argv[1],"validate-native");
+  const leitz_protocol_ops *ops=leitz_protocol_get(
+    native?LEITZ_PROTOCOL_NATIVE_LINUX_103:LEITZ_PROTOCOL_CURRENT);
+  if(!ops){fprintf(stderr,"ERROR: Requested protocol module not installed\n");return 2;}
   FILE *f=fopen(argv[2],"rb");if(!f){perror(argv[2]);return 1;}
-  unsigned pages=0,max_width=0;char msg[160]={0};int ok=leitz_validate(f,&pages,&max_width,msg,sizeof msg);
+  unsigned pages=0,width=0;char msg[160]={0};
+  int ok=ops->validate(f,&pages,&width,msg,sizeof msg);
   if(fclose(f)){perror("Closing input");return 1;}
-  fprintf(stderr,"%s\n",msg);
-  if(ok)return 1;
-  printf("MAX_WIDTH=%u\n",max_width);
-  return 0;
- }
- if(argc==3 && !strcmp(argv[1],"validate-native")){
-  /* Manufacturer Linux 1.0.3 framing; validation only, never USB. */
-  FILE *f=fopen(argv[2],"rb");if(!f){perror(argv[2]);return 1;}
-  unsigned max_width=0,pages=0; char error[160]={0};
-  int rc=leitz_native_validate_job(f,&pages,&max_width,error,sizeof error);
-  if(fclose(f)) {perror("Closing input");return 1;}
-  if(rc) {fprintf(stderr,"ERROR: %s\n",error);return 1;}
-  fprintf(stderr,"OK: native Linux 1.0.3 document; pages=%u; max_width=%u\n",
-          pages,max_width);
-  printf("MAX_WIDTH=%u\n",max_width);
+  if(ok){fprintf(stderr,"ERROR: %s\n",msg);return 1;}
+  if(native)
+   fprintf(stderr,"OK: native Linux 1.0.3 document; pages=%u; max_width=%u\n",pages,width);
+  else fprintf(stderr,"%s\n",msg);
+  printf("MAX_WIDTH=%u\n",width);
   return 0;
  }
  if(argc==4 && !strcmp(argv[1],"decode-status")) {
@@ -82,24 +76,26 @@ int main(int argc,char **argv){
      fprintf(stderr,"ERROR: Requires 8-bit P5 PGM, width <=960, max 64000 print rows\n");fclose(in);return 1;
  }
  FILE *temp=tmpfile();if(!temp){perror("tmpfile");fclose(in);return 1;}
- leitz_encoder e;err=leitz_begin_media(&e,temp,w,h+363,h,182,181,65535,600);
+ leitz_job *job=leitz_job_create(temp,LEITZ_PROTOCOL_CURRENT,1);
+ if(!job){fprintf(stderr,"ERROR: Current protocol module unavailable\n");fclose(in);fclose(temp);return 1;}
+ err=leitz_job_begin_page(job,w,h+363,h,182,181,65535,600);
  uint8_t *gray=malloc(w),*bits=malloc(w);
  if(!gray||!bits)err=1;
  for(unsigned y=0;!err&&y<h;y++){
   if(fread(gray,1,w,in)!=w){err=1;break;}
   for(unsigned x=0;x<w;x++)bits[x]=gray[x]<128;
-  if(leitz_row_media(&e,bits))err=1;
+  if(leitz_job_row(job,bits))err=1;
  }
- if(!err && leitz_end(&e))err=1;
+ if(!err && (leitz_job_end_page(job)||leitz_job_finish(job)))err=1;
  if(!err){
-  rewind(temp);unsigned pages;char msg[160]={0};
-  unsigned max_width=0;
-  if(leitz_validate(temp,&pages,&max_width,msg,sizeof msg))err=1;
+  char msg[160]={0};
+  if(leitz_job_validate(job,msg,sizeof msg))err=1;
  }
  if(!err){
   FILE *out=fopen(argv[3],"wb");if(!out){perror(argv[3]);err=1;}
   else{rewind(temp);if(cp(temp,out)||fclose(out))err=1;}
  }
+ leitz_job_destroy(job);
  fclose(in);fclose(temp);free(gray);free(bits);
  if(err){fprintf(stderr,"ERROR: No validated output produced\n");return 1;}
  fprintf(stderr,"Generated offline Leitz raster job: %s\n",argv[3]);return 0;

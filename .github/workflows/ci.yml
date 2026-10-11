@@ -24,6 +24,8 @@ jobs:
       - name: Validate media catalog, native frame reference and raster integration
         run: |
           make media-check native-reference-test job-geometry-test
+          make ppd
+          python3 tests/test_protocol_isolation.py
           python3 tests/test_core.py
           python3 tests/test_v04.py
           python3 tests/test_cups_command.py
@@ -33,10 +35,14 @@ jobs:
         run: |
           sudo install -m 0755 leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
           sudo install -m 0755 cups/leitz-command /usr/lib/cups/filter/leitz-command
-          cupstestppd -v cups/LeitzIcon.ppd
+          cupstestppd -v dist/LeitzIcon.ppd
       - name: Verify source package files
         run: |
           test -s cups/LeitzIcon.ppd
+          test -s dist/LeitzIcon.ppd
+          test -s src/leitz_protocol.h
+          test -s src/leitz_protocol_current.c
+          test -s src/leitz_protocol_native_linux_103.c
           test -s cups/leitzusb
           test -s cups/leitz-command
           test -s cups/leitz-status

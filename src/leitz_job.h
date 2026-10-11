@@ -1,16 +1,12 @@
 #ifndef LEITZ_JOB_H
 #define LEITZ_JOB_H
+#include "leitz_protocol.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
 
 /* Protocol-neutral CUPS job coordinator. Media, page count and cutter policy
  * are shared. Only the wire encoder differs (Current vs NativeLinux103). */
-typedef enum {
-    LEITZ_PROTOCOL_CURRENT = 0,
-    LEITZ_PROTOCOL_NATIVE_LINUX_103 = 1
-} leitz_protocol;
-
 typedef struct leitz_job leitz_job;
 leitz_job *leitz_job_create(FILE *out, leitz_protocol protocol, int cut_each_page);
 int leitz_job_begin_page(leitz_job *job, unsigned width, unsigned total_rows,

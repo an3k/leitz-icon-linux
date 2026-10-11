@@ -4,7 +4,6 @@
  * hardware test offsets as conservative starting values. Other sizes UNTESTED.
  */
 #include "leitz_job.h"
-#include "leitz_codec.h"
 #include "leitz_media.h"
 #include <cups/raster.h>
 #include <ctype.h>

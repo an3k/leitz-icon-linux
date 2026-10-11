@@ -1,7 +1,13 @@
 /* Hardware verified: 960-pixel 300x600 raster protocol, 170 mm example.
  * Other widths/media/resolutions/lengths not yet physically verified.
  */
-#include "leitz_codec.h"
+#include "leitz_protocol.h"
+typedef struct {
+ FILE *out;
+ unsigned width, raster_rows, total_rows, emitted_rows, printed_rows;
+ unsigned pending_blank, feed_units, top, bottom;
+ int previous_width, error;
+} leitz_encoder;
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -176,3 +182,21 @@ int leitz_validate(FILE *f,unsigned *pages,unsigned *max_width,char *r,size_t n)
  if(n)snprintf(r,n,"OK: %u validated label(s)",*pages);
  return 0;
 }
+
+/* Current protocol adapter: all Current framing and validation stays here. */
+static int current_begin(void *p,FILE *out,const leitz_page *m,int first_page){
+ (void)first_page;
+ return leitz_begin_media(p,out,m->width,m->total_rows,m->raster_rows,
+                          m->top,m->bottom,m->length_code,m->dpi_y);
+}
+static int current_row(void *p,const uint8_t *pixels,unsigned width){
+ leitz_encoder *e=p;
+ return width==e->width?leitz_row_media(e,pixels):-1;
+}
+static int current_end(void *p,int cut){return leitz_end_page(p,cut);}
+static int current_finish(void *p){return leitz_finish_job(p);}
+const leitz_protocol_ops leitz_current_driver={
+ .name="Current",.state_size=sizeof(leitz_encoder),
+ .begin=current_begin,.row=current_row,.end_page=current_end,
+ .finish=current_finish,.validate=leitz_validate
+};
