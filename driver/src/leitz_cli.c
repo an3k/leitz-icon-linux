@@ -35,7 +35,11 @@ int main(int argc,char **argv){
    msg[0]=0;pages=width=0;
    if(ops->validate(f,&pages,&width,msg,sizeof msg)==0){
     ok=0;
-    fprintf(stderr,"OK: %s document; pages=%u; max_width=%u\n",ops->name,pages,width);
+    if(automatic)
+     fprintf(stderr,"OK: %s document; pages=%u; max_width=%u\n",ops->name,pages,width);
+    else if(type==LEITZ_PROTOCOL_NATIVE)
+     fprintf(stderr,"OK: native Linux 1.0.3 document; pages=%u; max_width=%u\n",pages,width);
+    else fprintf(stderr,"%s\n",msg);
     break;
    }
   }
