@@ -1,0 +1,77 @@
+name: Tests - Verification
+on:
+  push:
+    branches: [tests]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    name: Verify separately checked-out driver
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout verification branch
+        uses: actions/checkout@v4
+        with:
+          ref: tests
+          path: suite
+      - name: Checkout independent driver branch
+        uses: actions/checkout@v4
+        with:
+          ref: driver
+          path: product
+      - name: Install compiler and CUPS development headers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gcc make python3 libcups2-dev cups
+      - name: Assemble temporary verification workspace
+        run: |
+          mkdir -p product/tests
+          cp -a suite/integration suite/unit suite/mocks product/tests/
+      - name: Build unmodified driver source
+        working-directory: product
+        run: make clean all cups probe ppd
+      - name: Run separate verification suite
+        working-directory: product
+        env:
+          LEITZ_PROTOCOL_DIR: ${{ github.workspace }}/product/modules
+        run: make -f ../suite/Makefile verify
+      - name: Verify branch separation
+        run: |
+          test ! -e suite/driver
+          test -d product/src
+          test -d suite/integration
+
+  cups-integration:
+    name: Install development driver into verified Debian CUPS image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout independent integration tests
+        uses: actions/checkout@v4
+        with:
+          ref: tests
+          path: suite
+      - name: Checkout standalone development driver
+        uses: actions/checkout@v4
+        with:
+          ref: driver
+          path: product
+      - name: Checkout versioned Debian CUPS sources
+        uses: actions/checkout@v4
+        with:
+          ref: cups
+          path: frozen
+      - name: Checkout approved main driver for temporary CUPS image
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: frozen/release
+      - name: Ensure Debian source tooling is present
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends dpkg-dev
+      - name: Install development driver into source-built Debian CUPS container
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash suite/integration/test_installed_cups.sh
