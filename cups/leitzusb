@@ -56,19 +56,22 @@ fi
 read -r b0 b1 b2 b3 < <(od -An -tu1 -N 4 "$tmp")
 if ((b0==27 && b1==64 && b2==27 && (b3==104 || b3==105))); then
   dialect=native
-  width_offset=130
-  "$LEITZ_VALIDATE_BIN" validate-native "$tmp" || {
-    echo 'ERROR: Rejected invalid native Linux 1.0.3 job' >&2; exit 4;
-  }
+  validator_mode=validate-native
 else
   dialect=current
-  width_offset=133
-  "$LEITZ_VALIDATE_BIN" validate "$tmp" || {
-    echo 'ERROR: Rejected invalid Leitz job' >&2; exit 4;
-  }
+  validator_mode=validate
 fi
-read -r width_hi width_lo < <(od -An -tu1 -j "$width_offset" -N 2 "$tmp")
-job_width=$((width_hi*256+width_lo))
+# The validated maximum covers EVERY page, not just the first header.
+# Never allow a later wider label to bypass the cartridge-width gate.
+width_info=$("$LEITZ_VALIDATE_BIN" "$validator_mode" "$tmp") || {
+  echo "ERROR: Rejected invalid $dialect Leitz job" >&2; exit 4;
+}
+if [[ "$width_info" =~ ^MAX_WIDTH=([0-9]+)$ ]]; then
+  job_width=${BASH_REMATCH[1]}
+else
+  echo 'ERROR: Validator returned no unambiguous maximum width' >&2
+  exit 4
+fi
 if ((job_width<1 || job_width>960));then
   echo "ERROR: Unsupported raster width $job_width" >&2; exit 4
 fi
@@ -123,7 +126,7 @@ case "$actual_sku" in
     ;;
 esac
 if ((job_width>physical_width)); then
-  echo "ERROR: Selected print width $job_width pixels exceeds cartridge print width $physical_width pixels (SKU $actual_sku)" >&2
+  echo "ERROR: Maximum job print width $job_width pixels exceeds cartridge print width $physical_width pixels (SKU $actual_sku)" >&2
   exit 4
 fi
 # Hardware-proven ESC A reply 0x03 means READY in both original macOS
