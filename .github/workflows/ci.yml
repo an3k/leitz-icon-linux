@@ -34,7 +34,7 @@ jobs:
       - name: Run separate verification suite
         working-directory: product
         env:
-          LEITZ_PROTOCOL_DIR: ${{ github.workspace }}/product/driver/modules
+          LEITZ_PROTOCOL_DIR: ${{ github.workspace }}/product/modules
         run: make -f ../suite/Makefile verify
       - name: Verify branch separation
         run: |

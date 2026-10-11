@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-catalog = json.loads((ROOT / "driver/media/media.json").read_text(encoding="utf-8"))
+catalog = json.loads((ROOT / "media/media.json").read_text(encoding="utf-8"))
 ppd = (ROOT / "driver/cups" / "LeitzIcon.ppd").read_text(encoding="latin-1")
 header = (ROOT / "driver/src" / "leitz_media.h").read_text(encoding="utf-8")
 

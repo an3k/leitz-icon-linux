@@ -3,7 +3,7 @@
 import json,os,subprocess,tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
-CAT=json.loads((ROOT/'driver/media/media.json').read_text())
+CAT=json.loads((ROOT/'media/media.json').read_text())
 assert len(CAT)==86 and len({m['name'] for m in CAT})==86
 assert len(CAT[:43])==len(CAT[43:])==43
 assert all(not m['name'].startswith('Leitz') for m in CAT[:43])
@@ -13,7 +13,7 @@ assert next(m for m in CAT if m['name']=='LeverArchFile1005')['page']==next(m fo
 assert [m['name'] for m in CAT if m['name'].startswith('Leitz') and m['name'][5:] not in {x['name'] for x in CAT[:43]}]==[]
 assert {a['name'] for a in CAT[:43] if any(a.get(field)!=next(x for x in CAT if x['name']=='Leitz'+a['name']).get(field) for field in ('page','area','origin','command_length','command_width','continuous'))}=={'LargePendaflexTabRotated','Multipurpose70030001Rotated','NameBadgeCard70190001Rotated','ShippingLabel70180001Rotated'}
 print('PASS 43 A + 43 B media profiles; four vendor geometry differences preserved')
-ppd=(ROOT/'driver/cups/LeitzIcon.ppd').read_text()
+ppd=(ROOT/'cups/LeitzIcon.ppd').read_text()
 for m in CAT:
   name=m['name'];assert f'*PageSize {name}/' in ppd and f'*PageRegion {name}:' in ppd
   assert f'*ImageableArea {name}:' in ppd and f'*PaperDimension {name}:' in ppd

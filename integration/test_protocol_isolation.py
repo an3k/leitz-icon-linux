@@ -11,7 +11,7 @@ ROOT=Path(__file__).resolve().parents[2]
 MODULES=ROOT/"driver/modules"
 CLI=ROOT/"leitz-cli"
 FILTER=ROOT/"leitz-rastertoicon-mock"
-PPD=ROOT/"driver/cups/LeitzIcon.ppd"
+PPD=ROOT/"cups/LeitzIcon.ppd"
 ppd_before=hashlib.sha256(PPD.read_bytes()).hexdigest()
 assert b"*DefaultLeitzProtocol: Auto" in PPD.read_bytes()
 assert b"*LeitzProtocol Native/" in PPD.read_bytes()

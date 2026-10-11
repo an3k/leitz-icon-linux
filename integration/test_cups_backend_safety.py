@@ -5,7 +5,7 @@ import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
-backend = ROOT / "driver/cups/leitzusb"
+backend = ROOT / "cups/leitzusb"
 
 for file in (backend,):
     checked = subprocess.run(["bash", "-n", str(file)], capture_output=True, text=True)

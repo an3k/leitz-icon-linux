@@ -1,7 +1,7 @@
 CC ?= gcc
 CFLAGS ?= -O2 -Wall -Wextra -Werror -std=c11
 LDLIBS = -lm -ldl
-SRC := driver/src
+SRC := src
 CORE_SOURCES := $(SRC)/leitz_jobs.c $(SRC)/leitz_protocols.c
 
 .PHONY: verify mock-filter media-check native-reference-test job-geometry-test protocol-isolation-test status-test probe-test integration backend-safety-test
@@ -13,7 +13,7 @@ mock-filter:
 
 media-check:
 	python3 tests/integration/check_media_consistency.py
-	python3 driver/build/generate_media.py --check
+	python3 build/generate_media.py --check
 
 native-reference-test:
 	$(CC) $(CFLAGS) -o /tmp/leitz-native-reference-test tests/unit/test_native_reference.c $(SRC)/leitz_protocols.c $(LDLIBS)

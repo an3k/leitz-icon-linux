@@ -1,5 +1,5 @@
 /* Per-job width/resolution are shared media policy, never codec features. */
-#include "../../driver/src/leitz_jobs.h"
+#include "../../src/leitz_jobs.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>

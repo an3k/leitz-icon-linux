@@ -1,7 +1,7 @@
 /* Test-only CUPS raster API mock. Reads PGM P5 rows; NOT a CUPS wire decoder. */
 #include "cups/raster.h"
-#include "../../driver/src/leitz_media.h"
-#include "../../driver/src/leitz_protocols.h"
+#include "../../src/leitz_media.h"
+#include "../../src/leitz_protocols.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

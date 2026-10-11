@@ -4,13 +4,12 @@
 # All original source archives and the driver repository are read-only inputs.
 set -euo pipefail
 workspace=$(pwd -P)
-source "$workspace/frozen/cups/source.lock"
+source "$workspace/frozen/source/source.lock"
 [[ "$SOURCE_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]] || exit 1
-mkdir -p "$workspace/frozen/download"
-gh release download "$SOURCE_RELEASE" -R "$GITHUB_REPOSITORY" --dir "$workspace/frozen/download" \
-  -p cups-unpacked.tar.gz -p SHA256SUMS
-(cd "$workspace/frozen/download" && sha256sum --ignore-missing -c SHA256SUMS)
-docker load -i "$workspace/frozen/download/cups-unpacked.tar.gz"
+tmpdir=$(mktemp -d)
+trap 'rm -rf -- "$tmpdir"' EXIT
+bash "$workspace/frozen/build/reconstruct.sh" unpacked "$tmpdir/cups-unpacked.tar.gz"
+docker load -i "$tmpdir/cups-unpacked.tar.gz"
 docker tag "$UPSTREAM_IMAGE" leitz-cups-frozen:verification
 
 # Build a distributable archive in a disposable container based on the
@@ -20,7 +19,7 @@ docker run --rm --entrypoint /bin/bash \
   --workdir /work leitz-cups-frozen:verification -ec '
     apt-get update -qq
     apt-get install -y --no-install-recommends gcc make libcups2-dev python3
-    bash driver/install/package.sh
+    bash install/package.sh
     test -s dist/leitz-icon-driver-linux-amd64.tar.gz
   '
 
