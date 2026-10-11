@@ -1,58 +1,77 @@
 #!/usr/bin/env python3
-"""Compile/test each codec independently after physically removing the other.
-No USB; no changes to the checked-out working tree.
-"""
+"""Post-build module removal/addition: static PPD, no rebuild, no hardware."""
+from pathlib import Path
+import hashlib
+import os
 import shutil
 import subprocess
-import os
 import tempfile
-from pathlib import Path
 
-root = Path(__file__).resolve().parents[1]
-variants = [("Current", "leitz_protocol_native_linux_103.c", "NativeLinux103"),
-            ("NativeLinux103", "leitz_protocol_current.c", "Current")]
-for wanted, omitted, forbidden in variants:
-    with tempfile.TemporaryDirectory(prefix="leitz-isolation-") as t:
-        base = Path(t)
-        for folder in ("src", "cups", "tests"):
-            shutil.copytree(root / folder, base / folder)
-        (base / "tools").mkdir()
-        shutil.copy2(root / "tools/build_ppd.py", base / "tools/build_ppd.py")
-        shutil.copy2(root / "Makefile", base / "Makefile")
-        (base / "src" / omitted).unlink()
-        # No code generation or link fallback: absent module means no symbol.
-        run = subprocess.run(["make", "all", "mock-filter", "ppd"],
-                             cwd=base, capture_output=True, text=True, timeout=90)
-        assert run.returncode == 0, (wanted, run.stdout, run.stderr)
-        ppd = (base / "dist/LeitzIcon.ppd").read_text()
-        assert f"*DefaultLeitzProtocol: {wanted}" in ppd
-        assert f"*LeitzProtocol {wanted}/" in ppd
-        assert f"*LeitzProtocol {forbidden}/" not in ppd
-        code = subprocess.run([str(base / "leitz-cli"),
-                               "validate-native" if forbidden == "NativeLinux103" else "validate",
-                               "/dev/null"], capture_output=True, text=True)
-        assert code.returncode == 2 and "not installed" in code.stderr, code.stderr
-        # The remaining encoder must still generate a real binary job from
-        # the same CUPS raster input. Selecting the removed one must fail.
-        pgm = base / "test.pgm"
-        pgm.write_bytes(b"P5\n16 8\n255\n" + b"\xff"*16*2
-                        + b"\x00"*16 + b"\xff"*16*5)
-        env = os.environ.copy()
-        env["MOCK_MEDIA_NAME"] = "Custom"
-        for requested in (wanted, forbidden):
-            args = [str(base / "leitz-rastertoicon-mock"), "1", "root",
-                    "Isolated", "1", "PageSize=Custom LeitzProtocol=" + requested,
-                    str(pgm)]
-            p = subprocess.run(args, env=env, capture_output=True, timeout=15)
-            if requested == wanted:
-                assert p.returncode == 0 and p.stdout, (requested, p.stderr)
-                payload = base / "job.bin"
-                payload.write_bytes(p.stdout)
-                valid = subprocess.run([str(base / "leitz-cli"),
-                       "validate-native" if wanted == "NativeLinux103" else "validate",
-                       str(payload)], capture_output=True)
-                assert valid.returncode == 0, (wanted, valid.stderr)
-            else:
-                assert p.returncode != 0 and not p.stdout, (requested, p.stderr)
-        print("PASS isolated", wanted, "without", forbidden,
-              "and filtered PPD; CUPS print-path verified")
+ROOT=Path(__file__).resolve().parents[2]
+MODULES=ROOT/"driver/modules"
+CLI=ROOT/"leitz-cli"
+FILTER=ROOT/"leitz-rastertoicon-mock"
+PPD=ROOT/"driver/cups/LeitzIcon.ppd"
+ppd_before=hashlib.sha256(PPD.read_bytes()).hexdigest()
+assert b"*DefaultLeitzProtocol: Auto" in PPD.read_bytes()
+assert b"*LeitzProtocol Native/" in PPD.read_bytes()
+assert b"*LeitzProtocol Current/" in PPD.read_bytes()
+
+with tempfile.TemporaryDirectory(prefix="leitz-modules-") as t:
+    folder=Path(t)
+    pgm=folder/"raster.pgm"
+    pgm.write_bytes(b"P5\n16 8\n255\n"+b"\xff"*16*2+b"\x00"*16+b"\xff"*16*5)
+    sources={"Current":MODULES/"leitz-current.so","Native":MODULES/"leitz-native.so"}
+    for name,src in sources.items():
+        assert src.is_file(),name
+    paths={name:folder/src.name for name,src in sources.items()}
+    for name,src in sources.items():
+        shutil.copy2(src,paths[name])
+    env=os.environ.copy()
+    env["LEITZ_PROTOCOL_DIR"]=str(folder)
+    env["MOCK_MEDIA_NAME"]="Custom"
+
+    def job(option,expected):
+        opts="PageSize=Custom"+(" LeitzProtocol="+option if option else "")
+        proc=subprocess.run([str(FILTER),"1","root","Module test","1",opts,str(pgm)],
+                            env=env,capture_output=True,timeout=15)
+        assert (proc.returncode==0)==expected,(option,proc.returncode,proc.stderr)
+        if expected:
+            assert proc.stdout
+            spool=folder/"job.bin"
+            spool.write_bytes(proc.stdout)
+            checked=subprocess.run([str(CLI),"validate-auto",str(spool)],
+                                   env=env,capture_output=True,timeout=5)
+            assert checked.returncode==0,(option,checked.stderr)
+            assert checked.stdout==b"MAX_WIDTH=16\n"
+            return proc.stdout
+        assert not proc.stdout
+        return b""
+
+    original=job("Auto",True)
+    assert original==job("Current",True)
+    native_before=job("Native",True)
+    assert native_before!=original
+
+    paths["Current"].unlink()
+    assert job("Auto",True)==native_before
+    assert job("",True)==native_before
+    job("Current",False)
+    assert job("Native",True)==native_before
+
+    paths["Native"].unlink()
+    job("Auto",False)
+    job("Current",False)
+    job("Native",False)
+
+    shutil.copy2(sources["Current"],paths["Current"])
+    assert job("Auto",True)==original
+    assert job("Current",True)==original
+    job("Native",False)
+
+    shutil.copy2(sources["Native"],paths["Native"])
+    assert job("Auto",True)==original
+    assert job("Native",True)==native_before
+
+assert hashlib.sha256(PPD.read_bytes()).hexdigest()==ppd_before
+print("PASS unchanged PPD; Auto priority; two, one, zero, and restored .so modules")

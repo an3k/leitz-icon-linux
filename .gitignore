@@ -21,5 +21,7 @@ tests/Windows-LeitzIcon.gpd
 *.pcapng
 # Local scratch
 tmp/
-build/
+/build/
+driver/modules/
+*.so
 dist/

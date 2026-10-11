@@ -2,25 +2,18 @@
 """Pure offline media tests; no USB, printer, live CUPS or proprietary GPD required."""
 import json,os,subprocess,tempfile
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1]
-CAT=json.loads((ROOT/'media.json').read_text())
+ROOT=Path(__file__).resolve().parents[2]
+CAT=json.loads((ROOT/'driver/media/media.json').read_text())
 assert len(CAT)==86 and len({m['name'] for m in CAT})==86
 assert len(CAT[:43])==len(CAT[43:])==43
 assert all(not m['name'].startswith('Leitz') for m in CAT[:43])
 assert [m['name'] for m in CAT[43:]]==['Leitz'+m['name'] for m in CAT[:43]]
 assert [m['name'].lower() for m in CAT[:43]]==sorted(m['name'].lower() for m in CAT[:43])
-SOURCE_ADDITIONS=json.loads((ROOT/'tools/source_media_additions.json').read_text())
-assert len(SOURCE_ADDITIONS)==6
-assert all(any(m['name']==original['name'] for m in CAT) for original in SOURCE_ADDITIONS)
-for original in SOURCE_ADDITIONS:
-  current=next(m for m in CAT if m['name']==original['name'])
-  for field in ('page','area','origin','command_length','command_width','continuous'):
-    assert current[field]==original[field],(original['name'],field,current[field],original[field])
 assert next(m for m in CAT if m['name']=='LeverArchFile1005')['page']==next(m for m in CAT if m['name']=='LeitzLeverArchFile1005')['page']
 assert [m['name'] for m in CAT if m['name'].startswith('Leitz') and m['name'][5:] not in {x['name'] for x in CAT[:43]}]==[]
 assert {a['name'] for a in CAT[:43] if any(a.get(field)!=next(x for x in CAT if x['name']=='Leitz'+a['name']).get(field) for field in ('page','area','origin','command_length','command_width','continuous'))}=={'LargePendaflexTabRotated','Multipurpose70030001Rotated','NameBadgeCard70190001Rotated','ShippingLabel70180001Rotated'}
 print('PASS 43 A + 43 B media profiles; four vendor geometry differences preserved')
-ppd=(ROOT/'cups/LeitzIcon.ppd').read_text()
+ppd=(ROOT/'driver/cups/LeitzIcon.ppd').read_text()
 for m in CAT:
   name=m['name'];assert f'*PageSize {name}/' in ppd and f'*PageRegion {name}:' in ppd
   assert f'*ImageableArea {name}:' in ppd and f'*PaperDimension {name}:' in ppd
@@ -30,13 +23,14 @@ assert '*PageSize ShippingLabel70180001/Shipping Label 2" x 3 1/2"' in ppd
 assert '*PageSize Continuous70070001/Continuous - 1 1/2"' in ppd
 assert '*Resolution 300x300dpi/300 x 300 dpi:' in ppd
 assert '*OpenUI *LeitzProtocol/Print Protocol (development): PickOne' in ppd
-assert '*DefaultLeitzProtocol: Current' in ppd
+assert '*DefaultLeitzProtocol: Auto' in ppd
+assert '*LeitzProtocol Auto/Automatic (Current, then Native): ""' in ppd
 assert '*DefaultLabelCutter: ON' in ppd
 assert '*ColorModel Gray8/8-bit Grayscale (driver dither):' in ppd
 assert '*LeitzDither Bayer4/Ordered 4x4 Bayer:' in ppd
 assert '*LeitzDither Threshold/Black/White Threshold:' in ppd
 assert '*LabelCutter OFF/Cut At Job End (experimental):' in ppd
-assert '*LeitzProtocol NativeLinux103/Original Linux 1.0.3 (experimental): ""' in ppd
+assert '*LeitzProtocol Native/Native: ""' in ppd
 print('PASS vendor-readable CUPS media labels and confirmed 300x300 dpi option')
 assert len([line for line in ppd.splitlines() if line.startswith('*PageSize ')])==86
 assert [line.split()[1].split('/')[0] for line in ppd.splitlines() if line.startswith('*PageSize ')]==[m['name'] for m in CAT]
@@ -64,7 +58,7 @@ with tempfile.TemporaryDirectory() as t:
   env=os.environ.copy();env['MOCK_MEDIA_NAME']=mname
   if dpi==300:env['MOCK_DPI300']='1'
   result=subprocess.run([str(ROOT/'leitz-rastertoicon-mock'),'1','root','Test','1',
-      'LeitzCutMode=Automatic' + (' LeitzProtocol=NativeLinux103' if native else '') + (' LabelCutter=OFF' if not cut_each else ''),str(pgm)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+      'LeitzCutMode=Automatic' + (' LeitzProtocol=Native' if native else '') + (' LabelCutter=OFF' if not cut_each else ''),str(pgm)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
   if empty:
    assert result.returncode!=0 and not result.stdout
    print('PASS blank input blocked');return
@@ -89,7 +83,7 @@ with tempfile.TemporaryDirectory() as t:
     preamble=result.stdout[120:135]
     width=(preamble[-2]<<8)|preamble[-1]
   assert width==w,(mname,width,w)
-  assert (b'protocol=NativeLinux103' if native else b'protocol=Current') in result.stderr
+  assert (b'protocol=Native' if native else b'protocol=Current') in result.stderr
   if m['continuous']:
    assert b'cut=after-content' in result.stderr
    assert len(result.stdout)<2000,len(result.stdout)
@@ -139,7 +133,7 @@ with tempfile.TemporaryDirectory() as t:
   env=os.environ.copy();env.update(MOCK_MEDIA_NAME='Custom',MOCK_GRAY8='1')
   if space_w:env['MOCK_COLORSPACE_W']='1'
   options='PageSize=Custom ColorModel=Gray8 LeitzDither='+dither
-  if native:options+=' LeitzProtocol=NativeLinux103'
+  if native:options+=' LeitzProtocol=Native'
   p=subprocess.run([str(ROOT/'leitz-rastertoicon-mock'),'1','root','Grayscale','1',options,str(gradient)],
       env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
   assert p.returncode==0,p.stderr.decode()

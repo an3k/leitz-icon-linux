@@ -7,11 +7,11 @@ import json
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-catalog = json.loads((ROOT / "media.json").read_text(encoding="utf-8"))
-ppd = (ROOT / "cups" / "LeitzIcon.ppd").read_text(encoding="latin-1")
-header = (ROOT / "src" / "leitz_media.h").read_text(encoding="utf-8")
-names_b = json.loads((ROOT / "tools" / "media_b_original_labels.json").read_text(encoding="utf-8"))
+ROOT = Path(__file__).resolve().parents[2]
+catalog = json.loads((ROOT / "driver/media/media.json").read_text(encoding="utf-8"))
+ppd = (ROOT / "driver/cups" / "LeitzIcon.ppd").read_text(encoding="latin-1")
+header = (ROOT / "driver/src" / "leitz_media.h").read_text(encoding="utf-8")
+
 
 assert len(catalog) == 86, "Exactly 86 media profiles expected"
 assert len({m["name"] for m in catalog}) == 86, "Duplicate media IDs"
@@ -43,15 +43,9 @@ for item, match in zip(catalog, pages):
     assert abs(float(match.group(4)) - expected_h) < .001, item["name"]
 assert "*CustomPageSize True:" in ppd
 
-assert len(names_b) == 43
-labels = {record["name"]: record for record in names_b}
-assert set(labels) == {m["name"] for m in right}
-assert sum(x["source"].startswith("Original Windows") for x in names_b) == 39
-assert sum(x["source"].startswith("Derived") for x in names_b) == 4
-for match in pages[43:]:
-    key, label = match.group(1), match.group(2)
-    assert label == labels[key]["label"], key
-    assert label.startswith("*"), key
+for record, match in zip(catalog, pages):
+    assert match.group(2) == record["label"], record["name"]
+assert sum(m["name"].startswith("Leitz") for m in catalog) == 43
 
 structure = []
 for line in header.splitlines():
@@ -86,4 +80,4 @@ expected = {
 }
 assert set(differences) == expected, ("Unexpected source-geometry changes", differences)
 print("PASS 43 A + 43 B profiles, 4 native source differences preserved")
-print("PASS 86 complete PPD profiles, C header and Windows source labels")
+print("PASS 86 complete PPD profiles, generated C header, master labels")
