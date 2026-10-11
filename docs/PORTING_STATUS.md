@@ -45,7 +45,7 @@ No more one-change/one-label iteration. Use offline tests for protocol frames, P
 
 ## Native Linux 1.0.3 framing integrated into driver (development only)
 
-**What changed:** `leitz-rastertoicon` now accepts `-o LeitzProtocol=NativeLinux103`, and the PPD exposes `LeitzProtocol` with **Current** as default and **Original Linux 1.0.3 (experimental)** as the opt-in choice. Both variants use the **same** CUPS raster input, page geometry, media selection, cut-length calculation and staged output. The final encoder is selected inside the same running CUPS filter: the old `leitz_codec` remains the tested default, while the native Linux 1.0.3 raw framing is produced by `leitz_native_reference`. The backend detects native first bytes (`ESC @ ESC i/h`), runs the complete **native validator**, checks width at its distinct header offset, then performs the **same** SKU/width/USB transfer checks. Nothing reaches USB before whole-job validation.
+**What changed:** `leitz-rastertoicon` now accepts `-o LeitzProtocol=NativeLinux103`, and the PPD exposes `LeitzProtocol` with **Current** as default and **Original Linux 1.0.3 (experimental)** as the opt-in choice. Both variants use the **same** CUPS raster input, page geometry, media selection, cut-length calculation and staged output. The final encoder is selected inside the same running CUPS filter: `src/leitz_protocol_current.c` contains the complete Current encoder and validator, and `src/leitz_protocol_native_linux_103.c` contains the native encoder and validators. The backend detects native first bytes (`ESC @ ESC i/h`), runs the complete **native validator**, checks width at its distinct header offset, then performs the **same** SKU/width/USB transfer checks. Nothing reaches USB before whole-job validation.
 
 **Shared job policy:** Both `Current` and `NativeLinux103` support multiple labels using the same physical cassette width and resolution per job. Individual label lengths remain variable on continuous stock. Both spool validators reject any per-page width change. The source-derived native codec leaves trailing blank rows unflushed exactly as its independent reference; the previously added native-only flush was removed from production. The potential physical length difference is not yet hardware-verified. `ESC P` and physical completion remain unverified. The native dialect has **not** been tested on actual TARS hardware. The separate offline reference source and its tools remain present; nothing was deleted. The goal is to converge on one verified final encoding after hardware comparison.
 
@@ -53,7 +53,7 @@ No more one-change/one-label iteration. Use offline tests for protocol frames, P
 
 ## Native Linux 1.0.3 wire-reference implementation — offline only
 
-- Added independent C reference encoder `src/leitz_native_reference.[ch]` and strict single-label validator `src/leitz_native_validate.c` for the **plain/raw optimization-level-1 subset** of the actual manufacturer Linux 1.0.3 C sources. These are not vendor source copies.
+- Originally added independent C reference encoder and validator (now consolidated in `src/leitz_protocol_native_linux_103.c`) for the **plain/raw optimization-level-1 subset** of the actual manufacturer Linux 1.0.3 C sources. These are not vendor source copies.
 - Added offline C regression tests and `make native-reference-test`; checked with local GCC at both 300×300 and 300×600 dpi, against explicit byte-frame fixtures, rejection cases and truncated/altered end markers.
 - The reference reproduces the native source's **unflushed trailing blank rows**. This behavior is not automatically a desirable choice for continuous media; physical label length is not inferred from the emitted row count.
 - **Reference defect corrected:** its former unconditional end-of-label blank-row flush contradicted the original Linux 1.0.3 optimization-1 source and pre-existing regression fixtures. The encoder now leaves trailing blank rows pending (the productively tested v0.4.1 encoder is unchanged).
@@ -67,7 +67,7 @@ Die beiden Projektquellen zur IST- und Zielarchitektur legen die Trennung fest:
 `leitz_job.c` als internes Modul **Mehrseitenablauf, gemeinsamen Vorschubaufruf
 und Schnittentscheidung**. Die Auswahl `Current`/`NativeLinux103` erfolgt
 erst in `leitz_job.c` beim Aufruf der beiden Byte-Encoder
-`leitz_codec.c`/`leitz_native_reference.c`. Codec-spezifische Bytes für den
+`leitz_protocol_current.c`/`leitz_protocol_native_linux_103.c`. Codec-spezifische Bytes für den
 letzten Schnitt bleiben dort gekapselt. `leitzusb`, `usblp`, der PPD-Katalog
 und der PDF-Konverter sind unverändert.
 
