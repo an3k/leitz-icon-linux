@@ -36,12 +36,14 @@ static int option(const char *s,const char *key,const char *value){
  * vendor die-cut profile. Geometry alone must not turn that custom job
  * into a fixed-media job with a vendor length command. */
 static int explicitly_custom_page(const char *options){
- const char *key="PageSize=Custom";
- const size_t len=strlen(key);
+ const char *keys[]={"PageSize=Custom","media=Custom"};
  for(const char *p=options;p&&*p;){
    while(*p==' ')p++;
-   if(!strncmp(p,key,len) &&
-      (p[len]==' ' || p[len]=='\0' || p[len]=='.'))return 1;
+   for(size_t i=0;i<sizeof(keys)/sizeof(keys[0]);i++){
+     const size_t len=strlen(keys[i]);
+     if(!strncmp(p,keys[i],len) &&
+        (p[len]==' ' || p[len]=='\0' || p[len]=='.'))return 1;
+   }
    while(*p&&*p!=' ')p++;
  }
  return 0;
@@ -111,7 +113,15 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
    fprintf(stderr,"ERROR: Content cut mode is not valid for fixed media %s; select Automatic or Page\n",m->name);
    return -1;
  }
- unsigned original_total=(unsigned)lround(h->cupsPageSize[1]*dpi/72.0);
+ /* Reject malformed sizes before conversion: lround(NaN/Inf/overflow)
+  * is not a valid physical label length. */
+ double measured_rows=h->cupsPageSize[1]*(double)dpi/72.0;
+ if(!isfinite(measured_rows) || measured_rows<0.5 ||
+    measured_rows>(double)LEITZ_MAX_ROWS+0.49){
+   fprintf(stderr,"ERROR: Invalid CUPS page length\n");
+   return -1;
+ }
+ unsigned original_total=(unsigned)lround(measured_rows);
  if(original_total==0||original_total>LEITZ_MAX_ROWS)return -1;
  unsigned head=0,tail=0,device_length=65535;
  if(force_content){
