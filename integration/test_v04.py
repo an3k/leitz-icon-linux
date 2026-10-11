@@ -140,6 +140,22 @@ with tempfile.TemporaryDirectory() as t:
  run_case('FileFolderLabel',native=True,dpi=300)
  run_case('Continuous70030001',native=True)
  run_case('Continuous70030001',native=True,dpi=300)
+ # Native 1.0.3 sets resolution once at job start. Current has a
+ # resolution byte per page, but the USB validator must reject a document
+ # whose later page contradicts the first page (even with valid framing).
+ two_pages=run_case('FileFolderLabel',pages=2)
+ page_start=b'\x1b'*120+b'\x1b@\x1bB\x00\x1bL'
+ second=two_pages.find(page_start,1)
+ assert second>0, 'Expected distinct second Current page header'
+ mutated=bytearray(two_pages)
+ dpi_at=second+120+10
+ assert mutated[dpi_at] in (ord('i'),ord('h'))
+ mutated[dpi_at]=ord('h') if mutated[dpi_at]==ord('i') else ord('i')
+ corrupted=tmp/'mixed-dpi.bin'
+ corrupted.write_bytes(mutated)
+ validation=subprocess.run([str(ROOT/'leitz-cli'),'validate',str(corrupted)],capture_output=True)
+ assert validation.returncode!=0 and b'Mixed raster resolutions in one job' in validation.stderr,validation.stderr
+ print('PASS Current rejects mixed-resolution documents before USB')
  # Both codecs must honor the same job-level cutter and page-count choices.
  for use_native in (False,True):
   one_cut=run_case('FileFolderLabel',native=use_native)

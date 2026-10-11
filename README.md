@@ -35,12 +35,15 @@ The temporary copy is not committed to the driver branch.
 
 ## Current Debian CUPS integration
 
-The independent CUPS integration workflow checks out the `cups` branch,
-confirms its selected `sources/unpacked/cups-<version>/`, and installs the
-standalone `driver` package into the **verified, source-built Debian CUPS
-container**. It does not use the obsolete Docker-layer reconstruction or
-`source.lock`. A new source version requires its matching published image
-reference in the integration test.
+The independent CUPS integration workflow checks out `cups`,
+verifies **all** individually named `.sha256` archives, reconstructs the
+selected Debian CUPS revision from its original `.dsc` and compares the
+result with `sources/unpacked/cups-<version>/`. It then builds an isolated
+container **from that exact checked-in source** and the approved `main`
+driver, installs the standalone development `driver` package, and checks
+the installed CUPS version, driver files, PPD and queue. It never writes
+back to `cups` and needs no pinned image digest, lockfile, old
+Docker-layer reconstruction or manual version-specific edits.
 
 The protocol suite also checks Current's opt-in full-width raw raster option,
 its unchanged default encoding, and the rejection of Current-only options

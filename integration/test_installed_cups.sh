@@ -1,33 +1,70 @@
 #!/usr/bin/env bash
-# Install the independent development driver into the Debian CUPS image
-# built from the original, locally archived source on the cups branch.
+# Independent source/layout check and end-to-end CUPS integration.
+# CUPS comes from selected Debian archives, not a hardcoded image digest.
 set -euo pipefail
 workspace=$(pwd -P)
+frozen="$workspace/frozen"
+original="$frozen/sources/original"
+unpacked="$frozen/sources/unpacked"
 shopt -s nullglob
-versions=("$workspace"/frozen/sources/unpacked/cups-*)
-(( ${#versions[@]} == 1 )) || {
-  echo 'ERROR: Exactly one selected unpacked Debian CUPS version required' >&2
+versions=("$unpacked"/cups-*)
+(( ${#versions[@]} == 1 )) && [[ -d "${versions[0]}" ]] || {
+  echo 'ERROR: Exactly one unpacked Debian CUPS version is required' >&2
   exit 1
 }
 active=${versions[0]##*/}
 active=${active#cups-}
-grep -Fxq "Version: $active" "$workspace/frozen/sources/original/cups_$active.dsc"
-# Exact image produced from those sources by a successful source-based build.
-# A newer source revision must first publish its own verified CUPS image.
-case "$active" in
-  2.4.2-3+deb12u9)
-    image='ghcr.io/an3k/leitz-icon-linux-cups@sha256:0d0e2469e307841b7fe2a5bdc9be4ffeb0b8ea11173696924a2dc9f75c21fb92'
-    ;;
-  *)
-    echo "ERROR: No verified Debian CUPS integration image for $active" >&2
-    exit 1
-    ;;
-esac
-if [[ -n "${GH_TOKEN:-}" ]]; then
-  printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "${GITHUB_ACTOR:-github-actions}" --password-stdin >/dev/null
-fi
-docker pull "$image"
-docker tag "$image" leitz-cups-frozen:verification
+[[ -f "$original/cups_$active.dsc" && ! -e "$frozen/source" ]] || {
+  echo 'ERROR: Missing selected Debian .dsc or obsolete source/ directory present' >&2
+  exit 1
+}
+[[ -f "$frozen/release/Makefile" && -f "$frozen/release/cups/LeitzIcon.ppd" ]] || {
+  echo 'ERROR: Approved main checkout missing from frozen/release/' >&2
+  exit 1
+}
+archives=("$original"/cups_*)
+(( ${#archives[@]} >= 8 )) || { echo 'ERROR: Insufficient original source files' >&2; exit 1; }
+archive_count=0
+hash_count=0
+for file in "${archives[@]}"; do
+  [[ -f "$file" ]] || { echo 'ERROR: Non-file in original archive directory' >&2; exit 1; }
+  if [[ "$file" == *.sha256 ]]; then
+    (( hash_count+=1 ))
+    [[ -s "${file%.sha256}" ]] || { echo "ERROR: Orphan checksum: $file" >&2; exit 1; }
+  else
+    (( archive_count+=1 ))
+    [[ -s "$file.sha256" ]] || { echo "ERROR: Missing checksum: $file" >&2; exit 1; }
+    (cd "$original" && sha256sum --status -c "${file##*/}.sha256") || {
+      echo "ERROR: Invalid checksum: $file" >&2
+      exit 1
+    }
+  fi
+done
+(( archive_count == hash_count && archive_count >= 4 )) || {
+  echo 'ERROR: Incorrect archived-source/checksum pairing' >&2; exit 1
+}
+upstream=${active%%-*}
+for name in "cups_$upstream.orig.tar.gz" "cups_$upstream.orig.tar.gz.asc" \
+            "cups_$active.debian.tar.xz" "cups_$active.dsc"; do
+  [[ -s "$original/$name" && -s "$original/$name.sha256" ]] || {
+    echo "ERROR: Incomplete selected source: $name" >&2; exit 1
+  }
+done
+grep -Fxq "Version: $active" "$original/cups_$active.dsc"
+[[ "$(dpkg-parsechangelog -l "$unpacked/cups-$active/debian/changelog" -S Version)" == "$active" ]]
+tmpdir=$(mktemp -d)
+trap 'rm -rf -- "$tmpdir"' EXIT
+dpkg-source -x "$original/cups_$active.dsc" "$tmpdir/cups-$active" >/dev/null
+diff -qr "$tmpdir/cups-$active" "$unpacked/cups-$active" || {
+  echo 'ERROR: Unpacked sources differ from verified Debian source package' >&2
+  exit 1
+}
+echo "PASS: $archive_count archived originals with individual SHA256; exact extracted Debian CUPS $active"
+
+# Build this source revision with the approved main driver as a temporary
+# base. Newer restore/upgrade versions need no manual digest edits in tests.
+docker build --build-arg "CUPS_VERSION=$active" \
+  -f "$frozen/build/Dockerfile" -t leitz-cups-frozen:verification "$frozen"
 
 # Build the standalone development-driver package in a disposable Debian-CUPS
 # container. The published base image remains unchanged.
