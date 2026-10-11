@@ -84,8 +84,8 @@ jobs:
           docker run --rm --entrypoint /bin/bash "$DEV_IMAGE" -euxc '
             test "$(dpkg-query -W cups | cut -f2)" = "$1"
             test -x /usr/lib/cups/filter/leitz-rastertoicon
-            ! ldd /usr/lib/cups/filter/leitz-rastertoicon | grep -q 'not found'
-            ! ldd /usr/lib/cups/filter/leitz-cli | grep -q 'not found'
+            ! ldd /usr/lib/cups/filter/leitz-rastertoicon | grep -q "not found"
+            ! ldd /usr/lib/cups/filter/leitz-cli | grep -q "not found"
             test -x /usr/lib/cups/filter/leitz-command
             test -x /usr/lib/cups/backend/leitzusb
             test -s /usr/lib/leitz/protocols/leitz-current.so
