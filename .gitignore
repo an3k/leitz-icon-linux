@@ -2,7 +2,6 @@ leitz-cli
 leitz-rastertoicon
 leitz-rastertoicon-mock
 dist/
-build/
 *.o
 *.so
 __pycache__/

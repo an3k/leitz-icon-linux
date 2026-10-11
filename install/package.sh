@@ -3,6 +3,7 @@
 set -euo pipefail
 root=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 cd "$root"
+python3 build/check_media.py
 make clean all cups
 mkdir -p dist
 stage=$(mktemp -d)

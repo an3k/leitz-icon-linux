@@ -13,6 +13,8 @@ complete-image build are maintained in [`cups`](https://github.com/an3k/leitz-ic
 - `cups/`: PPD, USB backend and cartridge status command.
 - `media/`: manufacturer-derived media catalog.
 - `install/`: standalone driver archive builder and installer.
+- `build/`: read-only validation of legacy media metadata.
+- `docs/`: build and existing-CUPS/Unraid installation instructions.
 - `Makefile`: compile the driver.
 
 This branch deliberately does **not** contain integration tests or a
@@ -20,12 +22,15 @@ separate CUPS server image.
 
 ## Standalone installation
 
-With compiler and CUPS development headers available, run
+With compiler, CUPS development headers and Python 3 available, run
 `bash install/package.sh` to create
 `dist/leitz-icon-driver-main-linux-amd64.tar.gz`. Extract this archive
 and run `install.sh` inside an existing Linux CUPS environment as root.
 Then add the printer through normal CUPS administration. No existing
 CUPS queues, credentials or configuration are replaced.
+
+See [build instructions](docs/BUILD.md) and
+[Unraid / existing-CUPS installation](docs/UNRAID.md).
 
 ## Limitations
 

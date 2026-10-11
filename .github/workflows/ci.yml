@@ -17,8 +17,9 @@ jobs:
           sudo apt-get install -y --no-install-recommends gcc make libcups2-dev cups
       - name: Compile and build driver-only archive
         run: bash install/package.sh
-      - name: Validate CUPS PPD and executable files
+      - name: Validate legacy media and CUPS installation files
         run: |
+          python3 build/check_media.py
           sudo install -m 0755 leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
           cupstestppd -v cups/LeitzIcon.ppd
           bash -n cups/leitzusb cups/leitz-status install/*.sh
