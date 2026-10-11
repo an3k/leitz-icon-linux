@@ -1,0 +1,46 @@
+name: Driver - Development Build
+on:
+  push:
+    branches: [driver]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    name: Compile, validate and package standalone driver
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install compiler and CUPS development headers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gcc make python3 libcups2-dev cups
+      - name: Build complete driver package against Debian Bookworm ABI
+        run: |
+          docker run --rm --volume "$PWD:/work" --workdir /work debian:bookworm-slim \
+            /bin/bash -euc '
+              apt-get update -qq
+              apt-get install -y --no-install-recommends gcc make python3 libcups2-dev
+              bash install/package.sh
+            '
+      - name: Verify package and installed PPD
+        run: |
+          python3 build/generate_media.py --check
+          sudo install -m 0755 leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
+          sudo install -m 0755 cups/leitz-command /usr/lib/cups/filter/leitz-command
+          cupstestppd -v cups/LeitzIcon.ppd
+          bash -n cups/leitzusb cups/leitz-status cups/leitz-command install/*.sh
+          mkdir -p /tmp/leitz-package-test
+          tar -xzf dist/leitz-icon-driver-linux-amd64.tar.gz -C /tmp/leitz-package-test
+          DESTDIR=/tmp/leitz-package-installed /tmp/leitz-package-test/install.sh
+          test -x /tmp/leitz-package-installed/usr/lib/cups/filter/leitz-rastertoicon
+          test -x /tmp/leitz-package-installed/usr/lib/cups/backend/leitzusb
+          test -f /tmp/leitz-package-installed/usr/lib/leitz/protocols/leitz-current.so
+          test -f /tmp/leitz-package-installed/usr/share/ppd/LeitzIcon.ppd
+          test ! -e /tmp/leitz-package-installed/etc/cups
+      - name: Upload independent driver archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: leitz-icon-standalone-driver
+          path: dist/leitz-icon-driver-linux-amd64.tar.gz
+          retention-days: 14
