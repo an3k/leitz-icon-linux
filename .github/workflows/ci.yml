@@ -81,7 +81,7 @@ jobs:
           docker pull "$BASE_IMAGE"
           docker build --build-arg "CUPS_BASE_IMAGE=$BASE_IMAGE" \
             -f build/Dockerfile.development -t "$DEV_IMAGE" .
-          docker run --rm --entrypoint /bin/bash "$DEV_IMAGE" -euc '
+          docker run --rm --entrypoint /bin/bash "$DEV_IMAGE" -euxc '
             test "$(dpkg-query -W cups | cut -f2)" = "$1"
             test -x /usr/lib/cups/filter/leitz-rastertoicon
             ! ldd /usr/lib/cups/filter/leitz-rastertoicon | grep -q 'not found'
