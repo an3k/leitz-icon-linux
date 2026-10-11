@@ -1,2 +1,2 @@
-# Trigger full build of selected local Debian CUPS and main driver.
-request=verify-built-container-package-version-and-publish-20261011
+# Build CUPS from current archived Debian sources and approved main driver.
+request=2026-10-11-rebuild-for-modular-driver-hardware-test
