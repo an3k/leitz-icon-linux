@@ -67,13 +67,20 @@ trap cleanup EXIT
 trap on_cancel TERM INT HUP
 if (($# == 6)); then cp -- "$6" "$tmp" || exit 4; else cat > "$tmp" || exit 4;fi
 size=$(stat -c %s -- "$tmp")
+# The only maintenance frame is produced by cups/leitz-command and
+# issues ESC A without raster bytes, a feed, a cut, or an automatic retry.
+control_request=0
+if cmp -s "$tmp" <(printf 'LEITZ-CMD-V1:REPORT_STATUS\n'); then
+  control_request=1
+fi
 # The raster filter supports up to 64 pages, each with up to 64000
 # rows of 960 pixels. A valid multi-page job can exceed 25 MB by far.
 # Both encoders have a worst-case payload below 544 MiB for 64 pages.
 max_job_bytes=$((544 * 1024 * 1024))
-if ((size < 130 || size > max_job_bytes)); then
+if (( ! control_request && (size < 130 || size > max_job_bytes) )); then
   echo "ERROR: Suspicious job length $size; not sent" >&2; exit 4
 fi
+if (( ! control_request )); then
 # Determine framing from the first four bytes, then validate the *entire*
 # spooled document against that dialect before opening USB. The two command
 # streams have different header/width offsets; they are never interchanged.
@@ -99,6 +106,7 @@ fi
 if ((job_width<1 || job_width>960));then
   echo "ERROR: Unsupported raster width $job_width" >&2; exit 4
 fi
+fi # Printer maintenance does not require a raster header or loaded media.
 root=$(readlink -f "/sys/class/usbmisc/$port/device") || exit 4
 root=${root%/*}
 read -r vid < "$root/idVendor" || exit 4
@@ -112,6 +120,27 @@ fi
   echo 'ERROR: USB printer missing or not a direct device node' >&2; exit 4;
 }
 exec 3<>"$usb_device" || { echo 'ERROR: Cannot open Leitz USB printer (busy or inaccessible)' >&2;exit 4; }
+if (( control_request )); then
+  printf '\033A' >&3 || { echo 'ERROR: CUPS ReportStatus ESC A request failed' >&2;exit 4; }
+  IFS= read -r -N 1 -t 5 status_byte <&3 || {
+    echo 'ERROR: CUPS ReportStatus returned no status byte' >&2;exit 4;
+  }
+  [[ ${#status_byte} == 1 ]] || { echo 'ERROR: Invalid ESC A status response' >&2;exit 4; }
+  printf -v status_code '%d' "'$status_byte"
+  printf -v status_hex '0x%02X' "$status_code"
+  case "$status_code" in
+    3) echo 'STATE: -media-empty -media-jam' >&2
+       echo 'INFO: Leitz ESC A status 0x03 (ready)' >&2 ;;
+    32) echo 'STATE: +media-empty' >&2
+        echo "WARNING: Leitz ESC A legacy media-empty ($status_hex)" >&2 ;;
+    48) echo 'STATE: +media-jam' >&2
+        echo "WARNING: Leitz ESC A legacy paper-jam ($status_hex)" >&2 ;;
+    64) echo "WARNING: Leitz ESC A legacy general error ($status_hex)" >&2 ;;
+    *) echo "WARNING: Leitz ESC A status $status_hex is not decoded; no printer-ready claim" >&2 ;;
+  esac
+  exec 3>&-
+  exit 0
+fi
 printf '\033U' >&3 || { echo 'ERROR: ESC U failed' >&2;exit 4; }
 # Cartridge replies may end without a NUL byte. Bash can return timeout
 # with a complete partial buffer; accept it ONLY if the strict SKU parser

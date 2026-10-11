@@ -13,7 +13,8 @@
 | `src/leitz_codec.c` | `Current`: bisher hardwaregetestetes Protokoll | PPD-Standard |
 | `src/leitz_native_reference.c` | `NativeLinux103`: originalnaher Linux-1.0.3-Rahmen | Experimentell, kein realer Drucktest |
 | `src/leitz_native_job_validate.c` / `src/leitz_codec.c` | Separate Dokumentenvalidatoren | Offline getestet |
-| `cups/leitzusb` | Prüfung vor USB-Übertragung, Kassettenstatus, Einmalübertragung | Keine während/nach dem Druck gemessene Fertigstellung |
+| `cups/leitzusb` | Prüfung vor USB-Übertragung, Kassettenstatus, Einmalübertragung, ESC A für CUPS-ReportStatus | Keine während/nach dem Druck gemessene Fertigstellung |
+| `cups/leitz-command` | Eng begrenzter CUPS-Befehlskanal: nur `ReportStatus`, ohne Druck-/Schnittdaten | Nur offline geprüft; live noch nicht erprobt |
 | `cups/entrypoint.sh`, `cups/Dockerfile` | CUPS-Docker/Unraid-Bereitstellung | Image in CI erstellt; Betrieb des aktuellen Builds auf TARS nicht bestätigt |
 | `cups/LeitzIcon.ppd`, `media.json`, `src/leitz_media.h` | Papierprofile, Formate, Geometrien | Katalogkonsistenz offline geprüft |
 | `src/leitz_probe*.c`, `src/leitz_status.c` | Manuelles Statuswerkzeug und Offline-Dekoder | Einzelne echte Antworten bekannt, keine Laufzeitüberwachung |
@@ -52,7 +53,7 @@ Bei der **gelben 88-mm-Kassette** wurden **49–51 mm statt 60 mm** beobachtet; 
 2. **Gelbe Kassette:** Reproduzierte Längenabweichung und Druckabbruch; keine belastbare Ursache. Änderungen an Vorschub, Endmarkern oder Protokoll ohne Vergleichsdaten vermeiden.
 3. **Original-Linux-Protokoll:** `NativeLinux103` und beide Cuttermodi müssen kontrolliert physisch mit dem Standard verglichen werden; durch originalgetreu nicht ausgegebene Leerzeilen können Längenabweichungen entstehen.
 4. **Breiten und Medien:** Zusätzliche SKU, gestanzte Etiketten und abweichende A/B-Geometrien physisch prüfen; die SKU-Breitenzuordnung im Backend ist bislang nicht umfassend am Gerät nachgewiesen.
-5. **Herstellerparität:** CUPS-Befehlskanal, Status-/Fehlerbehandlung, herstellerspezifische Rasteralgorithmen, Margin-Semantik, Windows-64-Byte-Sonderfall und sichere Recovery sind noch nicht vollständig implementiert beziehungsweise geklärt. Der neue 8-Bit-Graustufenpfad bietet wählbar Bayer4 und Schwellwert-Rasterung; beide sind ausschließlich offline getestet und nicht mit den proprietären macOS-Rasteralgorithmen gleichgesetzt.
+5. **Herstellerparität:** Der CUPS-Befehlskanal unterstützt jetzt `ReportStatus` (ESC A) über den exklusiven Backend-USB-Zugang, aber noch keine weitergehende Liveüberwachung. Status-/Fehlerbehandlung, herstellerspezifische Rasteralgorithmen, Margin-Semantik, Windows-64-Byte-Sonderfall und sichere Recovery sind noch nicht vollständig implementiert beziehungsweise geklärt. Der neue 8-Bit-Graustufenpfad bietet wählbar Bayer4 und Schwellwert-Rasterung; beide sind ausschließlich offline getestet und nicht mit den proprietären macOS-Rasteralgorithmen gleichgesetzt.
 6. **Produktionsfreigabe:** Reproduzierbare End-to-End-Druckprüfung, installierbarer versionierter Build und belastbare Unraid-Anleitung fehlen; derzeit kein Release.
 7. **Veröffentlichung und Lizenz:** Im Repository ist noch keine Lizenzdatei und keine explizit gewählte Weiterverwendungslizenz vorhanden. Ein Release benötigt eine bewusste Lizenzentscheidung; öffentlich lesbarer Quellcode ist nicht automatisch frei lizenzierter Code.
 8. **Repo-Organisation:** `main` bleibt vorerst als v0.4.1-Vergleichsbasis bestehen. Die Entwicklung wird über einen **Draft-PR gegen `main`** sichtbar; erst nach gebündelter Hardwarefreigabe zusammenführen und veröffentlichen.

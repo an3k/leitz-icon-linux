@@ -26,6 +26,7 @@ jobs:
           make media-check native-reference-test
           python3 tests/test_core.py
           python3 tests/test_v04.py
+          python3 tests/test_cups_command.py
       - name: Regression-test status and diagnostic formatting (offline)
         run: make status-test probe-test
       - name: Validate driver PPD against installed CUPS filter
@@ -36,9 +37,10 @@ jobs:
         run: |
           test -s cups/LeitzIcon.ppd
           test -s cups/leitzusb
+          test -s cups/leitz-command
           test -s cups/leitz-status
           test -s cups/entrypoint.sh
-          bash -n cups/leitzusb cups/leitz-status cups/entrypoint.sh
+          bash -n cups/leitzusb cups/leitz-command cups/leitz-status cups/entrypoint.sh
       - name: Create reproducible source snapshot
         run: |
           mkdir -p dist
@@ -59,6 +61,7 @@ jobs:
           docker run --rm --entrypoint /bin/bash leitz-icon-cups:ci -ec '
             test -x /usr/lib/cups/filter/leitz-rastertoicon
             test -x /usr/lib/cups/filter/leitz-cli
+            test -x /usr/lib/cups/filter/leitz-command
             test -x /usr/lib/cups/backend/leitzusb
             test -s /usr/share/ppd/LeitzIcon.ppd
             cupstestppd /usr/share/ppd/LeitzIcon.ppd

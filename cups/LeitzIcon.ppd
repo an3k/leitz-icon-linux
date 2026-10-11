@@ -17,6 +17,8 @@
 *LanguageLevel: "3"
 *Throughput: "1"
 *cupsFilter: "application/vnd.cups-raster 0 leitz-rastertoicon"
+*cupsFilter: "application/vnd.cups-command 0 leitz-command"
+*cupsCommands: "ReportStatus"
 *% The printer has no verified hardware copy-generation command.
 *% The upstream CUPS RIP must produce complete raster pages for each copy.
 *cupsManualCopies: True

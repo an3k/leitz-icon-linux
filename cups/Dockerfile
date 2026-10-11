@@ -13,12 +13,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends cups cups-filte
 COPY --from=build /build/leitz-cli /usr/lib/cups/filter/leitz-cli
 COPY --from=build /build/leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
 COPY cups/leitzusb /usr/lib/cups/backend/leitzusb
+COPY cups/leitz-command /usr/lib/cups/filter/leitz-command
 COPY cups/leitz-status /usr/local/bin/leitz-status
 COPY --from=build /build/leitz-probe /usr/local/bin/leitz-probe
 COPY cups/LeitzIcon.ppd /usr/share/ppd/LeitzIcon.ppd
 COPY cups/entrypoint.sh /usr/local/bin/leitz-cups-entrypoint
 RUN chmod 0755 /usr/local/bin/leitz-cups-entrypoint /usr/local/bin/leitz-status \
     /usr/lib/cups/filter/leitz-cli /usr/lib/cups/filter/leitz-rastertoicon \
+    /usr/lib/cups/filter/leitz-command \
  && chmod 0700 /usr/local/bin/leitz-probe \
  && chmod 0700 /usr/lib/cups/backend/leitzusb \
  && mkdir -p /opt/leitz-cups-default \
