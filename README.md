@@ -33,6 +33,19 @@ LEITZ_PROTOCOL_DIR="$PWD/modules" make -f ../suite/Makefile verify
 
 The temporary copy is not committed to the driver branch.
 
+## Current Debian CUPS integration
+
+The independent CUPS integration workflow checks out the `cups` branch,
+confirms its selected `sources/unpacked/cups-<version>/`, and installs the
+standalone `driver` package into the **verified, source-built Debian CUPS
+container**. It does not use the obsolete Docker-layer reconstruction or
+`source.lock`. A new source version requires its matching published image
+reference in the integration test.
+
+The protocol suite also checks Current's opt-in full-width raw raster option,
+its unchanged default encoding, and the rejection of Current-only options
+when Native is selected. No physical printer is used by these checks.
+
 ## Archived verification evidence
 
 `reference/` retains the original, unchanged protocol research,
