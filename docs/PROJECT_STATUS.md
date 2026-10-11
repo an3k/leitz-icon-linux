@@ -1,5 +1,29 @@
 # Projektstand Leitz Icon Linux — 11.10.2026
 
+## Architekturaktualisierung (11.10.2026; noch ohne Hardwarefreigabe)
+
+Die Entwicklungsimplementierung ist nun in `driver/` und `tests/`
+aufgeteilt. Die beiden vollständigen Protokollencoder inklusive Validatoren
+werden getrennt als `leitz-current.so` und `leitz-native.so` kompiliert.
+`leitz_protocols.c/.h` lädt sie mit ABI-Prüfung; bei jedem neu gestarteten
+Filter ist `Auto` die PPD-Standardoption (Current vor Native). Die PPD bleibt
+beim nachträglichen Entfernen oder Hinzufügen von Bibliotheksdateien
+unverändert. Im USB-Backend erfolgt die vollständige Binärvalidierung durch
+die installierten Module, nicht mehr über fest kodierte Frame-Offsets.
+
+`driver/media/media.json` enthält die verbindlichen 86 Medienprofile mit
+allen bereits vorhandenen lesbaren PPD-Namen; das Skript
+`driver/build/generate_media.py` erzeugt `leitz_media.h` und die PPD.
+Die bisherigen 344 PPD-Mediendefinitionszeilen wurden ohne Änderung
+der Formatdaten übernommen. Die ergänzenden Medien-JSON-Dateien sind
+entfallen. Die originale Linux-Protokollparität, insbesondere Optimierungs-
+und Längensemantik, bleibt gemäß Benutzerentscheidung zurückgestellt.
+
+Der vorherige Inhalt dieses Dokuments beschreibt historische Zwischenstände.
+Die aktuellen Dateinamen und Modulbedingungen sind im README dokumentiert.
+
+---
+
 > **Maßgeblicher Entwicklungsbranch:** `port/vendor-parity`. **Produktiv freigegebener Treiber: keiner.** `main` enthält den älteren experimentellen v0.4.1-Stand. Erfolgreiche GitHub Actions bestätigen Offline-Prüfungen, nicht die mechanische Fertigstellung eines Ausdrucks. Dieser Bericht trennt Quellcode, CI und reale Messungen.
 
 ## Orientierung
