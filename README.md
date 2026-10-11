@@ -37,12 +37,6 @@ On Linux with GCC, make, CUPS development headers, and Python 3 installed:
 make clean all cups probe ppd
 ```
 
-For a Docker image:
-
-```sh
-docker build -f driver/cups/Dockerfile -t leitz-icon-cups:development .
-```
-
 The 86-profile catalog is the sole source for generated media options.
 Changes to `media.json` can be propagated using `make generate-media`.
 
@@ -53,11 +47,24 @@ media at 300×300 and 300×600 dpi. Hardware qualification of the modular
 build, Native output, additional cassette types, and reliable mechanical
 completion/status reporting is still pending. No released build is claimed.
 
-## Unraid installation
+## Installing into an existing CUPS server
 
-See [Unraid deployment notes](driver/docs/UNRAID.md) for installation
-requirements and device configuration. The current build is not yet
-qualified for a production installation.
+Build a driver-only package (no CUPS server or Docker image):
+
+```sh
+bash driver/install/package.sh
+```
+
+This creates `dist/leitz-icon-driver-linux-amd64.tar.gz` containing an
+`install.sh` and the production binaries, protocol libraries and PPD.
+Extract it into a temporary directory and run `install.sh` as root **inside
+the existing CUPS environment**, then register the Leitz printer through
+normal CUPS administration. The installer never modifies other printers,
+`cupsd.conf`, server credentials, or container configuration.
+
+The optional frozen Unraid Community Applications CUPS integration is
+maintained independently on the `cups` branch. The `driver` branch builds
+without that integration.
 
 ## USB transfer result semantics
 
