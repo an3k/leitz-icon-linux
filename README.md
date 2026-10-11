@@ -22,8 +22,10 @@ CI compilation and container validation do not replace hardware printing, media,
 ## Source trust and build verification
 
 The CUPS build reconstructs and compares the complete Debian source from
-archived files before compilation. The archive hashes verify stored bytes;
-Debian APT signed source indexes authenticate downloads performed with normal
-APT signature checks. The separate upstream `.asc` is retained as-is; it is
-**not independently authenticated** unless an audited trusted upstream key
-is provided. Do not claim that the detached signature was validated.
+archived files before compilation. The archive hashes verify stored bytes.
+The original upstream `.asc` is verified using `gpgv` and the OpenPrinting
+public key shipped in Debian's `debian/upstream/signing-key.asc`, which is
+contained in the signed-index-authenticated Debian source package.
+Upgrades validate that signature before archiving and activating a revision;
+restores verify it before activating an extracted revision. `gpg` and
+`gpgv` are required.

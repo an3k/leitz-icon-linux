@@ -71,7 +71,8 @@ EOF
     [[ -s "$workspace/$name" ]] || return 1
   done < <(source_filenames "$version")
   dpkg-source -x "$workspace/cups_$version.dsc" "$workspace/verified" >&2
-  [[ "$(dpkg-parsechangelog -l "$workspace/verified/debian/changelog" -S Version)" == "$version" ]]
+  [[ "$(dpkg-parsechangelog -l "$workspace/verified/debian/changelog" -S Version)" == "$version" ]] &&
+    verify_upstream_signature "$version" "$workspace/verified" "$workspace"
 }
 save_originals() {
   local version=$1 name
