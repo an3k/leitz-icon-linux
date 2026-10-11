@@ -1,4 +1,4 @@
-name: Main – Release
+name: Publish tagged standalone main driver
 on:
   push:
     tags:

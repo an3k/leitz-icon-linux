@@ -1,4 +1,4 @@
-name: Main – Build
+name: Build approved baseline standalone CUPS driver
 on:
   push:
     branches: [main]
