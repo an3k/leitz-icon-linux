@@ -100,3 +100,11 @@ original Linux optimization-level-2 raster strategy. It retains Current
 framing and cutting; it does not reproduce the vendor's entire protocol.
 `Optimized` remains the byte-identical default, `FullWidthRaw` is unchanged,
 and both optional modes are experimental and rejected by Native.
+
+## Development GitHub Actions
+
+The distinct `Driver - Development Build` workflow packages the driver without
+any published CUPS image dependency. For an experimental development release,
+create a `dev-v*` tag on a `driver` branch commit; the separate
+`Driver - Development Release` workflow publishes its independent package.
+The `main` baseline uses separate `v*` tags.
