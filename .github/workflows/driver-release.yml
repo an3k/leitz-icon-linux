@@ -1,8 +1,8 @@
-name: Publish tagged standalone Linux driver
+name: Driver - Development Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'dev-v*'
 permissions:
   contents: write
 jobs:
