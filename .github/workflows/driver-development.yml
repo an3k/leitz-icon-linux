@@ -24,6 +24,7 @@ jobs:
               apt-get update -qq
               apt-get install -y --no-install-recommends gcc make python3 libcups2-dev
               bash install/package.sh
+              (cd dist && sha256sum leitz-icon-driver-linux-amd64.tar.gz > leitz-icon-driver-linux-amd64.tar.gz.sha256)
             '
       - name: Verify package and installed PPD
         run: |
@@ -44,5 +45,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: leitz-icon-standalone-driver
-          path: dist/leitz-icon-driver-linux-amd64.tar.gz
-          retention-days: 14
+          path: |
+            dist/leitz-icon-driver-linux-amd64.tar.gz
+            dist/leitz-icon-driver-linux-amd64.tar.gz.sha256
+          retention-days: 30

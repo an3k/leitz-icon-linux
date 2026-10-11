@@ -1,7 +1,7 @@
 *PPD-Adobe: "4.3"
 *% 43 A + 43 Leitz-prefixed B media aliases (86 profiles). Source-specific geometry preserved; hardware verification incomplete.
 *FormatVersion: "4.3"
-*FileVersion: "0.4.1"
+*FileVersion: "development"
 *LanguageVersion: English
 *LanguageEncoding: ISOLatin1
 *PCFileName: "LEITZICO.PPD"
