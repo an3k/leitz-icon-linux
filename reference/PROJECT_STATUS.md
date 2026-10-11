@@ -62,24 +62,31 @@ independent proof that a particular label finished printing.
 Completion of USB writes also does not prove printing or cutting has ended.
 Any uncertain partially delivered print job must not be retried blindly.
 
-## Remaining work
+## Remaining work (ordered priority)
 
-1. Validate actual printer motion, completed printing and cutting after
-   transfer; identify safe during-print status and progress behavior.
-2. Investigate the yellow cassette geometry and partial-job failure without
-   introducing speculative transport commands or arbitrary fixed-length limits.
-3. Compare Native Linux 1.0.3 printing and both cut policies against Current
-   on hardware. The native encoder intentionally does not flush all trailing
-   blank rows, consistent with its original reference behavior.
-4. Verify cassette SKU-to-print-width mappings, die-cut stocks, remaining
-   material sizes and actual printable regions.
-5. Resolve vendor feature gaps: status and error handling, original raster
-   algorithms, margins, conditional Windows 64-byte behavior, and safe
-   recovery. Do not introduce speculative padding.
-6. Complete real end-to-end compatibility, packaging, and Unraid procedures.
-   CI builds and mock tests do not constitute a hardware release.
-7. Choose and publish the intended redistribution license. Publicly visible
-   source code is not automatically licensed for arbitrary reuse.
+1. Confirm printer motion, physical job completion, and cutting after transfer;
+   determine safe during-print status/progress semantics. USB write completion
+   alone is insufficient.
+2. Determine and correct yellow-cassette geometry/partial-job failures based
+   on captured device behavior. Do not introduce arbitrary fixed-length limits.
+3. **Highest-priority software porting:** compare original Linux 1.0.3
+   behavior against Current; transfer evidence-backed features to **Current
+   only**. Freeze the existing original-derived Native module unchanged.
+   A full-width uncompressed raster option has been added to Current while
+   preserving previously proven default Current output. Additional source
+   optimization modes, margins and other protocol differences remain unported
+   until supported by verified evidence.
+4. Qualify the modular development driver on real hardware: Current and
+   unchanged Native, 300x300/300x600, variable lengths, multi-page jobs
+   and cutter ON/OFF; test new Current raw option separately.
+5. Verify other cassette SKUs, die-cut stock, actual printable widths,
+   remaining media formats and print regions.
+6. Complete live status, progress, error handling and safe recovery; compare
+   macOS/Windows differences and the conditional 64-byte behavior without
+   speculative padding.
+7. Finish end-to-end CUPS/Unraid integration, deployment and packaging;
+   offline CI/mock tests are not mechanical completion proof.
+8. Select the redistribution license before a public release.
 
 ## Historical development sequence (not the current repository layout)
 

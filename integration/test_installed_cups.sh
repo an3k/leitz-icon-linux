@@ -1,19 +1,36 @@
 #!/usr/bin/env bash
-# This independent suite installs a driver-only package into a temporary
-# container created from the original frozen Community Applications image.
-# All original source archives and the driver repository are read-only inputs.
+# Install the independent development driver into the Debian CUPS image
+# built from the original, locally archived source on the cups branch.
 set -euo pipefail
 workspace=$(pwd -P)
-source "$workspace/frozen/source/source.lock"
-[[ "$SOURCE_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]] || exit 1
-tmpdir=$(mktemp -d)
-trap 'rm -rf -- "$tmpdir"' EXIT
-bash "$workspace/frozen/build/reconstruct.sh" unpacked "$tmpdir/cups-unpacked.tar.gz"
-docker load -i "$tmpdir/cups-unpacked.tar.gz"
-docker tag "$UPSTREAM_IMAGE" leitz-cups-frozen:verification
+shopt -s nullglob
+versions=("$workspace"/frozen/sources/unpacked/cups-*)
+(( ${#versions[@]} == 1 )) || {
+  echo 'ERROR: Exactly one selected unpacked Debian CUPS version required' >&2
+  exit 1
+}
+active=${versions[0]##*/}
+active=${active#cups-}
+grep -Fxq "Version: $active" "$workspace/frozen/sources/original/cups_$active.dsc"
+# Exact image produced from those sources by a successful source-based build.
+# A newer source revision must first publish its own verified CUPS image.
+case "$active" in
+  2.4.2-3+deb12u9)
+    image='ghcr.io/an3k/leitz-icon-linux-cups@sha256:0d0e2469e307841b7fe2a5bdc9be4ffeb0b8ea11173696924a2dc9f75c21fb92'
+    ;;
+  *)
+    echo "ERROR: No verified Debian CUPS integration image for $active" >&2
+    exit 1
+    ;;
+esac
+if [[ -n "${GH_TOKEN:-}" ]]; then
+  printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "${GITHUB_ACTOR:-github-actions}" --password-stdin >/dev/null
+fi
+docker pull "$image"
+docker tag "$image" leitz-cups-frozen:verification
 
-# Build a distributable archive in a disposable container based on the
-# frozen upstream image. Do not install build dependencies in the original.
+# Build the standalone development-driver package in a disposable Debian-CUPS
+# container. The published base image remains unchanged.
 docker run --rm --entrypoint /bin/bash \
   --mount "type=bind,source=$workspace/product,target=/work" \
   --workdir /work leitz-cups-frozen:verification -ec '
@@ -27,8 +44,9 @@ docker run --rm --entrypoint /bin/bash \
 # disposable container whose CUPS configuration starts untouched.
 docker run --rm --entrypoint /bin/bash \
   --mount "type=bind,source=$workspace/product/dist/leitz-icon-driver-linux-amd64.tar.gz,target=/tmp/driver.tar.gz,readonly" \
-  leitz-cups-frozen:verification -ec '
+  --env "CUPS_REQUIRED_VERSION=$active" leitz-cups-frozen:verification -ec '
     set -euo pipefail
+    test "$(dpkg-query -W cups | cut -f2)" = "$CUPS_REQUIRED_VERSION"
     original=$(sha256sum /etc/cups/cupsd.conf)
     original=${original%% *}
     mkdir -p /tmp/leitz-install
@@ -40,7 +58,9 @@ docker run --rm --entrypoint /bin/bash \
     test -x /usr/lib/cups/backend/leitzusb
     test -f /usr/lib/leitz/protocols/leitz-current.so
     test -f /usr/lib/leitz/protocols/leitz-native.so
-    cupstestppd /usr/share/ppd/LeitzIcon.ppd
+    ppd_result=$(cupstestppd /usr/share/ppd/LeitzIcon.ppd 2>&1 || true)
+    printf "%s\n" "$ppd_result"
+    grep -Fq "/usr/share/ppd/LeitzIcon.ppd: PASS" <<< "$ppd_result"
     after=$(sha256sum /etc/cups/cupsd.conf)
     test "$original" = "${after%% *}"
     # The original CUPS archive remains immutable. In this disposable test
@@ -73,5 +93,5 @@ docker run --rm --entrypoint /bin/bash \
     fi
     lpstat -p LeitzIcon
     test "$(stat -c %a /usr/lib/cups/backend/leitzusb)" = 700
-    echo "PASS: production driver installed and registered in unchanged CUPS source"
+    echo "PASS: development driver registered with Debian CUPS $CUPS_REQUIRED_VERSION"
   '

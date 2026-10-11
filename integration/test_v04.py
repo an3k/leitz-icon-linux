@@ -26,6 +26,8 @@ assert '*OpenUI *LeitzProtocol/Print Protocol (development): PickOne' in ppd
 assert '*DefaultLeitzProtocol: Auto' in ppd
 assert '*LeitzProtocol Auto/Automatic (Current, then Native): ""' in ppd
 assert '*DefaultLabelCutter: ON' in ppd
+assert '*DefaultLeitzCurrentRaster: Optimized' in ppd
+assert '*LeitzCurrentRaster FullWidthRaw/' in ppd
 assert '*ColorModel Gray8/8-bit Grayscale (driver dither):' in ppd
 assert '*LeitzDither Bayer4/Ordered 4x4 Bayer:' in ppd
 assert '*LeitzDither Threshold/Black/White Threshold:' in ppd
@@ -40,7 +42,7 @@ print('PASS 86 A-then-B PPD sizes with source-matched original Windows B labels'
 
 with tempfile.TemporaryDirectory() as t:
  tmp=Path(t)
- def run_case(mname, dpi=600, empty=False, native=False, pages=1, cut_each=True):
+ def run_case(mname, dpi=600, empty=False, native=False, pages=1, cut_each=True, full_width_raw=False):
   m=next((x for x in CAT if x['name']==mname),None)
   w=m['area'][0] if m else 960
   h=(((m['area'][1]+1)//2 if dpi==300 else m['area'][1])) if m else 1120
@@ -58,7 +60,7 @@ with tempfile.TemporaryDirectory() as t:
   env=os.environ.copy();env['MOCK_MEDIA_NAME']=mname
   if dpi==300:env['MOCK_DPI300']='1'
   result=subprocess.run([str(ROOT/'leitz-rastertoicon-mock'),'1','root','Test','1',
-      'LeitzCutMode=Automatic' + (' LeitzProtocol=Native' if native else '') + (' LabelCutter=OFF' if not cut_each else ''),str(pgm)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+      'LeitzCutMode=Automatic' + (' LeitzProtocol=Native' if native else '') + (' LabelCutter=OFF' if not cut_each else '') + (' LeitzCurrentRaster=FullWidthRaw' if full_width_raw else ''),str(pgm)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
   if empty:
    assert result.returncode!=0 and not result.stdout
    print('PASS blank input blocked');return
@@ -83,6 +85,10 @@ with tempfile.TemporaryDirectory() as t:
     preamble=result.stdout[120:135]
     width=(preamble[-2]<<8)|preamble[-1]
   assert width==w,(mname,width,w)
+  if full_width_raw:
+    assert not native, 'The option is Current-only'
+    row_header=b'\x1bD'+bytes([(w+7)//8])+b'\x1bB\x00\x16'
+    assert result.stdout.count(row_header)>=2, 'Expected uncompressed full-width raw rows'
   assert (b'protocol=Native' if native else b'protocol=Current') in result.stderr
   if m['continuous']:
    assert b'cut=after-content' in result.stderr
@@ -99,6 +105,21 @@ with tempfile.TemporaryDirectory() as t:
   run_case(name)
  run_case('LargePendaflexTabRotated',300)
  run_case('Continuous112')
+ # Linux 1.0.3 plain/raw row packing, opt-in under Current framing only.
+ for dpi in (300,600):
+  normal=run_case('Continuous70030001',dpi=dpi)
+  full=run_case('Continuous70030001',dpi=dpi,full_width_raw=True)
+  assert normal!=full
+  assert full.startswith(normal[:135]), 'Current header must remain unchanged'
+ print('PASS opt-in full-width raw rows in Current, both resolutions')
+ # Native remains unmodified and rejects Current-specific raster options.
+ env=os.environ.copy()
+ env['MOCK_MEDIA_NAME']='Continuous70030001'
+ rejected=subprocess.run([str(ROOT/'leitz-rastertoicon-mock'),'1','root','Raw mode','1',
+     'LeitzProtocol=Native LeitzCurrentRaster=FullWidthRaw',str(tmp/'media.pgm')],
+     env=env,capture_output=True)
+ assert rejected.returncode!=0 and not rejected.stdout
+ print('PASS Native rejects Current-only raster option')
  # Every new alias must run through the same CUPS raster-to-USB-byte pipeline.
  for name in ('LeverArchFile1005','LeitzLeverArchFile1005',
               'DHLShippingLabel','LeitzDHLShippingLabel',

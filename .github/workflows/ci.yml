@@ -62,7 +62,7 @@ jobs:
         with:
           ref: cups
           path: frozen
-      - name: Install driver into clean original CUPS container
+      - name: Install development driver into source-built Debian CUPS container
         env:
           GH_TOKEN: ${{ github.token }}
         run: bash suite/integration/test_installed_cups.sh
