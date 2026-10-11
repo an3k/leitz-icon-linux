@@ -9,7 +9,7 @@ read-only upstream CUPS snapshot and the two package operations.
   immutable files as versioned GitHub Release assets. Update
   `cups/source.lock` to select that immutable version. Previous source
   archives are never overwritten.
-- `build`: consume only the selected saved source archive; combine the
+- `build`: consume only the selected saved unpacked source archive; combine the
   independently checked-out `main` release driver with a temporary CUPS
   build environment. Produce a separate loadable Unraid Docker image.
   This operation must never pull a moving CUPS source tag or edit

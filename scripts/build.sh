@@ -12,10 +12,12 @@ source cups/source.lock
 [[ "$SOURCE_RELEASE" == "cups-source-${SOURCE_DIGEST#sha256:}" ]] || exit 1
 [[ "$UPSTREAM_IMAGE" == 'docker.io/olbat/cupsd:latest' ]] || exit 1
 mkdir -p /tmp/leitz-cups-frozen
-gh release download "$SOURCE_RELEASE" --dir /tmp/leitz-cups-frozen \
-  -p 'cups-original.tar.gz' -p 'SHA256SUMS'
+# Build only from the frozen, once-unpacked source snapshot.
+# The original image archive is preserved and never read by the build.
+gh release download "$SOURCE_RELEASE" -R "$GITHUB_REPOSITORY" --dir /tmp/leitz-cups-frozen \
+  -p 'cups-unpacked.tar.gz' -p 'SHA256SUMS'
 (cd /tmp/leitz-cups-frozen && sha256sum -c SHA256SUMS --ignore-missing)
-gzip -dc /tmp/leitz-cups-frozen/cups-original.tar.gz | docker load
+docker load -i /tmp/leitz-cups-frozen/cups-unpacked.tar.gz
 docker tag "$UPSTREAM_IMAGE" leitz-cups-frozen:source
 
 # 'release' is an independent checkout of the approved main branch.
