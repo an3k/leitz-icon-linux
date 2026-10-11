@@ -31,3 +31,10 @@ LEITZ_PROTOCOL_DIR="$PWD/driver/modules" make -f ../suite/Makefile verify
 ```
 
 The temporary copy is not committed to the driver branch.
+
+## Archived verification evidence
+
+`tests/reference/` retains the original, unchanged protocol research,
+status investigations, and historical development records that were
+available before splitting the two branches. These are reference materials
+for checking device behavior, not production dependencies.
