@@ -37,13 +37,13 @@ Papierkassette/SKU, physische Breite, gewähltes CUPS-Papierformat und tatsächl
 | --- | --- | --- |
 | `Current` USB-Druck auf weißer 88-mm-Endlosrolle | Vorhanden | 300×300 und 300×600 dpi, benutzerdefinierte Länge, mehrseitige Aufträge und automatischer Schnitt bereits getestet |
 | `Current` als Standard / gemeinsamer Jobcontroller | Implementiert | Refaktorierte/neue Teilpfade nicht erneut vollständig am Gerät geprüft |
-| `NativeLinux103`, mehrere Seiten, Cutter ON/OFF | Implementiert und offline validiert | Kein Hardwaretest |
+| `NativeLinux103`, mehrere Seiten, Cutter ON/OFF | Implementiert und offline validiert; kontinuierliches/custom Material erhält expliziten abschließenden Vorschub statt ungesendeter Leerzeilen | Kein Hardwaretest |
 | `ESC U` Kassettenabfrage | Implementiert | Reale ASCII/SKU-Antworten gemessen |
 | `ESC A` Bereitschaft vor Versand | Implementiert | Reale Einzelantwort `0x03` im Leerlauf; vollständiger Druck-Preflight noch nicht separat validiert |
 | `ESC V` Diagnose | Im manuellen Probe-Werkzeug | 34-Byte-Textantwort real gemessen; Feldsemantik unbekannt |
 | `ESC P` Fortschrittsabfrage | Nur manueller Diagnoseversuch | Im Leerlauf 0 Antwortbytes und Timeout; aktive Druckphase unbekannt |
 | 86 Papierprofile | In PPD, JSON, Header synchron | Nur strukturell/offline; keine umfassenden Materialtests |
-| Docker-CUPS Image | GitHub Actions baut es | Keine bestätigte Hardwarefreigabe für aktuellen Entwicklungsstand |
+| Docker-CUPS Image | GitHub Actions baut es, einschließlich neuem Status-Kommandofilter | Keine bestätigte Hardwarefreigabe für aktuellen Entwicklungsstand |
 
 Bei der **gelben 88-mm-Kassette** wurden **49–51 mm statt 60 mm** beobachtet; ein späterer 100-mm-Test blieb nach Teil der ersten Druckzeile stehen. Die Ursache ist nicht bewiesen. Der Treiber darf den Auftrag bei unsicherem Übertragungsstand nicht blind wiederholen.
 

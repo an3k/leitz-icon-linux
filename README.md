@@ -81,7 +81,13 @@ The development-branch CUPS queue has `LeitzProtocol`: `Current` (**default; exi
 
 ## Original Linux protocol validation (offline only)
 
-The original Linux 1.0.3 raw-reference framing is checked independently with `leitz-cli validate-native file.bin`; the existing hardware-tested dialect remains `leitz-cli validate file.bin`. The reference encoder has been corrected to **omit an end-of-page flush of trailing blank rows**, as observed in the original source. `make native-reference-test` includes both binary frame tests and rejection of native frames by the production validator. The development CUPS raster filter now selects the native dialect explicitly, and the USB backend validates its frames; physical verification is outstanding.
+The original Linux 1.0.3 raw-reference framing is checked independently with `leitz-cli validate-native file.bin`; the existing hardware-tested dialect remains `leitz-cli validate file.bin`. The standalone vendor-reference encoder omits trailing blank rows as observed in the original source; the production `NativeLinux103` path now explicitly flushes those rows for variable-length roll/custom labels. This fixes the missing encoded feed, but its mechanical length is not yet hardware-verified. `make native-reference-test` includes both binary frame tests and rejection of native frames by the production validator. The development CUPS raster filter now selects the native dialect explicitly, and the USB backend validates its frames; physical verification is outstanding.
+
+## Additional production-path functionality (development branch)
+
+- The CUPS PPD now offers `ColorModel=Gray8` with selectable `LeitzDither=Bayer4` or `Threshold`. Both render 8-bit CUPS DeviceK/DeviceGray to the existing one-bit device language; the original `ColorModel=Black` route remains unchanged. The proprietary macOS algorithms are not claimed to be identical.
+- `cups/leitz-command` supports CUPS maintenance command `ReportStatus`. It passes a tightly restricted internal status request to the exclusive `leitzusb` backend, which issues `ESC A` without printing or cutting. This is an **on-demand idle status query**, not a completion signal or automatic recovery mechanism. Build, PPD and offline filter tests have passed; hardware validation is still outstanding.
+- The backend and raster validators reject malformed or blank printer commands before USB transfer. The verified `Current` encoder bytes are preserved.
 
 ## Manual device status probe (development branch only)
 
