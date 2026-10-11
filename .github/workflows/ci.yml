@@ -1,4 +1,4 @@
-name: Driver – Build
+name: Build standalone Leitz Icon CUPS driver
 on:
   push:
     branches: [driver]

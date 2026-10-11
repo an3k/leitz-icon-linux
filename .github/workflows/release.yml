@@ -1,4 +1,4 @@
-name: Driver – Release
+name: Publish tagged standalone Linux driver
 on:
   push:
     tags:
