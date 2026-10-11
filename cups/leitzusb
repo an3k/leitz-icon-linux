@@ -47,7 +47,10 @@ tmp=$(mktemp "${TMPDIR:-/tmp}/leitzjob.XXXXXXXX") || exit 4
 trap 'rm -f -- "$tmp"' EXIT
 if (($# == 6)); then cp -- "$6" "$tmp" || exit 4; else cat > "$tmp" || exit 4;fi
 size=$(stat -c %s -- "$tmp")
-if ((size < 130 || size > 25000000)); then
+# 64 pages of at most 64000 rows of 960 bits can exceed 25 MB.
+# Match the bounded capacity of the modular backend.
+max_job_bytes=$((544 * 1024 * 1024))
+if ((size < 130 || size > max_job_bytes)); then
   echo "ERROR: Suspicious job length $size; not sent" >&2; exit 4
 fi
 "$LEITZ_VALIDATE_BIN" validate "$tmp" || { echo 'ERROR: Rejected invalid Leitz job' >&2;exit 4; }
@@ -72,7 +75,11 @@ fi
 [[ -c "$usb_device" ]] || { echo 'ERROR: USB printer missing' >&2; exit 4; }
 exec 3<>"$usb_device" || { echo 'ERROR: Cannot access Leitz USB printer' >&2;exit 4; }
 printf '\033U' >&3 || { echo 'ERROR: ESC U failed' >&2;exit 4; }
-IFS= read -r -d '' -t 3 response <&3 || { echo 'ERROR: No status response' >&2;exit 4; }
+# ESC U replies need not contain NUL. A timeout may leave a complete
+# response; only the strict full-message parser below may accept it.
+response=''
+IFS= read -r -d '' -n 1024 -t 5 response <&3 || :
+[[ -n "$response" ]] || { echo 'ERROR: No cartridge response' >&2;exit 4; }
 if [[ "$response" == 'SKU:No Cartridge;;;' ]]; then
   echo 'ERROR: No cartridge; job blocked' >&2;exit 4
 fi
@@ -112,8 +119,21 @@ if ((job_width>physical_width)); then
   echo "ERROR: Selected print width $job_width pixels exceeds cartridge print width $physical_width pixels (SKU $actual_sku)" >&2
   exit 4
 fi
-# A successful write means that the kernel accepted bytes, not necessarily
-# that all labels finished printing. An error must never trigger blind retry.
+# Check a confirmed ready reply on the same open descriptor immediately
+# before sending. An unrecognized state must block delivery.
+printf '\033A' >&3 || { echo 'ERROR: ESC A request failed' >&2; exit 4; }
+IFS= read -r -N 1 -t 5 status_byte <&3 || {
+  echo 'ERROR: Missing ESC A ready status; job not sent' >&2;exit 4;
+}
+[[ ${#status_byte} == 1 ]] || { echo 'ERROR: Empty ESC A reply' >&2; exit 4; }
+printf -v status_code '%d' "'$status_byte"
+if (( status_code != 3 )); then
+  printf -v status_hex '0x%02X' "$status_code"
+  echo "ERROR: Printer not ready: ESC A status $status_hex" >&2
+  exit 4
+fi
+# Successful USB writes are not evidence of mechanical completion.
+# Never automatically replay a possibly partly printed job.
 if ! cat -- "$tmp" >&3; then echo 'ERROR: USB transfer failed; inspect device before retry' >&2;exit 4;fi
 exec 3>&-
 echo 'INFO: Leitz job transmitted (physical completion not confirmed)' >&2

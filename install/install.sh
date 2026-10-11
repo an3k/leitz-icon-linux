@@ -19,4 +19,17 @@ copy 0755 usr/lib/cups/filter/leitz-rastertoicon "$CUPS_SERVERBIN/filter/leitz-r
 copy 0700 usr/lib/cups/backend/leitzusb "$CUPS_SERVERBIN/backend/leitzusb"
 copy 0755 usr/local/bin/leitz-status /usr/local/bin/leitz-status
 copy 0644 usr/share/ppd/LeitzIcon.ppd /usr/share/ppd/LeitzIcon.ppd
+# Reconfigure only queues actually using our USB backend. Installing a newer
+# PPD into /usr/share/ppd alone does not update /etc/cups/ppd/<queue>.ppd.
+# Staged package verification (DESTDIR) and offline image builds do not touch
+# printer queues. lpadmin is the supported CUPS queue update operation.
+if [[ -z "$DESTDIR" ]] && command -v lpstat >/dev/null 2>&1 &&
+   command -v lpadmin >/dev/null 2>&1 &&
+   lpstat -r 2>/dev/null | grep -qx 'scheduler is running'; then
+  while IFS= read -r queue; do
+    [[ -n "$queue" ]] || continue
+    lpadmin -p "$queue" -P /usr/share/ppd/LeitzIcon.ppd
+    echo "Updated active CUPS PPD for Leitz queue: $queue"
+  done < <(LC_ALL=C lpstat -v | sed -n 's/^device for \([^:]*\): leitzusb:.*/\1/p')
+fi
 echo 'Driver installed. Add the Leitz Icon with the existing CUPS administration interface.'
