@@ -8,7 +8,7 @@ static void check(unsigned dpi){
  assert(ops);
  FILE *f=tmpfile();assert(f);
  void *state=calloc(1,ops->state_size);assert(state);
- leitz_page page={16,4,4,0,0,2,dpi};
+ leitz_page page={16,4,4,0,0,2,dpi,0};
  assert(ops->begin(state,f,&page,1)==0);
  const uint8_t white[16]={0};
  uint8_t ink[16]={0};
