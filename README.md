@@ -9,7 +9,7 @@ The product implementation lives separately on the `driver` branch.
 - `integration/`: raster, media, CUPS and protocol availability checks.
 - `mocks/`: synthetic CUPS raster interface.
 - `Makefile`: standalone verification targets.
-- `.github/workflows/ci.yml`: checks out the `driver` branch and this
+- `.github/workflows/tests-verification.yml`: checks out the `driver` branch and this
   suite separately, staging them together **only in a temporary CI workspace**.
 
 No production implementation files are tracked on this branch.
