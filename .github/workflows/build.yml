@@ -47,6 +47,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish immutable experimental image tag
         run: |
-          image="ghcr.io/${GITHUB_REPOSITORY,,}-cups:main-${RELEASE_SHA:0:12}"
+          source cups/source.lock
+          image="ghcr.io/${GITHUB_REPOSITORY,,}-cups:main-${RELEASE_SHA:0:12}-cups-${SOURCE_DIGEST:7:12}"
           docker tag leitz-cups-complete:build "$image"
           docker push "$image"
