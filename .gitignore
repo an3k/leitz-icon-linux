@@ -2,6 +2,7 @@
 leitz-cli
 leitz-rastertoicon
 leitz-rastertoicon-mock
+leitz-probe
 *.o
 __pycache__/
 *.pyc
