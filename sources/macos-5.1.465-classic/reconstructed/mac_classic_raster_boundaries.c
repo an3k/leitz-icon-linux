@@ -14,6 +14,19 @@ size_t mac_classic_start_document(int high_resolution, uint8_t out[124]) {
   return 124;
 }
 
+size_t mac_classic_start_page(uint16_t raster_width, uint16_t raster_height,
+                              int high_resolution, uint8_t out[11]) {
+  if (!out) return 0;
+  unsigned length=((unsigned)raster_height+(high_resolution?60u:30u)) /
+                  (high_resolution?2u:1u);
+  out[0]=0x1b; out[1]=(uint8_t)'L';
+  out[2]=(uint8_t)(length>>8); out[3]=(uint8_t)length;
+  out[4]=0x1b; out[5]=(uint8_t)'w';
+  out[6]=(uint8_t)(raster_width>>8); out[7]=(uint8_t)raster_width;
+  out[8]=0x1b; out[9]=(uint8_t)'B'; out[10]=0;
+  return 11;
+}
+
 size_t mac_classic_end_page(int cut_every_label, uint8_t out[4]) {
   if (!out) return 0;
   out[0] = 0x1b; out[1] = (uint8_t)'G';
