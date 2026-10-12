@@ -39,8 +39,9 @@
 *cupsFilter: "application/vnd.cups-command 0 leitz-command"
 *% Original macOS cupsCommands: GetPrinterStatus GetUnitedStatus GetFirmwareVersion ReportState
 *% GetPrinterStatus and ReportStatus use ESC A; GetFirmwareVersion uses ESC V; ESC u 00 belongs to the separate Icon 900 Pro Turbo/V3 family.
-*% GetUnitedStatus and ReportState remain unverified and unavailable.
-*cupsCommands: "ReportStatus GetPrinterStatus GetFirmwareVersion"
+*% GetUnitedStatus=ESC U is verified in both original macOS command filters.
+*% ReportState remains unverified and is not advertised.
+*cupsCommands: "ReportStatus GetPrinterStatus GetUnitedStatus GetFirmwareVersion"
 *% The printer has no verified hardware copy-generation command.
 *% The upstream CUPS RIP must produce complete raster pages for each copy.
 *cupsManualCopies: True

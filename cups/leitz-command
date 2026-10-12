@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# CUPS command-file filter: ReportStatus/GetPrinterStatus (ESC A) and
-# GetFirmwareVersion (ESC V). No print, cut, Wi-Fi, or boot-mode commands.
+# CUPS command-file filter: read-only original Icon commands.
+# ReportStatus/GetPrinterStatus=ESC A, GetUnitedStatus=ESC U,
+# GetFirmwareVersion=ESC V. Never prints, cuts, changes Wi-Fi or boot mode.
 set -euo pipefail
 LC_ALL=C
 if (( $# != 5 && $# != 6 )); then
@@ -43,7 +44,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   read -r command argument <<< "$line"
   case "$command" in
     ReportStatus|GetPrinterStatus) command=ReportStatus ;;
-    GetFirmwareVersion) ;;
+    GetUnitedStatus|GetFirmwareVersion) ;;
     *) echo 'ERROR: Unsupported Leitz CUPS maintenance command' >&2; exit 1 ;;
   esac
   if [[ -n "$argument" || ( -n "$request" && "$request" != "$command" ) ]]; then
@@ -61,5 +62,6 @@ fi
 # are transmitted by this filter. Multiple identical queries are coalesced.
 case "$request" in
   ReportStatus) printf 'LEITZ-CMD-V1:REPORT_STATUS\n' ;;
+  GetUnitedStatus) printf 'LEITZ-CMD-V1:GET_UNITED_STATUS\n' ;;
   GetFirmwareVersion) printf 'LEITZ-CMD-V1:GET_FIRMWARE_VERSION\n' ;;
 esac

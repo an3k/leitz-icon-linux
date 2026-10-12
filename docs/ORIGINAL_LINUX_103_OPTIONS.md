@@ -127,3 +127,14 @@ The two label-template archives were inventoried. Their LeitzLbl
 files are application-level label layouts (not printer raster
 encoders); the CUPS raster filter accepts output from those apps.
 No template-to-PPD assumptions are made.
+
+## Read-only CUPS United Status (original macOS)
+
+In both uploaded macOS `command2leitz` and `command2leitzV3` Mach-O
+executables, the original function `GetUnitedStatus` passes opcode `U`
+to `GetStatus`. `GetPrinterStatus` uses `A`, and
+`GetFirmvareVersion` (vendor spelling) uses `V`. The backend now
+recognizes these three original read-only operations and validates the
+known `SKU:...;INIT:...;USED:...;` reply format. This is not a
+mechanical-completion or hardware qualification claim. Network/Wi-Fi
+write operations and boot mode are not exposed.

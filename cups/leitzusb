@@ -79,6 +79,8 @@ if cmp -s "$tmp" <(printf 'LEITZ-CMD-V1:REPORT_STATUS\n'); then
   control_request=1;control_kind=status
 elif cmp -s "$tmp" <(printf 'LEITZ-CMD-V1:GET_FIRMWARE_VERSION\n'); then
   control_request=1;control_kind=firmware
+elif cmp -s "$tmp" <(printf 'LEITZ-CMD-V1:GET_UNITED_STATUS\n'); then
+  control_request=1;control_kind=united
 fi
 # The raster filter supports up to 64 pages, each with up to 64000
 # rows of 960 pixels. A valid multi-page job can exceed 25 MB by far.
@@ -119,9 +121,28 @@ fi
 }
 exec 3<>"$usb_device" || { echo 'ERROR: Cannot open Leitz USB printer (busy or inaccessible)' >&2;exit 4; }
 if (( control_request )); then
-  # Original Icon: ESC A=status and ESC V=firmware.
+  # Original Icon: ESC A=status, ESC U=cassette/united, ESC V=firmware.
   # ESC u 00, Wi-Fi writes, and boot mode belong to the V3 printer family,
   # identified in the supplied macOS LeitzIconV3.drv as 900 Pro Turbo.
+  if [[ "$control_kind" == united ]]; then
+    # Verified in the original macOS command2leitz and command2leitzV3:
+    # GetUnitedStatus sends ESC U and reads a device response.
+    printf '\033U' >&3 || { echo 'ERROR: ESC U command failed' >&2; exit 4; }
+    data=''
+    IFS= read -r -d '' -n 1024 -t 5 data <&3 || :
+    if [[ "$data" == 'SKU:No Cartridge;;;' ]]; then
+      echo 'STATE: +media-empty +com.leitz.no-cartridge-error' >&2
+      echo 'WARNING: Leitz UnitedStatus: no cassette installed' >&2
+    elif [[ "$data" =~ ^SKU:([0-9]{8,9})\;INIT:([0-9]+)\;USED:([0-9]+)\;$ ]]; then
+      echo 'STATE: -media-empty -com.leitz.no-cartridge-error' >&2
+      echo "INFO: Leitz UnitedStatus SKU=${BASH_REMATCH[1]} INIT=${BASH_REMATCH[2]} USED=${BASH_REMATCH[3]}" >&2
+    else
+      echo 'ERROR: ESC U returned an unrecognized or incomplete cassette status' >&2
+      exit 4
+    fi
+    exec 3>&-
+    exit 0
+  fi
   if [[ "$control_kind" == firmware ]]; then
     printf '\033V' >&3 || exit 4
     data=''
@@ -142,14 +163,18 @@ if (( control_request )); then
   printf -v status_code '%d' "'$status_byte"
   printf -v status_hex '0x%02X' "$status_code"
   case "$status_code" in
-    3) echo 'STATE: -media-empty -media-jam' >&2
+    3) echo 'STATE: -media-empty -media-jam +com.leitz.ready -com.leitz.out-of-paper-error -com.leitz.head-overheat-error -com.leitz.door-open-error -com.leitz.busy-error' >&2
        echo 'INFO: Leitz ESC A status 0x03 (ready)' >&2 ;;
-    32) echo 'STATE: +media-empty' >&2
-        echo "WARNING: Leitz ESC A legacy media-empty ($status_hex)" >&2 ;;
-    48) echo 'STATE: +media-jam' >&2
-        echo "WARNING: Leitz ESC A legacy paper-jam ($status_hex)" >&2 ;;
-    64) echo "WARNING: Leitz ESC A legacy general error ($status_hex)" >&2 ;;
-    *) echo "WARNING: Leitz ESC A status $status_hex is not decoded; no printer-ready claim" >&2 ;;
+    32) echo 'STATE: -com.leitz.ready +media-empty +com.leitz.out-of-paper-error' >&2
+        echo "WARNING: Leitz ESC A media empty ($status_hex)" >&2 ;;
+    4) echo 'STATE: -com.leitz.ready +com.leitz.door-open-error' >&2
+       echo "WARNING: Leitz ESC A door open ($status_hex)" >&2 ;;
+    8) echo 'STATE: -com.leitz.ready +com.leitz.general-error' >&2
+       echo "WARNING: Leitz ESC A cutter jam per original Python decoder ($status_hex)" >&2 ;;
+    16) echo 'STATE: -com.leitz.ready +com.leitz.head-overheat-error' >&2
+        echo "WARNING: Leitz ESC A printhead overheat per original Python decoder ($status_hex)" >&2 ;;
+    48|64) echo "WARNING: Leitz ESC A status $status_hex is ambiguous across original legacy/macOS and vendor Python decoders; not marked ready" >&2 ;;
+    *) echo "WARNING: Leitz ESC A status $status_hex is not reliably decoded; no printer-ready claim" >&2 ;;
   esac
   exec 3>&-
   exit 0
