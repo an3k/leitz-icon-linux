@@ -1,0 +1,283 @@
+/mnt/data/leitz_mac_classic_analysis/raster2printer:
+
+SYMBOL TABLE:
+0000000000000000      d  *UND* /Volumes/hfsbuild/leitzicon-mac/PinterDriver/SampleRaster&Dymo/Leitz/
+0000000000000000      d  *UND* raster_c_functions.c
+00000000636a26a1      d  *UND* /Users/build/Library/Developer/Xcode/DerivedData/LeitzIcon-fhlsjxfcqaoqafekfsruqeowcorf/Build/Intermediates.noindex/LeitzIcon.build/Debug/raster2printer.build/Objects-normal/x86_64/raster_c_functions.o
+0000000100001450      d  *UND* 
+0000000100001450      d  *UND* _WriteData
+00000000000001a0      d  *UND* 
+00000000000001a0      d  *UND* 
+00000001000015f0      d  *UND* 
+00000001000015f0      d  *UND* _FlushDataStreams
+0000000000000040      d  *UND* 
+0000000000000040      d  *UND* 
+0000000100001630      d  *UND* 
+0000000100001630      d  *UND* _is_bit_set
+0000000000000030      d  *UND* 
+0000000000000030      d  *UND* 
+0000000100001660      d  *UND* 
+0000000100001660      d  *UND* _OpenDebugFile
+00000000000002b0      d  *UND* 
+00000000000002b0      d  *UND* 
+0000000100001910      d  *UND* 
+0000000100001910      d  *UND* _OpenLogFile
+0000000000000230      d  *UND* 
+0000000000000230      d  *UND* 
+0000000100001b40      d  *UND* 
+0000000100001b40      d  *UND* _SendDebugFileToPrinter
+00000000000002d0      d  *UND* 
+00000000000002d0      d  *UND* 
+0000000100001e10      d  *UND* 
+0000000100001e10      d  *UND* _CloseDebugFile
+0000000000000040      d  *UND* 
+0000000000000040      d  *UND* 
+0000000100001e50      d  *UND* 
+0000000100001e50      d  *UND* _CloseLogFile
+0000000000000040      d  *UND* 
+0000000000000040      d  *UND* 
+0000000100001e90      d  *UND* 
+0000000100001e90      d  *UND* _WriteDebugBuffer
+0000000000000060      d  *UND* 
+0000000000000060      d  *UND* 
+0000000100001ef0      d  *UND* 
+0000000100001ef0      d  *UND* _output_cups_info
+0000000000001d70      d  *UND* 
+0000000000001d70      d  *UND* 
+0000000100003c60      d  *UND* 
+0000000100003c60      d  *UND* _test_raster
+00000000000001f0      d  *UND* 
+00000000000001f0      d  *UND* 
+0000000100003e50      d  *UND* 
+0000000100003e50      d  *UND* _PrintPageDebugInfo
+00000000000005ca      d  *UND* 
+00000000000005ca      d  *UND* 
+0000000000000000      d  *UND* _ESC
+0000000000000000      d  *UND* _SYN
+0000000000000000      d  *UND* _SYN_COMPRESSED_RASTER
+0000000000000000      d  *UND* __fd_err
+0000000000000000      d  *UND* __fd_dump
+0000000000000000      d  *UND* __fd_log
+0000000000000000      d  *UND* __fd_stdout
+0000000000000000      d  *UND* _dbgprn_filename
+0000000000000000      d  *UND* _log_filename
+0000000000000000      d  *UND* 
+0000000000000000      d  *UND* /Volumes/hfsbuild/leitzicon-mac/PinterDriver/SampleRaster&Dymo/Leitz/
+0000000000000000      d  *UND* raster2printer.c
+00000000636a26a2      d  *UND* /Users/build/Library/Developer/Xcode/DerivedData/LeitzIcon-fhlsjxfcqaoqafekfsruqeowcorf/Build/Intermediates.noindex/LeitzIcon.build/Debug/raster2printer.build/Objects-normal/x86_64/raster2printer.o
+0000000100004420      d  *UND* 
+0000000100004420      d  *UND* __Z14signal_handleri
+0000000000000040      d  *UND* 
+0000000000000040      d  *UND* 
+0000000100004460      d  *UND* 
+0000000100004460      d  *UND* _main
+0000000000000110      d  *UND* 
+0000000000000110      d  *UND* 
+0000000100004570      d  *UND* 
+0000000100004570      d  *UND* __ZL7strrchrUa9enable_ifIXLb1EEEPKci
+0000000000000000      d  *UND* /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/string.h
+0000000000000030      d  *UND* 
+0000000000000030      d  *UND* 
+00000001000045a0      d  *UND* 
+00000001000045a0      d  *UND* _raster2printer
+00000000000022f0      d  *UND* 
+00000000000022f0      d  *UND* 
+0000000100006890      d  *UND* 
+0000000100006890      d  *UND* _StartDocument
+0000000000000540      d  *UND* 
+0000000000000540      d  *UND* 
+0000000100006dd0      d  *UND* 
+0000000100006dd0      d  *UND* _DitherPage
+00000000000005b0      d  *UND* 
+00000000000005b0      d  *UND* 
+0000000100007380      d  *UND* 
+0000000100007380      d  *UND* _StartPage
+00000000000001e0      d  *UND* 
+00000000000001e0      d  *UND* 
+0000000100007560      d  *UND* 
+0000000100007560      d  *UND* _ProcessPage
+0000000000001450      d  *UND* 
+0000000000001450      d  *UND* 
+00000001000089b0      d  *UND* 
+00000001000089b0      d  *UND* _EndPage
+0000000000000110      d  *UND* 
+0000000000000110      d  *UND* 
+0000000100008ac0      d  *UND* 
+0000000100008ac0      d  *UND* _EndDocument
+0000000000000230      d  *UND* 
+0000000000000230      d  *UND* 
+0000000100008cf0      d  *UND* 
+0000000100008cf0      d  *UND* __ZL6strstrUa9enable_ifIXLb1EEEPcPKc
+0000000000000030      d  *UND* 
+0000000000000030      d  *UND* 
+0000000100008d20      d  *UND* 
+0000000100008d20      d  *UND* _ReadPage
+0000000000000470      d  *UND* 
+0000000000000470      d  *UND* 
+0000000100009190      d  *UND* 
+0000000100009190      d  *UND* _CheckPrinterStatus
+00000000000008a0      d  *UND* 
+00000000000008a0      d  *UND* 
+0000000100009a30      d  *UND* 
+0000000100009a30      d  *UND* _ResolveDeviceURI
+00000000000005b0      d  *UND* 
+00000000000005b0      d  *UND* 
+0000000100009fe0      d  *UND* 
+0000000100009fe0      d  *UND* __ZL12_OSSwapInt16t
+0000000000000000      d  *UND* /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk/usr/include/libkern/i386/_OSByteOrder.h
+0000000000000030      d  *UND* 
+0000000000000030      d  *UND* 
+000000010000a010      d  *UND* 
+000000010000a010      d  *UND* __ZL16__libcpp_strrchrPKci
+0000000000000030      d  *UND* 
+0000000000000030      d  *UND* 
+000000010000a040      d  *UND* 
+000000010000a040      d  *UND* __ZL15__libcpp_strstrPKcS0_
+0000000000000023      d  *UND* 
+0000000000000023      d  *UND* 
+000000010000c230      d  *UND* __ZL4sock
+000000010000c240      d  *UND* __ZL9supercell
+000000010000c340      d  *UND* __ZL8bayer4x4
+000000010000c380      d  *UND* __ZL8bayer8x8
+000000010000c480      d  *UND* __ZL13CUPSthreshold
+0000000100010480      d  *UND* __ZL16orderedSuperCell
+0000000100010990      d  *UND* __ZL15reorderedBayer3
+0000000100010bd0      d  *UND* __ZL10supercell1
+0000000100010c60      d  *UND* __ZL14reorderedBayer
+0000000100010f10      d  *UND* __ZL10bayer14x14
+0000000100011220      d  *UND* __ZL12clustered8x8
+0000000100011320      d  *UND* __ZL12dispersed8x8
+0000000100011420      d  *UND* __ZL8nasik4x4
+0000000100011460      d  *UND* __ZL12dithering3x3
+0000000000000000      d  *UND* _terminate_flag
+0000000100011cd8      d  *UND* __ZL8job_size
+0000000100011cdc      d  *UND* __ZZ11ProcessPageE26bytesPrintedInPreviousLine
+0000000100011ce0      d  *UND* __ZL12resolved_uri
+0000000000000000      d  *UND* 
+0000000100004570 l     F __TEXT,__text __ZL7strrchrUa9enable_ifIXLb1EEEPKci
+0000000100008cf0 l     F __TEXT,__text __ZL6strstrUa9enable_ifIXLb1EEEPcPKc
+0000000100009fe0 l     F __TEXT,__text __ZL12_OSSwapInt16t
+000000010000a010 l     F __TEXT,__text __ZL16__libcpp_strrchrPKci
+000000010000a040 l     F __TEXT,__text __ZL15__libcpp_strstrPKcS0_
+000000010000c000 l     O __DATA,__program_vars _pvars
+000000010000c230 l     O __DATA,__data __ZL4sock
+000000010000c240 l     O __DATA,__data __ZL9supercell
+000000010000c340 l     O __DATA,__data __ZL8bayer4x4
+000000010000c380 l     O __DATA,__data __ZL8bayer8x8
+000000010000c480 l     O __DATA,__data __ZL13CUPSthreshold
+0000000100010480 l     O __DATA,__data __ZL16orderedSuperCell
+0000000100010990 l     O __DATA,__data __ZL15reorderedBayer3
+0000000100010bd0 l     O __DATA,__data __ZL10supercell1
+0000000100010c60 l     O __DATA,__data __ZL14reorderedBayer
+0000000100010f10 l     O __DATA,__data __ZL10bayer14x14
+0000000100011220 l     O __DATA,__data __ZL12clustered8x8
+0000000100011320 l     O __DATA,__data __ZL12dispersed8x8
+0000000100011420 l     O __DATA,__data __ZL8nasik4x4
+0000000100011460 l     O __DATA,__data __ZL12dithering3x3
+0000000100011cd8 l     O __DATA,__bss __ZL8job_size
+0000000100011cdc l     O __DATA,__bss __ZZ11ProcessPageE26bytesPrintedInPreviousLine
+0000000100011ce0 l     O __DATA,__bss __ZL12resolved_uri
+0000000100009190 g     F __TEXT,__text _CheckPrinterStatus
+0000000100001e10 g     F __TEXT,__text _CloseDebugFile
+0000000100001e50 g     F __TEXT,__text _CloseLogFile
+0000000100006dd0 g     F __TEXT,__text _DitherPage
+000000010000a438 g     O __TEXT,__const _ESC
+0000000100008ac0 g     F __TEXT,__text _EndDocument
+00000001000089b0 g     F __TEXT,__text _EndPage
+00000001000015f0 g     F __TEXT,__text _FlushDataStreams
+0000000100011490 g     O __DATA,__common _NXArgc
+0000000100011498 g     O __DATA,__common _NXArgv
+0000000100001660 g     F __TEXT,__text _OpenDebugFile
+0000000100001910 g     F __TEXT,__text _OpenLogFile
+0000000100003e50 g     F __TEXT,__text _PrintPageDebugInfo
+0000000100007560 g     F __TEXT,__text _ProcessPage
+0000000100008d20 g     F __TEXT,__text _ReadPage
+0000000100009a30 g     F __TEXT,__text _ResolveDeviceURI
+000000010000a439 g     O __TEXT,__const _SYN
+000000010000a43a g     O __TEXT,__const _SYN_COMPRESSED_RASTER
+0000000100001b40 g     F __TEXT,__text _SendDebugFileToPrinter
+0000000100006890 g     F __TEXT,__text _StartDocument
+0000000100007380 g     F __TEXT,__text _StartPage
+0000000100001450 g     F __TEXT,__text _WriteData
+0000000100001e90 g     F __TEXT,__text _WriteDebugBuffer
+0000000100004420 g     F __TEXT,__text __Z14signal_handleri
+00000001000114a8 g     O __DATA,__common ___progname
+00000001000114b8 g     O __DATA,__common __fd_dump
+00000001000114b0 g     O __DATA,__common __fd_err
+00000001000114c0 g     O __DATA,__common __fd_log
+00000001000114c8 g     O __DATA,__common __fd_stdout
+0000000100000000 g     F __TEXT,__text __mh_execute_header
+00000001000114d0 g     O __DATA,__common _dbgprn_filename
+00000001000114a0 g     O __DATA,__common _environ
+0000000100001630 g     F __TEXT,__text _is_bit_set
+00000001000118d0 g     O __DATA,__common _log_filename
+0000000100004460 g     F __TEXT,__text _main
+0000000100001ef0 g     F __TEXT,__text _output_cups_info
+00000001000045a0 g     F __TEXT,__text _raster2printer
+0000000100011cd0 g     O __DATA,__common _terminate_flag
+0000000100003c60 g     F __TEXT,__text _test_raster
+0000000100001410 g     F __TEXT,__text start
+0000000000000000         *UND* ___error
+0000000000000000         *UND* ___snprintf_chk
+0000000000000000         *UND* ___sprintf_chk
+0000000000000000         *UND* ___stack_chk_fail
+0000000000000000         *UND* ___stack_chk_guard
+0000000000000000         *UND* ___stderrp
+0000000000000000         *UND* ___stdoutp
+0000000000000000         *UND* _atoi
+0000000000000000         *UND* _calloc
+0000000000000000         *UND* _chmod
+0000000000000000         *UND* _close
+0000000000000000         *UND* _connect
+0000000000000000         *UND* _cupsBackChannelRead
+0000000000000000         *UND* _cupsBackendDeviceURI
+0000000000000000         *UND* _cupsFreeOptions
+0000000000000000         *UND* _cupsMarkOptions
+0000000000000000         *UND* _cupsParseOptions
+0000000000000000         *UND* _cupsRasterClose
+0000000000000000         *UND* _cupsRasterOpen
+0000000000000000         *UND* _cupsRasterReadHeader2
+0000000000000000         *UND* _cupsRasterReadPixels
+0000000000000000         *UND* _exit
+0000000000000000         *UND* _fclose
+0000000000000000         *UND* _fflush
+0000000000000000         *UND* _fgetc
+0000000000000000         *UND* _fopen
+0000000000000000         *UND* _fprintf
+0000000000000000         *UND* _fputc
+0000000000000000         *UND* _free
+0000000000000000         *UND* _fwrite
+0000000000000000         *UND* _getenv
+0000000000000000         *UND* _gethostbyname
+0000000000000000         *UND* _herror
+0000000000000000         *UND* _httpSeparateURI
+0000000000000000         *UND* _inet_addr
+0000000000000000         *UND* _inet_ntoa
+0000000000000000         *UND* _malloc
+0000000000000000         *UND* _memcpy
+0000000000000000         *UND* _memset
+0000000000000000         *UND* _mkdir
+0000000000000000         *UND* _open
+0000000000000000         *UND* _perror
+0000000000000000         *UND* _ppdClose
+0000000000000000         *UND* _ppdFindMarkedChoice
+0000000000000000         *UND* _ppdMarkDefaults
+0000000000000000         *UND* _ppdMarkOption
+0000000000000000         *UND* _ppdOpenFile
+0000000000000000         *UND* _ppdPageLength
+0000000000000000         *UND* _ppdPageSize
+0000000000000000         *UND* _ppdPageWidth
+0000000000000000         *UND* _putchar
+0000000000000000         *UND* _recv
+0000000000000000         *UND* _send
+0000000000000000         *UND* _setbuf
+0000000000000000         *UND* _signal
+0000000000000000         *UND* _sleep
+0000000000000000         *UND* _socket
+0000000000000000         *UND* _strcasecmp
+0000000000000000         *UND* _strcmp
+0000000000000000         *UND* _strcpy
+0000000000000000         *UND* _strlen
+0000000000000000         *UND* _strrchr
+0000000000000000         *UND* _strstr
+0000000000000000         *UND* dyld_stub_binder
