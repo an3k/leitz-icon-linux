@@ -1,1 +1,409 @@
-No readable content was found in this file for the requested mode.
+*PPD-Adobe: "4.3"
+*%%%% PPD file for Icon with CUPS.
+*%%%% Created by the CUPS PPD Compiler CUPS v2.1.0.
+*% Copyright (c) 2014, Esselte IPR AB
+*FormatVersion: "4.3"
+*FileVersion: "1.2.171"
+*LanguageVersion: English
+*LanguageEncoding: ISOLatin1
+*PCFileName: "LeitzIcon.ppd"
+*Product: "(Leitz Icon)"
+*Manufacturer: "Leitz"
+*ModelName: "Leitz Icon"
+*ShortNickName: "Leitz Icon"
+*NickName: "Leitz Icon, 1.2.171"
+*PSVersion: "(3010.000) 0"
+*LanguageLevel: "3"
+*ColorDevice: False
+*DefaultColorSpace: Gray
+*FileSystem: False
+*Throughput: "1"
+*LandscapeOrientation: Plus90
+*TTRasterizer: Type42
+*% Driver-defined attributes...
+*DeviceID: "Icon"
+*1284DeviceID: "MFG:Leitz;MDL:Icon"
+*cupsFilter: "application/vnd.cups-raster 100 raster2printer"
+*ContinuousPaperLength: "0"
+*ParamCustomPageSize Width: 1 points 35 249
+*ParamCustomPageSize Height: 2 points 79 7654
+*ParamCustomPageSize WidthOffset: 3 points 0 0
+*ParamCustomPageSize HeightOffset: 4 points 0 0
+*ParamCustomPageSize Orientation: 5 int 0 3
+*CustomPageSize True: ""
+*cupsIPPReason com.leitz.out-of-paper-error/Out of labels.: "help:anchor=changingInk%20bookID=Sample%20Raster%20Help"
+*cupsIPPReason com.leitz.read-error/Cannot read data from printer.: ""
+*cupsIPPReason com.leitz.ready/Printer is ready.: ""
+*cupsIPPReason com.leitz.general-error/General print error.: ""
+*cupsIPPReason com.leitz.head-overheat-error/Print head overheated.: ""
+*cupsIPPReason com.leitz.slot-status-error/Label path is blocked.: ""
+*cupsIPPReason com.leitz.busy-error/The printer is currently in use.: ""
+*cupsIPPReason com.leitz.paper-size-error/Label being printed does not match label width currently in printer.: ""
+*cupsIPPReason com.leitz.paper-size-undefine-error/Insert a label cassette in the printer.: ""
+*cupsVersion: 2.1
+*cupsModelNumber: 0
+*cupsManualCopies: True
+*cupsLanguages: "en en_UK"
+*OpenUI *PageSize/Media Size: PickOne
+*OrderDependency: 10 AnySetup *PageSize
+*DefaultPageSize: StandardAddressLabel
+*PageSize Multipurpose70030001/Multipurpose 2" x 3 1/2": "<</PageSize[249 144]/ImagingBBox null>>setpagedevice"
+*PageSize NameBadgeLabel70030001/Name Badge: "<</PageSize[249 168]/ImagingBBox null>>setpagedevice"
+*PageSize InternationalAddressLabel/International Address Label: "<</PageSize[249 102]/ImagingBBox null>>setpagedevice"
+*PageSize StandardAddressLabel/Standard Address Label: "<</PageSize[249 79]/ImagingBBox null>>setpagedevice"
+*PageSize ShippingLabel70180001/Shipping Label 2" x 3 1/2": "<</PageSize[249 142]/ImagingBBox null>>setpagedevice"
+*PageSize PackageShippingLabel/Package Label: "<</PageSize[249 432]/ImagingBBox null>>setpagedevice"
+*PageSize Continuous70030001/Continuous - 3 1/2": "<</PageSize[249 7654]/ImagingBBox null>>setpagedevice"
+*PageSize NameBadgeCard70190001Rotated/Name Badge Rotated: "<</PageSize[162 258]/ImagingBBox null>>setpagedevice"
+*PageSize ShippingLabel70180001Rotated/Shipping Label 2" x 3 1/2" Rotated: "<</PageSize[142 249]/ImagingBBox null>>setpagedevice"
+*PageSize Multipurpose70030001Rotated/Multipurpose 2" x 3 1/2" Rotated: "<</PageSize[144 249]/ImagingBBox null>>setpagedevice"
+*PageSize Continuous70190001/Continuous - 3 3/5": "<</PageSize[258 7654]/ImagingBBox null>>setpagedevice"
+*PageSize AppointmentCard/Appointment Card: "<</PageSize[258 144]/ImagingBBox null>>setpagedevice"
+*PageSize NameBadgeCard70190001/Name Badge Card: "<</PageSize[258 162]/ImagingBBox null>>setpagedevice"
+*PageSize NameBadgeCard8214/Durable Label: "<</PageSize[258 153]/ImagingBBox null>>setpagedevice"
+*PageSize Continuous70040001/Continuous - 2 2/5": "<</PageSize[173 7654]/ImagingBBox null>>setpagedevice"
+*PageSize Continuous70050001/Continuous - 2 1/5": "<</PageSize[162 7654]/ImagingBBox null>>setpagedevice"
+*PageSize Continuous70060001/Continuous - 2": "<</PageSize[142 7654]/ImagingBBox null>>setpagedevice"
+*PageSize Continuous70080001/Continuous - 1 1/4": "<</PageSize[91 7654]/ImagingBBox null>>setpagedevice"
+*PageSize Continuous70090001/Continuous - 1": "<</PageSize[71 7654]/ImagingBBox null>>setpagedevice"
+*PageSize Continuous70100001/Continuous - 3/4": "<</PageSize[54 7654]/ImagingBBox null>>setpagedevice"
+*PageSize Continuous70110001/Continuous - 1/2": "<</PageSize[35 7654]/ImagingBBox null>>setpagedevice"
+*PageSize Continuous112/Continuous - 1 1/2": "<</PageSize[111 7654]/ImagingBBox null>>setpagedevice"
+*PageSize ShippingLabel70130001/Shipping Label 2 1/3" x 4": "<</PageSize[167 289]/ImagingBBox null>>setpagedevice"
+*PageSize WideLeverArchLabelShort/Wide Lever Arch Label - Short: "<</PageSize[173 544]/ImagingBBox null>>setpagedevice"
+*PageSize WideLeverArchLabelLong/Wide Lever Arch Label - Long: "<</PageSize[173 808]/ImagingBBox null>>setpagedevice"
+*PageSize LargePendaflexTab/Large Pendaflex Tab: "<</PageSize[142 79]/ImagingBBox null>>setpagedevice"
+*PageSize LargePendaflexTabRotated/Large Pendaflex Tab Rotated: "<</PageSize[79 142]/ImagingBBox null>>setpagedevice"
+*PageSize NameBadgeLabel70060001/Name Badge Label: "<</PageSize[142 216]/ImagingBBox null>>setpagedevice"
+*PageSize NarrowLeverArchLabelShort/Narrow Lever Arch Label, Short: "<</PageSize[111 544]/ImagingBBox null>>setpagedevice"
+*PageSize NarrowLeverArchLabelLong/Narrow Lever Arch Label, Long: "<</PageSize[111 808]/ImagingBBox null>>setpagedevice"
+*PageSize Multipurpose70090001/Multipurpose 1" x 1 1/2": "<</PageSize[71 108]/ImagingBBox null>>setpagedevice"
+*PageSize ReturnAddressLabelLarge/Return Address Label, Large: "<</PageSize[71 153]/ImagingBBox null>>setpagedevice"
+*PageSize ReturnAddressLabelSmall/Return Address Label, Small: "<</PageSize[54 144]/ImagingBBox null>>setpagedevice"
+*PageSize Multipurpose70100001/Multipurpose 3/4" x 2 1/2": "<</PageSize[54 180]/ImagingBBox null>>setpagedevice"
+*PageSize Multipurpose70110001/Multipurpose 1/2" x 1 7/8": "<</PageSize[35 136]/ImagingBBox null>>setpagedevice"
+*PageSize FileFolderLabel/File Folder Label: "<</PageSize[35 252]/ImagingBBox null>>setpagedevice"
+*PageSize SuspensionFileLabel/Suspension File Label: "<</PageSize[35 144]/ImagingBBox null>>setpagedevice"
+*PageSize WideLeverArchCardShort/Wide Lever Arch Card - Short: "<</PageSize[162 539]/ImagingBBox null>>setpagedevice"
+*PageSize NarrowLeverArchCardShort/Narrow Lever Arch Card - Short: "<</PageSize[91 539]/ImagingBBox null>>setpagedevice"
+*PageSize LeitzLeverArchFile1005/Active File: "<</PageSize[142 312]/ImagingBBox null>>setpagedevice"
+*CloseUI: *PageSize
+*OpenUI *PageRegion/Media Size: PickOne
+*OrderDependency: 10 AnySetup *PageRegion
+*DefaultPageRegion: StandardAddressLabel
+*PageRegion Multipurpose70030001/Multipurpose 2" x 3 1/2": "<</PageSize[249 144]/ImagingBBox null>>setpagedevice"
+*PageRegion NameBadgeLabel70030001/Name Badge: "<</PageSize[249 168]/ImagingBBox null>>setpagedevice"
+*PageRegion InternationalAddressLabel/International Address Label: "<</PageSize[249 102]/ImagingBBox null>>setpagedevice"
+*PageRegion StandardAddressLabel/Standard Address Label: "<</PageSize[249 79]/ImagingBBox null>>setpagedevice"
+*PageRegion ShippingLabel70180001/Shipping Label 2" x 3 1/2": "<</PageSize[249 142]/ImagingBBox null>>setpagedevice"
+*PageRegion PackageShippingLabel/Package Label: "<</PageSize[249 432]/ImagingBBox null>>setpagedevice"
+*PageRegion Continuous70030001/Continuous - 3 1/2": "<</PageSize[249 7654]/ImagingBBox null>>setpagedevice"
+*PageRegion NameBadgeCard70190001Rotated/Name Badge Rotated: "<</PageSize[162 258]/ImagingBBox null>>setpagedevice"
+*PageRegion ShippingLabel70180001Rotated/Shipping Label 2" x 3 1/2" Rotated: "<</PageSize[142 249]/ImagingBBox null>>setpagedevice"
+*PageRegion Multipurpose70030001Rotated/Multipurpose 2" x 3 1/2" Rotated: "<</PageSize[144 249]/ImagingBBox null>>setpagedevice"
+*PageRegion Continuous70190001/Continuous - 3 3/5": "<</PageSize[258 7654]/ImagingBBox null>>setpagedevice"
+*PageRegion AppointmentCard/Appointment Card: "<</PageSize[258 144]/ImagingBBox null>>setpagedevice"
+*PageRegion NameBadgeCard70190001/Name Badge Card: "<</PageSize[258 162]/ImagingBBox null>>setpagedevice"
+*PageRegion NameBadgeCard8214/Durable Label: "<</PageSize[258 153]/ImagingBBox null>>setpagedevice"
+*PageRegion Continuous70040001/Continuous - 2 2/5": "<</PageSize[173 7654]/ImagingBBox null>>setpagedevice"
+*PageRegion Continuous70050001/Continuous - 2 1/5": "<</PageSize[162 7654]/ImagingBBox null>>setpagedevice"
+*PageRegion Continuous70060001/Continuous - 2": "<</PageSize[142 7654]/ImagingBBox null>>setpagedevice"
+*PageRegion Continuous70080001/Continuous - 1 1/4": "<</PageSize[91 7654]/ImagingBBox null>>setpagedevice"
+*PageRegion Continuous70090001/Continuous - 1": "<</PageSize[71 7654]/ImagingBBox null>>setpagedevice"
+*PageRegion Continuous70100001/Continuous - 3/4": "<</PageSize[54 7654]/ImagingBBox null>>setpagedevice"
+*PageRegion Continuous70110001/Continuous - 1/2": "<</PageSize[35 7654]/ImagingBBox null>>setpagedevice"
+*PageRegion Continuous112/Continuous - 1 1/2": "<</PageSize[111 7654]/ImagingBBox null>>setpagedevice"
+*PageRegion ShippingLabel70130001/Shipping Label 2 1/3" x 4": "<</PageSize[167 289]/ImagingBBox null>>setpagedevice"
+*PageRegion WideLeverArchLabelShort/Wide Lever Arch Label - Short: "<</PageSize[173 544]/ImagingBBox null>>setpagedevice"
+*PageRegion WideLeverArchLabelLong/Wide Lever Arch Label - Long: "<</PageSize[173 808]/ImagingBBox null>>setpagedevice"
+*PageRegion LargePendaflexTab/Large Pendaflex Tab: "<</PageSize[142 79]/ImagingBBox null>>setpagedevice"
+*PageRegion LargePendaflexTabRotated/Large Pendaflex Tab Rotated: "<</PageSize[79 142]/ImagingBBox null>>setpagedevice"
+*PageRegion NameBadgeLabel70060001/Name Badge Label: "<</PageSize[142 216]/ImagingBBox null>>setpagedevice"
+*PageRegion NarrowLeverArchLabelShort/Narrow Lever Arch Label, Short: "<</PageSize[111 544]/ImagingBBox null>>setpagedevice"
+*PageRegion NarrowLeverArchLabelLong/Narrow Lever Arch Label, Long: "<</PageSize[111 808]/ImagingBBox null>>setpagedevice"
+*PageRegion Multipurpose70090001/Multipurpose 1" x 1 1/2": "<</PageSize[71 108]/ImagingBBox null>>setpagedevice"
+*PageRegion ReturnAddressLabelLarge/Return Address Label, Large: "<</PageSize[71 153]/ImagingBBox null>>setpagedevice"
+*PageRegion ReturnAddressLabelSmall/Return Address Label, Small: "<</PageSize[54 144]/ImagingBBox null>>setpagedevice"
+*PageRegion Multipurpose70100001/Multipurpose 3/4" x 2 1/2": "<</PageSize[54 180]/ImagingBBox null>>setpagedevice"
+*PageRegion Multipurpose70110001/Multipurpose 1/2" x 1 7/8": "<</PageSize[35 136]/ImagingBBox null>>setpagedevice"
+*PageRegion FileFolderLabel/File Folder Label: "<</PageSize[35 252]/ImagingBBox null>>setpagedevice"
+*PageRegion SuspensionFileLabel/Suspension File Label: "<</PageSize[35 144]/ImagingBBox null>>setpagedevice"
+*PageRegion WideLeverArchCardShort/Wide Lever Arch Card - Short: "<</PageSize[162 539]/ImagingBBox null>>setpagedevice"
+*PageRegion NarrowLeverArchCardShort/Narrow Lever Arch Card - Short: "<</PageSize[91 539]/ImagingBBox null>>setpagedevice"
+*PageRegion LeitzLeverArchFile1005/Active File: "<</PageSize[142 312]/ImagingBBox null>>setpagedevice"
+*CloseUI: *PageRegion
+*DefaultImageableArea: StandardAddressLabel
+*ImageableArea Multipurpose70030001/Multipurpose 2" x 3 1/2": "9.524409294128 3.600000143051 239.924407958984 140.399993896484"
+*ImageableArea NameBadgeLabel70030001/Name Badge: "9.524409294128 3.600000143051 239.924407958984 164.154327392578"
+*ImageableArea InternationalAddressLabel/International Address Label: "9.524409294128 3.600000143051 239.924407958984 98.447250366211"
+*ImageableArea StandardAddressLabel/Standard Address Label: "9.524409294128 3.600000143051 239.924407958984 75.770080566406"
+*ImageableArea ShippingLabel70180001/Shipping Label 2" x 3 1/2": "9.524409294128 3.600000143051 239.924407958984 138.132278442383"
+*ImageableArea PackageShippingLabel/Package Label: "9.524409294128 3.600000143051 239.924407958984 428.399993896484"
+*ImageableArea Continuous70030001/Continuous - 3 1/2": "9.524409294128 3.600000143051 239.924407958984 7649.943359375"
+*ImageableArea NameBadgeCard70190001Rotated/Name Badge Rotated: "3.600000143051 3.600000143051 158.400009155273 254.352752685547"
+*ImageableArea ShippingLabel70180001Rotated/Shipping Label 2" x 3 1/2" Rotated: "3.600000143051 3.600000143051 138.132278442383 245.848815917969"
+*ImageableArea Multipurpose70030001Rotated/Multipurpose 2" x 3 1/2" Rotated: "3.600000143051 3.600000143051 140.399993896484 245.848815917969"
+*ImageableArea Continuous70190001/Continuous - 3 3/5": "13.776378631592 3.600000143051 244.176376342773 7649.943359375"
+*ImageableArea AppointmentCard/Appointment Card: "13.776378631592 3.600000143051 244.176376342773 140.399993896484"
+*ImageableArea NameBadgeCard70190001/Name Badge Card: "13.776378631592 3.600000143051 244.176376342773 158.400009155273"
+*ImageableArea NameBadgeCard8214/Durable Label: "13.776378631592 3.600000143051 244.176376342773 149.47087097168"
+*ImageableArea Continuous70040001/Continuous - 2 2/5": "3.600000143051 3.600000143051 169.313385009766 7649.943359375"
+*ImageableArea Continuous70050001/Continuous - 2 1/5": "3.600000143051 3.600000143051 157.974807739258 7649.943359375"
+*ImageableArea Continuous70060001/Continuous - 2": "3.600000143051 3.600000143051 138.132278442383 7649.943359375"
+*ImageableArea Continuous70080001/Continuous - 1 1/4": "3.600000143051 3.600000143051 87.108665466309 7649.943359375"
+*ImageableArea Continuous70090001/Continuous - 1": "3.600000143051 3.600000143051 67.266143798828 7649.943359375"
+*ImageableArea Continuous70100001/Continuous - 3/4": "3.600000143051 3.600000143051 50.258270263672 7649.943359375"
+*ImageableArea Continuous70110001/Continuous - 1/2": "3.600000143051 3.600000143051 31.833070755005 7649.943359375"
+*ImageableArea Continuous112/Continuous - 1 1/2": "3.600000143051 3.600000143051 106.951187133789 7649.943359375"
+*ImageableArea ShippingLabel70130001/Shipping Label 2 1/3" x 4": "3.600000143051 3.600000143051 163.644088745117 285.533874511719"
+*ImageableArea WideLeverArchLabelShort/Wide Lever Arch Label - Short: "3.600000143051 3.600000143051 169.313385009766 540.651977539062"
+*ImageableArea WideLeverArchLabelLong/Wide Lever Arch Label - Long: "3.600000143051 3.600000143051 169.313385009766 804.274047851562"
+*ImageableArea LargePendaflexTab/Large Pendaflex Tab: "3.600000143051 3.600000143051 138.132278442383 75.770080566406"
+*ImageableArea LargePendaflexTabRotated/Large Pendaflex Tab Rotated: "3.600000143051 3.600000143051 75.770080566406 138.132278442383"
+*ImageableArea NameBadgeLabel70060001/Name Badge Label: "3.600000143051 3.600000143051 138.132278442383 212.399993896484"
+*ImageableArea NarrowLeverArchLabelShort/Narrow Lever Arch Label, Short: "3.600000143051 3.600000143051 106.951187133789 540.651977539062"
+*ImageableArea NarrowLeverArchLabelLong/Narrow Lever Arch Label, Long: "3.600000143051 3.600000143051 106.951187133789 804.274047851562"
+*ImageableArea Multipurpose70090001/Multipurpose 1" x 1 1/2": "3.600000143051 3.600000143051 67.266143798828 104.400001525879"
+*ImageableArea ReturnAddressLabelLarge/Return Address Label, Large: "3.600000143051 3.600000143051 67.266143798828 149.47087097168"
+*ImageableArea ReturnAddressLabelSmall/Return Address Label, Small: "3.600000143051 3.600000143051 50.258270263672 140.399993896484"
+*ImageableArea Multipurpose70100001/Multipurpose 3/4" x 2 1/2": "3.600000143051 3.600000143051 50.258270263672 176.399993896484"
+*ImageableArea Multipurpose70110001/Multipurpose 1/2" x 1 7/8": "3.600000143051 3.600000143051 31.833070755005 132.462982177734"
+*ImageableArea FileFolderLabel/File Folder Label: "3.600000143051 3.600000143051 31.833070755005 248.400009155273"
+*ImageableArea SuspensionFileLabel/Suspension File Label: "3.600000143051 3.600000143051 31.833070755005 140.399993896484"
+*ImageableArea WideLeverArchCardShort/Wide Lever Arch Card - Short: "3.600000143051 3.600000143051 157.974807739258 534.982727050781"
+*ImageableArea NarrowLeverArchCardShort/Narrow Lever Arch Card - Short: "3.600000143051 3.600000143051 87.108665466309 534.982727050781"
+*ImageableArea LeitzLeverArchFile1005/Active File: "3.600000143051 3.600000143051 138.132278442383 308.211029052734"
+*DefaultPaperDimension: StandardAddressLabel
+*PaperDimension Multipurpose70030001/Multipurpose 2" x 3 1/2": "249.448822021484 144"
+*PaperDimension NameBadgeLabel70030001/Name Badge: "249.448822021484 167.754333496094"
+*PaperDimension InternationalAddressLabel/International Address Label: "249.448822021484 102.047248840332"
+*PaperDimension StandardAddressLabel/Standard Address Label: "249.448822021484 79.370079040527"
+*PaperDimension ShippingLabel70180001/Shipping Label 2" x 3 1/2": "249.448822021484 141.732284545898"
+*PaperDimension PackageShippingLabel/Package Label: "249.448822021484 432"
+*PaperDimension Continuous70030001/Continuous - 3 1/2": "249.448822021484 7653.54345703125"
+*PaperDimension NameBadgeCard70190001Rotated/Name Badge Rotated: "162.000015258789 257.952758789062"
+*PaperDimension ShippingLabel70180001Rotated/Shipping Label 2" x 3 1/2" Rotated: "141.732284545898 249.448822021484"
+*PaperDimension Multipurpose70030001Rotated/Multipurpose 2" x 3 1/2" Rotated: "144 249.448822021484"
+*PaperDimension Continuous70190001/Continuous - 3 3/5": "257.952758789062 7653.54345703125"
+*PaperDimension AppointmentCard/Appointment Card: "257.952758789062 144"
+*PaperDimension NameBadgeCard70190001/Name Badge Card: "257.952758789062 162.000015258789"
+*PaperDimension NameBadgeCard8214/Durable Label: "257.952758789062 153.070877075195"
+*PaperDimension Continuous70040001/Continuous - 2 2/5": "172.913391113281 7653.54345703125"
+*PaperDimension Continuous70050001/Continuous - 2 1/5": "161.574813842773 7653.54345703125"
+*PaperDimension Continuous70060001/Continuous - 2": "141.732284545898 7653.54345703125"
+*PaperDimension Continuous70080001/Continuous - 1 1/4": "90.70866394043 7653.54345703125"
+*PaperDimension Continuous70090001/Continuous - 1": "70.866142272949 7653.54345703125"
+*PaperDimension Continuous70100001/Continuous - 3/4": "53.858268737793 7653.54345703125"
+*PaperDimension Continuous70110001/Continuous - 1/2": "35.433071136475 7653.54345703125"
+*PaperDimension Continuous112/Continuous - 1 1/2": "110.55118560791 7653.54345703125"
+*PaperDimension ShippingLabel70130001/Shipping Label 2 1/3" x 4": "167.244094848633 289.133880615234"
+*PaperDimension WideLeverArchLabelShort/Wide Lever Arch Label - Short: "172.913391113281 544.251953125"
+*PaperDimension WideLeverArchLabelLong/Wide Lever Arch Label - Long: "172.913391113281 807.8740234375"
+*PaperDimension LargePendaflexTab/Large Pendaflex Tab: "141.732284545898 79.370079040527"
+*PaperDimension LargePendaflexTabRotated/Large Pendaflex Tab Rotated: "79.370079040527 141.732284545898"
+*PaperDimension NameBadgeLabel70060001/Name Badge Label: "141.732284545898 216"
+*PaperDimension NarrowLeverArchLabelShort/Narrow Lever Arch Label, Short: "110.55118560791 544.251953125"
+*PaperDimension NarrowLeverArchLabelLong/Narrow Lever Arch Label, Long: "110.55118560791 807.8740234375"
+*PaperDimension Multipurpose70090001/Multipurpose 1" x 1 1/2": "70.866142272949 108"
+*PaperDimension ReturnAddressLabelLarge/Return Address Label, Large: "70.866142272949 153.070877075195"
+*PaperDimension ReturnAddressLabelSmall/Return Address Label, Small: "53.858268737793 144"
+*PaperDimension Multipurpose70100001/Multipurpose 3/4" x 2 1/2": "53.858268737793 180"
+*PaperDimension Multipurpose70110001/Multipurpose 1/2" x 1 7/8": "35.433071136475 136.06298828125"
+*PaperDimension FileFolderLabel/File Folder Label: "35.433071136475 252.000015258789"
+*PaperDimension SuspensionFileLabel/Suspension File Label: "35.433071136475 144"
+*PaperDimension WideLeverArchCardShort/Wide Lever Arch Card - Short: "161.574813842773 538.582702636719"
+*PaperDimension NarrowLeverArchCardShort/Narrow Lever Arch Card - Short: "90.70866394043 538.582702636719"
+*PaperDimension LeitzLeverArchFile1005/Active File: "141.732284545898 311.81103515625"
+*MaxMediaWidth: "1039"
+*MaxMediaHeight: "2834.645751953125"
+*HWMargins: 3.600000143051 3.600000143051 3.600000143051 3.600000143051
+*CustomPageSize True: "pop pop pop <</PageSize[5 -2 roll]/ImagingBBox null>>setpagedevice"
+*ParamCustomPageSize Width: 1 points 35 249
+*ParamCustomPageSize Height: 2 points 79 7654
+*ParamCustomPageSize WidthOffset: 3 points 0 0
+*ParamCustomPageSize HeightOffset: 4 points 0 0
+*ParamCustomPageSize Orientation: 5 int 0 3
+*OpenUI *CutMedia/Cut Media: Boolean
+*OrderDependency: 10 AnySetup *CutMedia
+*DefaultCutMedia: False
+*CutMedia False/False: "<</CutMedia 0>>setpagedevice"
+*CutMedia True/True: "<</CutMedia 4>>setpagedevice"
+*CloseUI: *CutMedia
+*OpenUI *Resolution/Resolution: PickOne
+*OrderDependency: 10 AnySetup *Resolution
+*DefaultResolution: 300dpi
+*Resolution 300dpi/300dpi: "<</HWResolution[300 300]>>setpagedevice"
+*Resolution 600dpi/600dpi: "<</HWResolution[300 600]>>setpagedevice"
+*CloseUI: *Resolution
+*OpenUI *DebugMode/Leitz Debug: PickOne
+*OrderDependency: 10 AnySetup *DebugMode
+*DefaultDebugMode: Release
+*DebugMode Release/Debug Off: ""
+*DebugMode Debug/Debug On: ""
+*DebugMode Mesh/Add Bound Rect & a Cross: ""
+*CloseUI: *DebugMode
+*OpenUI *PrintThroughPRN/Send through .prn File: PickOne
+*OrderDependency: 10 AnySetup *PrintThroughPRN
+*DefaultPrintThroughPRN: OFF
+*PrintThroughPRN ON/Send through .prn File: ""
+*PrintThroughPRN OFF/Do not Send through .prn File: ""
+*CloseUI: *PrintThroughPRN
+*OpenUI *ContinuousMedia/Continuous Media: PickOne
+*OrderDependency: 10 AnySetup *ContinuousMedia
+*DefaultContinuousMedia: OFF
+*ContinuousMedia ON/Continuous Media On: ""
+*ContinuousMedia OFF/Continuous Media Off: ""
+*CloseUI: *ContinuousMedia
+*OpenUI *ShouldSend_ESC_A/Should Send ESC 'A': PickOne
+*OrderDependency: 10 AnySetup *ShouldSend_ESC_A
+*DefaultShouldSend_ESC_A: YES
+*ShouldSend_ESC_A YES/Should send ESC 'A': ""
+*ShouldSend_ESC_A NO/Should not send ESC 'A': ""
+*CloseUI: *ShouldSend_ESC_A
+*OpenUI *ShouldCorrectMargins/Should correct margins: PickOne
+*OrderDependency: 10 AnySetup *ShouldCorrectMargins
+*DefaultShouldCorrectMargins: NO
+*ShouldCorrectMargins YES/Yes: ""
+*ShouldCorrectMargins NO/No: ""
+*CloseUI: *ShouldCorrectMargins
+*OpenUI *OptimizationLevel/Optimization Level: PickOne
+*OrderDependency: 10 AnySetup *OptimizationLevel
+*DefaultOptimizationLevel: 2
+*OptimizationLevel 0/: ""
+*OptimizationLevel 1/: ""
+*OptimizationLevel 2/: ""
+*OptimizationLevel 3/: ""
+*CloseUI: *OptimizationLevel
+*OpenUI *LabelCutter/Label Cutter: PickOne
+*OrderDependency: 10 AnySetup *LabelCutter
+*DefaultLabelCutter: OFF
+*LabelCutter ON/Cut every label: ""
+*LabelCutter OFF/Do not cut every label: ""
+*CloseUI: *LabelCutter
+*en_UK.Translation Manufacturer/Leitz: ""
+*en_UK.Translation ModelName/Leitz Icon: ""
+*en_UK.Translation ShortNickName/Leitz Icon: ""
+*en_UK.Translation NickName/Leitz Icon, 1.2.171: ""
+*en_UK.Translation PageSize/Media Size: ""
+*en_UK.PageSize Multipurpose70030001/Multipurpose 2" x 3 1/2": ""
+*en_UK.PageSize NameBadgeLabel70030001/Name Badge: ""
+*en_UK.PageSize InternationalAddressLabel/International Address Label: ""
+*en_UK.PageSize StandardAddressLabel/Standard Address Label: ""
+*en_UK.PageSize ShippingLabel70180001/Shipping Label 2" x 3 1/2": ""
+*en_UK.PageSize PackageShippingLabel/Package Label: ""
+*en_UK.PageSize Continuous70030001/Continuous - 3 1/2": ""
+*en_UK.PageSize NameBadgeCard70190001Rotated/Name Badge Rotated: ""
+*en_UK.PageSize ShippingLabel70180001Rotated/Shipping Label 2" x 3 1/2" Rotated: ""
+*en_UK.PageSize Multipurpose70030001Rotated/Multipurpose 2" x 3 1/2" Rotated: ""
+*en_UK.PageSize Continuous70190001/Continuous - 3 3/5": ""
+*en_UK.PageSize AppointmentCard/Appointment Card: ""
+*en_UK.PageSize NameBadgeCard70190001/Name Badge Card: ""
+*en_UK.PageSize NameBadgeCard8214/Durable Label: ""
+*en_UK.PageSize Continuous70040001/Continuous - 2 2/5": ""
+*en_UK.PageSize Continuous70050001/Continuous - 2 1/5": ""
+*en_UK.PageSize Continuous70060001/Continuous - 2": ""
+*en_UK.PageSize Continuous70080001/Continuous - 1 1/4": ""
+*en_UK.PageSize Continuous70090001/Continuous - 1": ""
+*en_UK.PageSize Continuous70100001/Continuous - 3/4": ""
+*en_UK.PageSize Continuous70110001/Continuous - 1/2": ""
+*en_UK.PageSize Continuous112/Continuous - 1 1/2": ""
+*en_UK.PageSize ShippingLabel70130001/Shipping Label 2 1/3" x 4": ""
+*en_UK.PageSize WideLeverArchLabelShort/Wide Lever Arch Label - Short: ""
+*en_UK.PageSize WideLeverArchLabelLong/Wide Lever Arch Label - Long: ""
+*en_UK.PageSize LargePendaflexTab/Large Pendaflex Tab: ""
+*en_UK.PageSize LargePendaflexTabRotated/Large Pendaflex Tab Rotated: ""
+*en_UK.PageSize NameBadgeLabel70060001/Name Badge Label: ""
+*en_UK.PageSize NarrowLeverArchLabelShort/Narrow Lever Arch Label, Short: ""
+*en_UK.PageSize NarrowLeverArchLabelLong/Narrow Lever Arch Label, Long: ""
+*en_UK.PageSize Multipurpose70090001/Multipurpose 1" x 1 1/2": ""
+*en_UK.PageSize ReturnAddressLabelLarge/Return Address Label, Large: ""
+*en_UK.PageSize ReturnAddressLabelSmall/Return Address Label, Small: ""
+*en_UK.PageSize Multipurpose70100001/Multipurpose 3/4" x 2 1/2": ""
+*en_UK.PageSize Multipurpose70110001/Multipurpose 1/2" x 1 7/8": ""
+*en_UK.PageSize FileFolderLabel/File Folder Label: ""
+*en_UK.PageSize SuspensionFileLabel/Suspension File Label: ""
+*en_UK.PageSize WideLeverArchCardShort/Wide Lever Arch Card - Short: ""
+*en_UK.PageSize NarrowLeverArchCardShort/Narrow Lever Arch Card - Short: ""
+*en_UK.PageSize LeitzLeverArchFile1005/Active File: ""
+*en_UK.Translation CutMedia/Cut Media: ""
+*en_UK.CutMedia False/False: ""
+*en_UK.CutMedia True/True: ""
+*en_UK.Translation Resolution/Resolution: ""
+*en_UK.Resolution 300dpi/300dpi: ""
+*en_UK.Resolution 600dpi/600dpi: ""
+*en_UK.Translation DebugMode/Leitz Debug: ""
+*en_UK.DebugMode Release/Debug Off: ""
+*en_UK.DebugMode Debug/Debug On: ""
+*en_UK.DebugMode Mesh/Add Bound Rect & a Cross: ""
+*en_UK.Translation PrintThroughPRN/Send through .prn File: ""
+*en_UK.PrintThroughPRN ON/Send through .prn File: ""
+*en_UK.PrintThroughPRN OFF/Do not Send through .prn File: ""
+*en_UK.Translation ContinuousMedia/Continuous Media: ""
+*en_UK.ContinuousMedia ON/Continuous Media On: ""
+*en_UK.ContinuousMedia OFF/Continuous Media Off: ""
+*en_UK.Translation ShouldSend_ESC_A/Should Send ESC 'A': ""
+*en_UK.ShouldSend_ESC_A YES/Should send ESC 'A': ""
+*en_UK.ShouldSend_ESC_A NO/Should not send ESC 'A': ""
+*en_UK.Translation ShouldCorrectMargins/Should correct margins: ""
+*en_UK.ShouldCorrectMargins YES/Yes: ""
+*en_UK.ShouldCorrectMargins NO/No: ""
+*en_UK.Translation OptimizationLevel/Optimization Level: ""
+*en_UK.OptimizationLevel 0/: ""
+*en_UK.OptimizationLevel 1/: ""
+*en_UK.OptimizationLevel 2/: ""
+*en_UK.OptimizationLevel 3/: ""
+*en_UK.Translation LabelCutter/Label Cutter: ""
+*en_UK.LabelCutter ON/Cut every label: ""
+*en_UK.LabelCutter OFF/Do not cut every label: ""
+*en_UK.ParamCustomPageSize Width/ParamCustomPageSize: ""
+*en_UK.ParamCustomPageSize Height/ParamCustomPageSize: ""
+*en_UK.ParamCustomPageSize WidthOffset/ParamCustomPageSize: ""
+*en_UK.ParamCustomPageSize HeightOffset/ParamCustomPageSize: ""
+*en_UK.ParamCustomPageSize Orientation/ParamCustomPageSize: ""
+*en_UK.CustomPageSize True/CustomPageSize: ""
+*en_UK.cupsIPPReason com.leitz.out-of-paper-error/Out of labels.: "help:anchor=changingInk%20bookID=Sample%20Raster%20Help"
+*en_UK.cupsIPPReason com.leitz.read-error/Cannot read data from printer.: ""
+*en_UK.cupsIPPReason com.leitz.ready/Printer is ready.: ""
+*en_UK.cupsIPPReason com.leitz.general-error/General print error.: ""
+*en_UK.cupsIPPReason com.leitz.head-overheat-error/Print head overheated.: ""
+*en_UK.cupsIPPReason com.leitz.slot-status-error/Label path is blocked.: ""
+*en_UK.cupsIPPReason com.leitz.busy-error/The printer is currently in use.: ""
+*en_UK.cupsIPPReason com.leitz.paper-size-error/Label being printed does not match label width currently in printer.: ""
+*en_UK.cupsIPPReason com.leitz.paper-size-undefine-error/Insert a label cassette in the printer.: ""
+*DefaultFont: Courier
+*Font AvantGarde-Book: Standard "(1.05)" Standard ROM
+*Font AvantGarde-BookOblique: Standard "(1.05)" Standard ROM
+*Font AvantGarde-Demi: Standard "(1.05)" Standard ROM
+*Font AvantGarde-DemiOblique: Standard "(1.05)" Standard ROM
+*Font Bookman-Demi: Standard "(1.05)" Standard ROM
+*Font Bookman-DemiItalic: Standard "(1.05)" Standard ROM
+*Font Bookman-Light: Standard "(1.05)" Standard ROM
+*Font Bookman-LightItalic: Standard "(1.05)" Standard ROM
+*Font Courier: Standard "(1.05)" Standard ROM
+*Font Courier-Bold: Standard "(1.05)" Standard ROM
+*Font Courier-BoldOblique: Standard "(1.05)" Standard ROM
+*Font Courier-Oblique: Standard "(1.05)" Standard ROM
+*Font Helvetica: Standard "(1.05)" Standard ROM
+*Font Helvetica-Bold: Standard "(1.05)" Standard ROM
+*Font Helvetica-BoldOblique: Standard "(1.05)" Standard ROM
+*Font Helvetica-Narrow: Standard "(1.05)" Standard ROM
+*Font Helvetica-Narrow-Bold: Standard "(1.05)" Standard ROM
+*Font Helvetica-Narrow-BoldOblique: Standard "(1.05)" Standard ROM
+*Font Helvetica-Narrow-Oblique: Standard "(1.05)" Standard ROM
+*Font Helvetica-Oblique: Standard "(1.05)" Standard ROM
+*Font NewCenturySchlbk-Bold: Standard "(1.05)" Standard ROM
+*Font NewCenturySchlbk-BoldItalic: Standard "(1.05)" Standard ROM
+*Font NewCenturySchlbk-Italic: Standard "(1.05)" Standard ROM
+*Font NewCenturySchlbk-Roman: Standard "(1.05)" Standard ROM
+*Font Palatino-Bold: Standard "(1.05)" Standard ROM
+*Font Palatino-BoldItalic: Standard "(1.05)" Standard ROM
+*Font Palatino-Italic: Standard "(1.05)" Standard ROM
+*Font Palatino-Roman: Standard "(1.05)" Standard ROM
+*Font Symbol: Special "(001.005)" Special ROM
+*Font Times-Bold: Standard "(1.05)" Standard ROM
+*Font Times-BoldItalic: Standard "(1.05)" Standard ROM
+*Font Times-Italic: Standard "(1.05)" Standard ROM
+*Font Times-Roman: Standard "(1.05)" Standard ROM
+*Font ZapfChancery-MediumItalic: Standard "(1.05)" Standard ROM
+*Font ZapfDingbats: Special "(001.005)" Special ROM
+*% End of LeitzIcon.ppd, 29861 bytes.
