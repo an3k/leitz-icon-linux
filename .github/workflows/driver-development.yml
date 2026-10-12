@@ -49,3 +49,47 @@ jobs:
             dist/leitz-icon-driver-linux-amd64.tar.gz
             dist/leitz-icon-driver-linux-amd64.tar.gz.sha256
           retention-days: 30
+
+  release:
+    name: Publish explicitly requested development prerelease
+    if: ${{ github.event_name == 'push' && (contains(github.event.head_commit.added, 'requests/release.trigger') || contains(github.event.head_commit.modified, 'requests/release.trigger')) }}
+    needs: package
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Download successfully built standalone driver package
+        uses: actions/download-artifact@v4
+        with:
+          name: leitz-icon-standalone-driver
+          path: dist
+      - name: Validate the explicit release request and archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag=$(sed -n 's/^tag=//p' requests/release.trigger | tail -n 1)
+          [[ "$tag" =~ ^dev-v[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.-]+)?$ ]] || {
+            echo "ERROR: Invalid development tag: $tag" >&2
+            exit 1
+          }
+          echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+          (cd dist && sha256sum -c leitz-icon-driver-linux-amd64.tar.gz.sha256)
+      - name: Publish development prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf "dist/leitz-icon-linux-${RELEASE_TAG}-source.tar.gz" \
+            src cups media build install docs Makefile README.md
+          (cd dist && sha256sum *.tar.gz > SHA256SUMS)
+          gh release create "${RELEASE_TAG}" \
+            dist/leitz-icon-driver-linux-amd64.tar.gz \
+            dist/leitz-icon-driver-linux-amd64.tar.gz.sha256 \
+            "dist/leitz-icon-linux-${RELEASE_TAG}-source.tar.gz" \
+            dist/SHA256SUMS \
+            --target "$GITHUB_SHA" --prerelease --generate-notes \
+            --title "Leitz Icon Development Driver ${RELEASE_TAG}"
