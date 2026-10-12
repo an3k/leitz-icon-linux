@@ -1,3 +1,3 @@
-# Build CUPS without any Leitz driver; driver package installed separately on TARS.
+# Build CUPS standalone, no Leitz driver; keep the independent driver archive separate.
 driver=none
-request=standalone-cups-none-20261011
+request=clean-cups-without-driver-2026-10-12
