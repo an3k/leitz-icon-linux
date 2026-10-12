@@ -1,3 +1,4 @@
+#include "mac_classic_process_page.h"
 #include "mac_classic_command_core.h"
 #include "mac_classic_raster_boundaries.h"
 #include "mac_classic_dither.h"
@@ -67,5 +68,32 @@ int main(void) {
   assert(mac_classic_dither_rgb24(7,rgb,sizeof(rgb),2,24,onebit,sizeof(onebit))<0);
   assert(mac_classic_dither_rgb24(0,rgb,sizeof(rgb),2,23,onebit,sizeof(onebit))<0);
   assert(mac_classic_dither_rgb24(0,rgb,sizeof(rgb),3,24,onebit,sizeof(onebit))<0);
+  /* Mach-O ProcessPage mode 2/3: independently verified byte framing. */
+  mac_classic_raster_row st;
+  uint8_t dst[256]; size_t used=0;
+  const uint8_t blank[4]={0,0,0,0};
+  const uint8_t dense[4]={0,0xff,0xff,0xff};
+  const uint8_t sparse[4]={0,0,0xff,0};
+  assert(mac_classic_row_init(&st,2,4)==0);
+  assert(mac_classic_row_encode(&st,blank,dst,sizeof dst,&used)==0 && used==0);
+  assert(mac_classic_row_encode(&st,blank,dst,sizeof dst,&used)==0 && used==0);
+  assert(mac_classic_row_encode(&st,dense,dst,sizeof dst,&used)==0);
+  const uint8_t expected_rle[]={0x1b,'f',0,2,0x1b,'B',1,0x1b,'D',3,0x17,0x97};
+  assert(used==sizeof expected_rle && memcmp(dst,expected_rle,used)==0);
+  /* Compressed stream >= raw width: the binary falls back to SYN/raw. */
+  const uint8_t mixed[4]={0,0x55,0x55,0};
+  assert(mac_classic_row_encode(&st,mixed,dst,sizeof dst,&used)==0);
+  const uint8_t expected_raw[]={0x1b,'B',1,0x1b,'D',2,0x16,0x55,0x55};
+  assert(used==sizeof expected_raw && memcmp(dst,expected_raw,used)==0);
+  assert(mac_classic_row_init(&st,3,4)==0);
+  assert(mac_classic_row_encode(&st,sparse,dst,sizeof dst,&used)==0);
+  const uint8_t trimmed[]={0x1b,'B',2,0x1b,'D',1,0x16,0xff};
+  assert(used==sizeof trimmed && memcmp(dst,trimmed,used)==0);
+  assert(mac_classic_row_encode(&st,blank,dst,sizeof dst,&used)==0 && used==0);
+  assert(mac_classic_pending_trailing_blank(&st)==1);
+  assert(mac_classic_row_init(&st,2,121)<0);
+  assert(mac_classic_row_init(&st,0,4)<0);
+  assert(mac_classic_row_init(&st,2,4)==0);
+  assert(mac_classic_row_encode(&st,dense,dst,2,&used)<0);
   return 0;
 }
