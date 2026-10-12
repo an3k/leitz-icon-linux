@@ -43,7 +43,16 @@ int main(void) {
   mac_classic_quality info;
   const unsigned widths[15]={8,10,12,18,12,6,64,0,8,4,14,8,8,4,3};
   const double scales[15]={64,64,64,256,70,20,255,0,31,16,255,40,45,16,8};
+  const char *quality_choices[15]={
+      "Bayer8x8", "Bayer8x8SuperCell1", "Bayer8x8SuperCell2",
+      "SuperCell1", "SuperCell2", "SuperCell3", "CUPSThresold64x64",
+      "Draft", "SuperCell", "Bayer4x4", "Bayer14x14", "Clustered8x8",
+      "Dispersed8x8", "Nasik4x4", "Dithering3x3"
+  };
+  assert(mac_classic_quality_from_ppd("SuperCELL2")==4);
+  assert(mac_classic_quality_from_ppd("Unsupported")<0);
   for(unsigned mode=0;mode<15;++mode){
+    assert(mac_classic_quality_from_ppd(quality_choices[mode])==(int)mode);
     if(mode==7){assert(mac_classic_quality_info(mode,&info)<0);continue;}
     assert(mac_classic_quality_info(mode,&info)==0);
     assert(info.matrix_width==widths[mode]);
