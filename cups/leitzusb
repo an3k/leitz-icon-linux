@@ -90,6 +90,21 @@ if [[ "$response" =~ ^SKU:([0-9]{8})\;INIT:([0-9]+)\;USED:([0-9]+)\;$ ]]; then
 else
   echo 'ERROR: Unknown cartridge response; job blocked' >&2;exit 4
 fi
+# When the CUPS PageSize encodes a documented cassette SKU, compare it
+# against the cartridge actually reported by the printer. For names without
+# a provable cassette association retain the explicit DEVICE_URI check; a
+# width-only match is not proof of matching label stock.
+selected_sku=''
+if [[ " $5 " =~ [[:space:]]PageSize=([[:alnum:]_]+)[[:space:]] ]]; then
+  selected_media=${BASH_REMATCH[1]}
+  if [[ "$selected_media" =~ ([0-9]{8})$ ]]; then
+    selected_sku=${BASH_REMATCH[1]}
+  fi
+fi
+if [[ -n "$selected_sku" && "$selected_sku" != "$actual_sku" ]]; then
+  echo "ERROR: Selected PageSize requires cassette $selected_sku; detected $actual_sku" >&2
+  exit 4
+fi
 if [[ "$expected" != auto && "$actual_sku" != "$expected" ]]; then
   echo "ERROR: Wrong cartridge; expected $expected, got $response" >&2;exit 4
 fi
