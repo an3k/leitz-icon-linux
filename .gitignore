@@ -6,7 +6,6 @@ modules/
 *.so
 *.o
 dist/
-build/
 __pycache__/
 *.pyc
 *.log

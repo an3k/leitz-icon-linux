@@ -3,7 +3,7 @@
 Native Linux CUPS driver for the Leitz Icon USB label printer.
 
 **State:** Active development, not yet qualified for production use.
-The default branch `main` is reserved for approved releases.
+The `driver` branch contains the active development version; publication is a separate step.
 
 ## Driver components
 

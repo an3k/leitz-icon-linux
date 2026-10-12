@@ -10,7 +10,7 @@ but its current modular printer output has not been qualified on hardware.
 ## Development driver: add to existing CUPS
 
 The driver-only archive is produced by
-`bash driver/install/package.sh`, or by the matching CI build.
+`bash install/package.sh`, or by the matching CI build.
 It contains the compiled raster filter, USB backend, status command,
 PPD, protocol libraries, and `install.sh`.
 
