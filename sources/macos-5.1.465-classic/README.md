@@ -57,3 +57,9 @@ make clean check all
 This successfully compiled and ran locally under `-std=c11 -Wall -Wextra -Werror`.
 
 **Limitations:** This is still a **partial C reconstruction**. The full raster loop (`_ProcessPage`), document option handling, original CUPS API integration, complete `command2leitz` response/error control flow and executable entry points are **not** fully reconstructed. Behavioral equivalence to a running Mach-O filter has not been demonstrated. Matrix bytes are verified independently of behavior.
+
+### Original `PrintQuality` selection
+
+The `_raster2printer` case-insensitive choice comparisons at Mach-O virtual addresses `0x100004dbd..0x100005098` have now been reconstructed in `mac_classic_quality_from_ppd()`. This yields all **15 original PPD choices**, mapped to the exact integer selectors (0..14) used by `_DitherPage`. Choice `Draft` maps to selector 7 and sets single-bit raster input in the original PPD; it is intentionally not processed by the RGB24 dither routine. The 14 other selections map to 13 extracted manufacturer matrix arrays.
+
+The selection mapping and its case-insensitive behavior are included in the successful local `make check` run. This documents and reconstructs **the quality selector**, not the remainder of the original printing application.
