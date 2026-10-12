@@ -4,6 +4,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/* _StartDocument (0x100006890): 120 ESC padding bytes then ESC @;
+ * optional ESC i when high_resolution != 0. */
+size_t mac_classic_start_document(int high_resolution, uint8_t out[124]);
+
 /* _EndPage (0x1000089b0): emit ESC G and, if cutEveryLabel != 0, ESC E. */
 size_t mac_classic_end_page(int cut_every_label, uint8_t out[4]);
 
