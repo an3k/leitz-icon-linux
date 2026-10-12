@@ -70,8 +70,8 @@ From the classic original `raster2printer`, `_ProcessPage` at `0x100007560..0x10
 
 | `OptimizationLevel` | Mach-O code branch | Observed treatment |
 |---|---|---|
-| 0 | `0x10000889b` | Direct row submission, including white rows; full function not yet reconstructed |
-| 1 | `0x100007e6e` | White-row detection, packed raw row submission; full function not yet reconstructed |
+| 0 | `0x10000889b` | Raw full-width rows including white rows; row-submission fragment reconstructed |
+| 1 | `0x100007e6e` | White-row skip (`ESC f`), full-width raw row; row-submission fragment reconstructed |
 | 2 | `0x100007f32` | White-row skip, byte-edge trimming, ESC B/D, bit-run compression (0x17), fallback to 0x16 raw |
 | 3 | `0x100007a74` | White-row skip, byte-edge trimming, ESC B/D, 0x16 raw |
 
@@ -81,4 +81,19 @@ The code uses explicit bounded output buffers rather than the unsafe pointer ari
 
 The local `make clean check all` build and the same smoke assertions under AddressSanitizer/UndefinedBehaviorSanitizer completed successfully on Linux. They check selected expected command bytes and edge cases, not behavioral identity with the original macOS executable.
 
-**Remaining before full, re-compilable classic macOS source:** mode 0/1 submission and original buffer layout, all page-level option/length/offset handling, full CUPS entry and output flow, page-reading, all status/USB communication branches, and comparison against the manufacturer's executable. The assembled fragments must not be used as a functional replacement driver.
+**Remaining before full, re-compilable classic macOS source:** original page buffer layout, page-level option/length/offset handling, complete CUPS entry and output flow, full status/USB communication branches, and comparison against the manufacturer's executable. The assembled fragments must not be used as a functional replacement driver.
+
+## ProcessPage modes 0/1 and ReadPage recovery
+
+Based on independent Mach-O disassembly from the **classic** `raster2printer` executable:
+
+- `_ProcessPage` at `0x100007633..0x100007739`: modes 0 and 1 emit one initial four-byte `ESC D <width> SYN` header.
+- `_ProcessPage` at `0x10000889b..0x100008945`: mode 0 transfers every full packed bitmap row without suppressing empty rows.
+- `_ProcessPage` at `0x100007939..0x100007a74` and `0x100007e6e..0x100007f32`: mode 1 buffers empty rows into `ESC f <count>` and transfers nonempty full-width rows as-is.
+- `_ReadPage` at `0x100008d20..0x10000918b`: reads a CUPS header, increments page counter, allocates for `height * cupsBytesPerLine`, calls `cupsRasterReadPixels` once, and treats zero returned bytes as a read failure.
+
+`reconstructed/mac_classic_process_page.[ch]` now exposes a row emitter for **all four optimization levels 0–3**; `mac_classic_row_preamble()` emits the one-time header for 0/1. These reconstructed units are **only the isolated row-submission paths**, not the full original `_ProcessPage` function.
+
+`reconstructed/mac_classic_read_page.[ch]` separately recovers the core `_ReadPage` allocation and pixel-read sequence behind a callback interface, allowing independent compilation without macOS/CUPS headers. **Deliberate hardening:** unlike the original's zero/nonzero read-result check, it rejects any short read. The page counter is incremented only after a complete page is read, not immediately after header acceptance. These deviations are documented rather than presented as exact manufacturer behavior.
+
+The combined modules build with GCC C11 `-Wall -Wextra -Werror`; local fragment checks passed both a normal build and ASan/UBSan. There is **still no complete executable macOS filter**, no CUPS-native adapter for this callback layer, and no original-binary execution comparison.
