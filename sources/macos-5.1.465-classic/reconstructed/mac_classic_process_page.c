@@ -75,7 +75,12 @@ int mac_classic_row_encode(mac_classic_raster_row *s, const uint8_t *row,
     return 0;
   }
   unsigned right = s->stride;
-  while (right > left && row[right-1] == 0) --right;
+  /* _ProcessPage 0x100007ab4: mode 3 tests the leading offset before
+   * counting trailing white bytes; if left == 0, trailing bytes are kept.
+   * Mode 2 always performs trailing-byte trimming (0x1000080b6).
+   * This asymmetric vendor behavior is intentionally preserved. */
+  if (s->optimization == 2 || left != 0)
+    while (right > left && row[right-1] == 0) --right;
   unsigned n = right-left;
   size_t at = 0;
   if (s->pending_blank) {
