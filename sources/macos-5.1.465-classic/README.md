@@ -97,3 +97,16 @@ Based on independent Mach-O disassembly from the **classic** `raster2printer` ex
 `reconstructed/mac_classic_read_page.[ch]` separately recovers the core `_ReadPage` allocation and pixel-read sequence behind a callback interface, allowing independent compilation without macOS/CUPS headers. **Deliberate hardening:** unlike the original's zero/nonzero read-result check, it rejects any short read. The page counter is incremented only after a complete page is read, not immediately after header acceptance. These deviations are documented rather than presented as exact manufacturer behavior.
 
 The combined modules build with GCC C11 `-Wall -Wextra -Werror`; local fragment checks passed both a normal build and ASan/UBSan. There is **still no complete executable macOS filter**, no CUPS-native adapter for this callback layer, and no original-binary execution comparison.
+
+## Connected portable job coordinator and CUPS adapter (13 October 2026)
+
+An additional **independent integration layer** now connects the recovered classic macOS functions in their observed manufacturer call order, based on `_raster2printer` disassembly between `0x1000045a0` and `0x100006854`.
+
+- `mac_classic_job.c/.h`: document initialization, page read, 24-bit RGB dithering or 1-bit pass-through, page setup, four selectable raster row encoder modes, per-page cutter command and document shutdown. Writer and raster callbacks allow isolated compilation with no printer access. Completed pages are counted only after their output succeeds; failed writes and short page reads abort.
+- `mac_classic_cups_filter.c`: **optional CUPS 2.x adapter** implementing the original filter's 6/7-argument calling convention, original PPD lookup and marking calls, supported option extraction, CUPS raster page reading, and stdout binary output. Undeveloped options such as vendor PRN/debug/network paths are rejected, not faked.
+- `job_smoke.c`: isolated checks for two consecutive pages, RGB24-to-1-bit, Draft selection, original mode-1 skip framing, short input, incomplete output and empty jobs.
+- `Makefile`: `make check all` compiles the portable units and runs both smoke checks. `make mac_classic_cups_filter` is separate and requires real CUPS 2.x development files.
+
+**Verified locally:** GCC `-std=c11 -Wall -Wextra -Werror` regular compilation and both smoke programs; `job_smoke` also passed ASan/UBSan. The CUPS adapter was syntactically checked using locally defined CUPS-type/function declarations because actual CUPS headers and libraries are not installed in this environment. **The real CUPS adapter has not been compiled or run against CUPS itself.**
+
+**Not yet established:** faithful full macOS CUPS filter execution, original debug/PRN/socket pathways, options for media-specific transformations, several `ProcessPage` branches, full macOS status decoder, correctness of printer hardware operation, or equivalence against executions of the original Mach-O binaries. These files must **not** be deployed to a physical printer. They are readable, compilable C source with documented reconstructed and newly authored portions, not recovered original full C source.

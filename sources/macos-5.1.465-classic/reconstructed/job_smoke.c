@@ -1,0 +1,93 @@
+#include "mac_classic_job.h"
+#include <assert.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+
+typedef struct {
+ mac_classic_page_info pages[3];
+ uint8_t data[3][128];
+ unsigned count, index;
+ unsigned truncated;
+} test_source;
+typedef struct {
+ uint8_t data[2048];
+ size_t n;
+ size_t reject_after;
+} test_sink;
+
+static int get_header(void *context,mac_classic_page_info *p) {
+ test_source *s=context;
+ if(s->index>=s->count) return 0;
+ *p=s->pages[s->index];
+ return 1;
+}
+static size_t get_pixels(void *context,uint8_t *b,size_t n) {
+ test_source *s=context;
+ if(s->index>=s->count||n>sizeof s->data[0]) return 0;
+ if(s->truncated && n>1) --n;
+ memcpy(b,s->data[s->index++],n);
+ return n;
+}
+static int put_bytes(void *context,const uint8_t *b,size_t n) {
+ test_sink *s=context;
+ if(s->n+n>sizeof s->data || s->n+n>s->reject_after)return -1;
+ memcpy(s->data+s->n,b,n);s->n+=n;return 0;
+}
+static int has(const test_sink *s,const uint8_t *needle,size_t n) {
+ for(size_t i=0;i+n<=s->n;i++)if(memcmp(s->data+i,needle,n)==0)return 1;
+ return 0;
+}
+static void init_sink(test_sink *s){memset(s,0,sizeof *s);s->reject_after=sizeof s->data;}
+int main(void){
+ const mac_classic_page_source source={get_header,get_pixels};
+ mac_classic_job_config cfg={.optimization_level=0,.quality_selector=0,.vertical_dpi=300,.cut_each_label=0};
+ test_source ps={0};test_sink os;init_sink(&os);
+ mac_classic_job_io io={&source,&ps,put_bytes,&os};
+ unsigned pages=99;
+ ps.count=2;
+ for(int j=0;j<2;j++) {ps.pages[j].height=1;ps.pages[j].width=8;ps.pages[j].bytes_per_line=1;ps.pages[j].bits_per_pixel=1;ps.data[j][0]=(uint8_t)(0xff-j);}
+ assert(mac_classic_job_run(&io,&cfg,&pages)==0);
+ assert(pages==2 && os.n==122+2*(11+4+1+2)+6);
+ assert(os.data[0]==0x1b && os.data[121]=='@');
+ const uint8_t raw[]={0x1b,'D',1,0x16,0xff};
+ assert(has(&os,raw,sizeof raw));
+ const uint8_t end[]={0x1b,'E',0x1b,'@',0x1b,'Z'};
+ assert(memcmp(os.data+os.n-sizeof end,end,sizeof end)==0);
+
+ /* One black RGB24 row goes through the actual recovered DitherPage. */
+ memset(&ps,0,sizeof ps);init_sink(&os);
+ ps.count=1;ps.pages[0]=(mac_classic_page_info){.width=8,.height=1,.bytes_per_line=24,.bits_per_pixel=24};
+ assert(mac_classic_job_run(&io,&cfg,&pages)==0 && pages==1);
+ assert(has(&os,raw,sizeof raw));
+ /* Original Draft selects 1-bit CUPS input; RGB24 with Draft is rejected. */
+ init_sink(&os);cfg.quality_selector=7;
+ assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==0);
+ cfg.quality_selector=0;
+
+ /* Mode 1: two empty rows must become one ESC f skip. */
+ memset(&ps,0,sizeof ps);init_sink(&os);
+ ps.count=1;ps.pages[0]=(mac_classic_page_info){.width=8,.height=3,.bytes_per_line=1,.bits_per_pixel=1};
+ ps.data[0][2]=0xff;cfg.optimization_level=1;
+ assert(mac_classic_job_run(&io,&cfg,&pages)==0 && pages==1);
+ const uint8_t skip[]={0x1b,'f',0,2,0xff};
+ assert(has(&os,skip,sizeof skip));
+
+ /* A nonzero short CUPS read is a hard error, not an EOF. */
+ memset(&ps,0,sizeof ps);init_sink(&os);
+ ps.count=1;ps.truncated=1;
+ ps.pages[0]=(mac_classic_page_info){.width=8,.height=2,.bytes_per_line=1,.bits_per_pixel=1};
+ assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==0);
+ /* Truncated output must never be counted as a completed page. */
+ memset(&ps,0,sizeof ps);init_sink(&os);
+ ps.count=1;ps.pages[0]=(mac_classic_page_info){.width=8,.height=1,.bytes_per_line=1,.bits_per_pixel=1};
+ ps.data[0][0]=0xff;os.reject_after=123;
+ assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==0);
+
+ /* No empty 'successful' print job. */
+ memset(&ps,0,sizeof ps);init_sink(&os);
+ assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==0);
+ cfg.vertical_dpi=400;
+ assert(mac_classic_job_run(&io,&cfg,&pages)!=0);
+ return 0;
+}
