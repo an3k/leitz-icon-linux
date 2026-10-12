@@ -1,17 +1,19 @@
 CC ?= cc
 CFLAGS ?= -O2 -std=c11 -Wall -Wextra -Werror
+LIB_SRCS = mac_classic_command_core.c mac_classic_raster_boundaries.c
+LIB_OBJS = $(LIB_SRCS:.c=.o)
 
 .PHONY: all check clean
-all: libmac_classic_command_core.a
+all: libmac_classic_fragments.a
 
-mac_classic_command_core.o: mac_classic_command_core.c mac_classic_command_core.h
-	$(CC) $(CFLAGS) -c -o $@ mac_classic_command_core.c
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-libmac_classic_command_core.a: mac_classic_command_core.o
+libmac_classic_fragments.a: $(LIB_OBJS)
 	ar rcs $@ $^
 
-smoke: smoke.c mac_classic_command_core.c mac_classic_command_core.h
-	$(CC) $(CFLAGS) -o $@ smoke.c mac_classic_command_core.c
+smoke: smoke.c $(LIB_SRCS) mac_classic_command_core.h mac_classic_raster_boundaries.h
+	$(CC) $(CFLAGS) -o $@ smoke.c $(LIB_SRCS)
 
 check: smoke
 	./smoke
