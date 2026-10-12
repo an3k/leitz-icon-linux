@@ -1,11 +1,43 @@
 #include "mac_classic_process_page.h"
+#include "mac_classic_read_page.h"
+#include <stdlib.h>
 #include "mac_classic_command_core.h"
 #include "mac_classic_raster_boundaries.h"
 #include "mac_classic_dither.h"
 #include <assert.h>
 #include <string.h>
+/* Fake CUPS read callback validates the extracted ReadPage allocation contract. */
+typedef struct { unsigned stage; size_t amount; size_t deliver; } fake_pages;
+static int fake_header(void *ctx, mac_classic_page_info *h) {
+  fake_pages *c=(fake_pages *)ctx;
+  if(c->stage++)return 0;
+  h->height=2; h->bytes_per_line=(unsigned)c->amount;
+  return 1;
+}
+static size_t fake_pixels(void *ctx, uint8_t *dst,size_t bytes) {
+  fake_pages *c=(fake_pages *)ctx;
+  size_t n=c->deliver<bytes?c->deliver:bytes;
+  memset(dst,0xa5,n);
+  return n;
+}
 int main(void) {
   uint8_t b[124];
+  const mac_classic_page_source src={fake_header,fake_pixels};
+  fake_pages fp={0,4,8};
+  mac_classic_page_info page_info={0};uint8_t *page=NULL;size_t bytes=0;
+  unsigned page_count=0;
+  assert(mac_classic_read_page(&src,&fp,&page_info,&page,&bytes,&page_count)==MAC_CLASSIC_PAGE_OK);
+  assert(bytes==8 && page_count==1 && page[0]==0xa5 && page[7]==0xa5);
+  free(page);page=NULL;
+  assert(mac_classic_read_page(&src,&fp,&page_info,&page,&bytes,&page_count)==MAC_CLASSIC_PAGE_EOF);
+  assert(page==NULL && bytes==0 && page_count==1);
+  fp.stage=0;fp.deliver=4;
+  assert(mac_classic_read_page(&src,&fp,&page_info,&page,&bytes,&page_count)==MAC_CLASSIC_PAGE_ERROR);
+  assert(page==NULL && bytes==0 && page_count==1);
+  fp.stage=0;fp.amount=0;
+  assert(mac_classic_read_page(&src,&fp,&page_info,&page,&bytes,&page_count)==MAC_CLASSIC_PAGE_ERROR);
+  assert(page==NULL && page_count==1);
+
   for (int i = 0; i < 3; i++) {
     assert(mac_classic_encode_query(mac_classic_queries[i].command,b) == 2);
     assert(b[0] == 0x1b && b[1] == mac_classic_queries[i].command);
@@ -99,7 +131,31 @@ int main(void) {
   const uint8_t original_asymmetry[]={0x1b,'D',4,0x16,0xff,0,0,0};
   assert(used==sizeof original_asymmetry && memcmp(dst,original_asymmetry,used)==0);
   assert(mac_classic_row_init(&st,2,121)<0);
-  assert(mac_classic_row_init(&st,0,4)<0);
+  assert(mac_classic_row_init(&st,0,4)==0);
+  uint8_t preamble[4];
+  assert(mac_classic_row_preamble(&st,preamble)==4);
+  const uint8_t mode01_header[4]={0x1b,'D',4,0x16};
+  assert(memcmp(preamble,mode01_header,4)==0);
+  assert(mac_classic_row_encode(&st,blank,dst,sizeof dst,&used)==0);
+  assert(used==4 && memcmp(dst,blank,4)==0);
+  assert(mac_classic_row_encode(&st,dense,dst,sizeof dst,&used)==0);
+  assert(used==4 && memcmp(dst,dense,4)==0);
+  assert(mac_classic_pending_trailing_blank(&st)==0);
+  assert(mac_classic_row_init(&st,1,4)==0);
+  assert(mac_classic_row_preamble(&st,preamble)==4);
+  assert(memcmp(preamble,mode01_header,4)==0);
+  assert(mac_classic_row_encode(&st,blank,dst,sizeof dst,&used)==0 && used==0);
+  assert(mac_classic_row_encode(&st,blank,dst,sizeof dst,&used)==0 && used==0);
+  assert(mac_classic_row_encode(&st,dense,dst,sizeof dst,&used)==0);
+  const uint8_t mode1_expected[]={0x1b,'f',0,2,0,0xff,0xff,0xff};
+  assert(used==sizeof mode1_expected && memcmp(dst,mode1_expected,used)==0);
+  assert(mac_classic_row_encode(&st,dense,dst,4,&used)==0 && used==4);
+  assert(memcmp(dst,dense,4)==0);
+  assert(mac_classic_row_encode(&st,blank,dst,sizeof dst,&used)==0 && used==0);
+  assert(mac_classic_pending_trailing_blank(&st)==1);
+  assert(mac_classic_row_init(&st,2,4)==0);
+  assert(mac_classic_row_preamble(&st,preamble)==0);
+  assert(mac_classic_row_init(&st,4,4)<0);
   assert(mac_classic_row_init(&st,2,4)==0);
   assert(mac_classic_row_encode(&st,dense,dst,2,&used)<0);
   return 0;
