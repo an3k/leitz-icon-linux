@@ -24,7 +24,7 @@ leitz_job *leitz_job_create(FILE *out,leitz_protocol protocol,int cut_each_page)
  return job;
 }
 int leitz_job_set_current_raster_mode(leitz_job *job,unsigned mode){
- if(!job||mode>2||job->pages||job->page_open||job->completed)return -1;
+ if(!job||mode>3||job->pages||job->page_open||job->completed)return -1;
  if(mode && strcmp(job->ops->name,"Current"))return -1;
  job->current_raster_mode=mode;
  return 0;

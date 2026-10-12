@@ -16,7 +16,7 @@ typedef enum {
 /* Shared logical page contract; encoder owns its device byte format. */
 typedef struct {
   unsigned width, total_rows, raster_rows, top, bottom, length_code, dpi_y;
-  /* Current only: 0 optimized, 1 full-width raw, 2 trimmed raw. */
+  /* Current only: 0 optimized, 1 full-width raw, 2 trimmed raw, 3 no-skip raw. */
   unsigned current_raster_mode;
 } leitz_page;
 

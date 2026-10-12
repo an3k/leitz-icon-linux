@@ -77,6 +77,7 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
      return -1;
  }
  int custom_page=explicitly_custom_page(options);
+ const int debug_mesh=option(options,"DebugMode","Mesh");
  const struct leitz_media *m=custom_page?NULL:lookup(h);
  /* If the print job explicitly selects a vendor media name, ensure that
   * its raster geometry matches. Do not reinterpret malformed vendor pages
@@ -176,6 +177,17 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
     }
     present|=bits[x];
   }
+  /* Vendor DebugMode=Mesh, adapted after color-space normalization. */
+  if(debug_mesh){
+    if(y==0 || y==height/2 || y==height-1){
+      memset(bits,1,width);
+    }else{
+      bits[0]=1;
+      bits[width/2]=1;
+      bits[width-1]=1;
+    }
+    present=1;
+  }
   if(fwrite(bits,1,width,cached)!=width){fprintf(stderr,"ERROR: Spool write failed\n");goto done;}
   if(present){last_ink=y+1;has_ink=1;}
  }
@@ -219,7 +231,8 @@ int main(int argc,char **argv){
  }
  const int cut_each_page=!option(argv[5],"LabelCutter","OFF");
  unsigned current_mode=option(argv[5],"LeitzCurrentRaster","FullWidthRaw")?1u:
-   option(argv[5],"LeitzCurrentRaster","TrimmedRaw")?2u:0u;
+   option(argv[5],"LeitzCurrentRaster","TrimmedRaw")?2u:
+   option(argv[5],"LeitzCurrentRaster","NoSkipRaw")?3u:0u;
  if(strstr(argv[5],"LeitzCurrentRaster=") && !current_mode &&
     !option(argv[5],"LeitzCurrentRaster","Optimized")){
   fprintf(stderr,"ERROR: Unknown LeitzCurrentRaster option\n");

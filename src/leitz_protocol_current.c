@@ -41,12 +41,16 @@ int leitz_row_media(leitz_encoder *e,const uint8_t *pixels){
  e->emitted_rows++;
  int lo=(int)e->width,hi=-1;
  for(unsigned x=0;x<e->width;x++)if(pixels[x]){if((int)x<lo)lo=(int)x;hi=(int)x;}
- if(hi<0){e->pending_blank++;return 0;}
+ /* Original Linux optimization level 0 sends all rows, including blank ones.
+  * Level 1 sends full-width nonblank rows; level 2 also trims blank bytes.
+  * In the supplied Linux source, level 3 behaves identically to level 1.
+  * These settings retain Current's own wire framing. */
+ if(hi<0 && e->raster_mode!=3){e->pending_blank++;return 0;}
  if(e->pending_blank){if(feed(e,e->pending_blank))goto error;e->pending_blank=0;}
- /* Native Linux: level 1 full-width raw; level 2 trims white byte margins.
-  * Both are optional Current-only strategies. Optimized remains unchanged. */
- unsigned left=e->raster_mode==1?0u:(unsigned)lo/8u;
- unsigned byte_end=e->raster_mode==1?(e->width+7u)/8u:(unsigned)hi/8u+1u;
+ if(hi<0){lo=0;hi=(int)e->width-1;}
+ unsigned full_width=e->raster_mode==1||e->raster_mode==3;
+ unsigned left=full_width?0u:(unsigned)lo/8u;
+ unsigned byte_end=full_width?(e->width+7u)/8u:(unsigned)hi/8u+1u;
  unsigned nbytes=byte_end-left;
  uint8_t packed[120]={0},runs[960];unsigned nr=0;
  for(unsigned x=0;x<nbytes*8;x++){
@@ -167,8 +171,10 @@ int leitz_validate(FILE *f,unsigned *pages,unsigned *max_width,char *r,size_t n)
       }
       if(pixels!=(unsigned)linewidth*8)return bad(r,n,"RLE overrun");
     }else return bad(r,n,"Raster mode unknown");
-    if(!ink)return bad(r,n,"Blank raster row");
-    ink_rows++;
+    /* The vendor's unoptimized raw mode transmits blank rows literally.
+     * Require at least one real ink row in each complete page as before. */
+    if(!ink && kind!=0x16)return bad(r,n,"Blank compressed raster row");
+    if(ink)ink_rows++;
     count++;
    }else if(cmd=='G'){
      if(rd(f)!=27)return bad(r,n,"Page boundary missing ESC");

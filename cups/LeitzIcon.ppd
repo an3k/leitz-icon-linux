@@ -427,10 +427,17 @@
 *LeitzDither Bayer4/Ordered 4x4 Bayer: ""
 *LeitzDither Threshold/Black/White Threshold: ""
 *CloseUI: *LeitzDither
+*OpenUI *DebugMode/Leitz Debug: PickOne
+*OrderDependency: 23 AnySetup *DebugMode
+*DefaultDebugMode: Release
+*DebugMode Release/Debug Off: ""
+*DebugMode Mesh/Add Bounds and Center Cross (diagnostic): ""
+*CloseUI: *DebugMode
 *OpenUI *LeitzCurrentRaster/Current Raster Encoding: PickOne
 *OrderDependency: 22 AnySetup *LeitzCurrentRaster
 *DefaultLeitzCurrentRaster: Optimized
 *LeitzCurrentRaster Optimized/Optimized (existing Current output): ""
 *LeitzCurrentRaster FullWidthRaw/Full-width raw rows (experimental, Current only): ""
 *LeitzCurrentRaster TrimmedRaw/Trimmed raw rows (experimental, Current only): ""
+*LeitzCurrentRaster NoSkipRaw/Full-width raw including blank rows (vendor level 0, experimental): ""
 *CloseUI: *LeitzCurrentRaster
