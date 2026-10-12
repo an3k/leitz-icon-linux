@@ -69,7 +69,7 @@ PageSize, PaperDimension, ImageableArea or the per-job cut and feed logic.
 
 The new `media/vendor_macos_catalog.json` was extracted directly from the
 uploaded macOS `CartridgesCatalog.plist` (23 SKUs) and `PaperCatalog.plist`
-(22 catalog format records). This explicitly distinguishes cartridge physical
+(37 catalog format records). This explicitly distinguishes cartridge physical
 width, adhesive/stock type, format compatibility, and orientation metadata.
 The source reports SKU `170030001` (9 digits), therefore ESC U also accepts
 a nine-digit SKU where present.
@@ -91,10 +91,11 @@ the script's default PID 0x1001 and the macOS `LeitzIconV3.drv`
 describe the separate Icon 900 Pro Turbo/V3 model.
 These read-only commands are source-backed but not yet hardware-verified.
 
-The uploaded macOS and Windows application archives, their internal binaries,
-and the two `LeitzUSRes` DLLs could not be enumerated in this environment
-(the mounted file container returned an access error). No claim of exhaustive
-binary review or a pixel-exact vendor dithering implementation is made.
+The full uploaded Windows/macOS archive inventories and both LeitzUSRes DLLs
+have subsequently been inspected. The application archives contain many
+template images and localization assets but do not make the CUPS filter a
+template renderer. Pixel-identical proprietary Windows/macOS algorithms
+remain unverified where their original arithmetic is unavailable.
 
 ## Review of full uploaded 2026-10-12 vendor archives
 
@@ -138,3 +139,27 @@ recognizes these three original read-only operations and validates the
 known `SKU:...;INIT:...;USED:...;` reply format. This is not a
 mechanical-completion or hardware qualification claim. Network/Wi-Fi
 write operations and boot mode are not exposed.
+
+## Completed macOS compatibility inventory and media-width handling
+
+The manufacturer macOS PaperCatalog.plist contains 37 paper format records,
+not 22. The original mapping in media/vendor_macos_catalog.json was
+incomplete. All 37 entries, including StandardAddressLabel,
+ShippingLabel70180001, ShippingLabel70130001, PackageShippingLabel and the
+archival label variants, are now represented with their exact source-listed
+CompatibleSKUs, orientation flags and available IPP names. The USB backend
+uses those manufacturer whitelist entries when the CUPS job supplies a named
+PageSize; it does not infer SKUs from a name suffix. In the absence of a
+matching catalog entry, width checks remain independent.
+
+The following physical raster widths are supported using the intersection of
+the macOS compatible SKUs and corresponding Windows GPD PrintableArea:
+- SKU70120001 -> InternationalAddressLabel, 960 pixels;
+- SKU70170001 -> StandardAddressLabel, 960 pixels;
+- SKU70280001 -> Wristband, 306 pixels.
+
+A printed page must still fit the physical cassette. Compatibility on paper
+is a source-based validation rule, not a hardware-confirmed print outcome.
+Original OptimizationLevel 0..3 is prioritized over the old default
+LeitzCurrentRaster=Optimized when both defaults are present in CUPS options,
+while explicit nondefault Current raw modes remain available.

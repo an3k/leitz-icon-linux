@@ -142,30 +142,6 @@
   ],
   "paper_formats": [
     {
-      "page_size": "DHLShippingLabel",
-      "compatible_skus": [
-        "70270001",
-        "70030001",
-        "170030001",
-        "70160001",
-        "70160015",
-        "70160025",
-        "70190001"
-      ],
-      "rotate_before_printing": true,
-      "portrait": true,
-      "ipp_name": "om_package-label_88x178mm"
-    },
-    {
-      "page_size": "LeitzLeverArchFile1005",
-      "compatible_skus": [
-        "70060001"
-      ],
-      "rotate_before_printing": true,
-      "portrait": true,
-      "ipp_name": "om_active-file_50x110mm"
-    },
-    {
       "page_size": "AppointmentCard",
       "compatible_skus": [
         "70270001",
@@ -286,6 +262,21 @@
       "ipp_name": null
     },
     {
+      "page_size": "DHLShippingLabel",
+      "compatible_skus": [
+        "70270001",
+        "70030001",
+        "170030001",
+        "70160001",
+        "70160015",
+        "70160025",
+        "70190001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": "om_package-label_88x178mm"
+    },
+    {
       "page_size": "FileFolderLabel",
       "compatible_skus": [
         "70110001",
@@ -322,6 +313,15 @@
       "rotate_before_printing": false,
       "portrait": false,
       "ipp_name": null
+    },
+    {
+      "page_size": "LeitzLeverArchFile1005",
+      "compatible_skus": [
+        "70060001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": "om_active-file_50x110mm"
     },
     {
       "page_size": "Multipurpose70030001",
@@ -400,6 +400,172 @@
       "rotate_before_printing": false,
       "portrait": false,
       "ipp_name": "om_name-badge-card_57.15x88mm"
+    },
+    {
+      "page_size": "NameBadgeLabel70030001",
+      "compatible_skus": [
+        "70030001",
+        "170030001",
+        "70160001",
+        "70160015",
+        "70160025",
+        "70190001",
+        "70270001"
+      ],
+      "rotate_before_printing": null,
+      "portrait": null,
+      "ipp_name": "om_name-badge_59.18x88mm"
+    },
+    {
+      "page_size": "NameBadgeLabel70060001",
+      "compatible_skus": [
+        "70060001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "NarrowLeverArchCardShort",
+      "compatible_skus": [
+        "70080001"
+      ],
+      "rotate_before_printing": null,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "NarrowLeverArchLabelLong",
+      "compatible_skus": [
+        "70070001"
+      ],
+      "rotate_before_printing": null,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "NarrowLeverArchLabelShort",
+      "compatible_skus": [
+        "70070001"
+      ],
+      "rotate_before_printing": null,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "PackageShippingLabel",
+      "compatible_skus": [
+        "70270001",
+        "70030001",
+        "170030001",
+        "70160001",
+        "70160015",
+        "70160025",
+        "70190001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": "om_package-label_88x152.4mm"
+    },
+    {
+      "page_size": "ReturnAddressLabelLarge",
+      "compatible_skus": [
+        "70090001"
+      ],
+      "rotate_before_printing": null,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "ReturnAddressLabelSmall",
+      "compatible_skus": [
+        "70100001"
+      ],
+      "rotate_before_printing": null,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "ShippingLabel70130001",
+      "compatible_skus": [
+        "70130001",
+        "70040001"
+      ],
+      "rotate_before_printing": null,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "ShippingLabel70180001",
+      "compatible_skus": [
+        "70270001",
+        "70180001",
+        "70030001",
+        "170030001",
+        "70060001",
+        "70160001",
+        "70160015",
+        "70160025",
+        "70190001"
+      ],
+      "rotate_before_printing": null,
+      "portrait": null,
+      "ipp_name": "om_shipping-label_50x88mm"
+    },
+    {
+      "page_size": "StandardAddressLabel",
+      "compatible_skus": [
+        "70270001",
+        "70170001",
+        "70030001",
+        "170030001",
+        "70160001",
+        "70160015",
+        "70160025",
+        "70190001"
+      ],
+      "rotate_before_printing": null,
+      "portrait": null,
+      "ipp_name": "om_standard-address-label_28x88mm"
+    },
+    {
+      "page_size": "SuspensionFileLabel",
+      "compatible_skus": [
+        "70110001",
+        "70150001",
+        "70150015",
+        "70150025"
+      ],
+      "rotate_before_printing": null,
+      "portrait": true,
+      "ipp_name": "om_suspension-file-label_12.5x50.8mm"
+    },
+    {
+      "page_size": "WideLeverArchCardShort",
+      "compatible_skus": [
+        "70050001"
+      ],
+      "rotate_before_printing": null,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "WideLeverArchLabelLong",
+      "compatible_skus": [
+        "70040001"
+      ],
+      "rotate_before_printing": null,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "WideLeverArchLabelShort",
+      "compatible_skus": [
+        "70040001"
+      ],
+      "rotate_before_printing": null,
+      "portrait": true,
+      "ipp_name": null
     }
   ]
 }

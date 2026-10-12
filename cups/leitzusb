@@ -219,8 +219,6 @@ fi
 allowed_skus=''
 # BEGIN GENERATED SOURCE: macOS PaperCatalog.plist CompatibleSKUs
 case "$selected_media" in
-  DHLShippingLabel) allowed_skus=' 70270001 70030001 170030001 70160001 70160015 70160025 70190001 ' ;;
-  LeitzLeverArchFile1005) allowed_skus=' 70060001 ' ;;
   AppointmentCard) allowed_skus=' 70270001 70190001 70030001 170030001 70160001 70160015 70160025 ' ;;
   Continuous112) allowed_skus=' 70070001 ' ;;
   Continuous70030001) allowed_skus=' 70270001 70030001 170030001 70160001 70160015 70160025 70190001 ' ;;
@@ -232,15 +230,32 @@ case "$selected_media" in
   Continuous70100001) allowed_skus=' 70100001 ' ;;
   Continuous70110001) allowed_skus=' 70110001 70150001 70150015 70150025 ' ;;
   Continuous70190001) allowed_skus=' 70270001 70190001 70030001 170030001 70160001 70160015 70160025 ' ;;
+  DHLShippingLabel) allowed_skus=' 70270001 70030001 170030001 70160001 70160015 70160025 70190001 ' ;;
   FileFolderLabel) allowed_skus=' 70110001 70150001 70150015 70150025 ' ;;
   InternationalAddressLabel) allowed_skus=' 70270001 70120001 70030001 170030001 70160001 70160015 70160025 70190001 ' ;;
   LargePendaflexTab) allowed_skus=' 70060001 70080001 ' ;;
+  LeitzLeverArchFile1005) allowed_skus=' 70060001 ' ;;
   Multipurpose70030001) allowed_skus=' 70270001 70180001 70030001 170030001 70060001 70160001 70160015 70160025 70190001 ' ;;
   Multipurpose70090001) allowed_skus=' 70090001 ' ;;
   Multipurpose70100001) allowed_skus=' 70100001 ' ;;
   Multipurpose70110001) allowed_skus=' 70110001 70150001 70150015 70150025 ' ;;
   NameBadgeCard70190001) allowed_skus=' 70270001 70190001 70030001 170030001 70160001 70160015 70160025 70050001 ' ;;
   NameBadgeCard8214) allowed_skus=' 70270001 70190001 70030001 170030001 70160001 70160015 70160025 ' ;;
+  NameBadgeLabel70030001) allowed_skus=' 70030001 170030001 70160001 70160015 70160025 70190001 70270001 ' ;;
+  NameBadgeLabel70060001) allowed_skus=' 70060001 ' ;;
+  NarrowLeverArchCardShort) allowed_skus=' 70080001 ' ;;
+  NarrowLeverArchLabelLong) allowed_skus=' 70070001 ' ;;
+  NarrowLeverArchLabelShort) allowed_skus=' 70070001 ' ;;
+  PackageShippingLabel) allowed_skus=' 70270001 70030001 170030001 70160001 70160015 70160025 70190001 ' ;;
+  ReturnAddressLabelLarge) allowed_skus=' 70090001 ' ;;
+  ReturnAddressLabelSmall) allowed_skus=' 70100001 ' ;;
+  ShippingLabel70130001) allowed_skus=' 70130001 70040001 ' ;;
+  ShippingLabel70180001) allowed_skus=' 70270001 70180001 70030001 170030001 70060001 70160001 70160015 70160025 70190001 ' ;;
+  StandardAddressLabel) allowed_skus=' 70270001 70170001 70030001 170030001 70160001 70160015 70160025 70190001 ' ;;
+  SuspensionFileLabel) allowed_skus=' 70110001 70150001 70150015 70150025 ' ;;
+  WideLeverArchCardShort) allowed_skus=' 70050001 ' ;;
+  WideLeverArchLabelLong) allowed_skus=' 70040001 ' ;;
+  WideLeverArchLabelShort) allowed_skus=' 70040001 ' ;;
 esac
 # END GENERATED SOURCE
 if [[ -n "$allowed_skus" && "$allowed_skus" != *" $actual_sku "* ]]; then
@@ -271,7 +286,7 @@ echo 'STATE: -com.leitz.incompatible-cartridge-error' >&2
 # control positioning. An explicitly selected SKU proves identity, NOT width.
 # Never assume 960 pixels for a cartridge with unknown geometry.
 case "$actual_sku" in
-  70030001|70270001|170030001|70160001|70160015|70160025|70180001|70190001) physical_width=960 ;;
+  70030001|70270001|170030001|70120001|70160001|70160015|70160025|70170001|70180001|70190001) physical_width=960 ;;
   70040001) physical_width=690 ;;
   70050001) physical_width=643 ;;
   70060001) physical_width=561 ;;
@@ -281,6 +296,7 @@ case "$actual_sku" in
   70100001) physical_width=194 ;;
   70110001|70150001|70150015|70150025) physical_width=118 ;;
   70130001) physical_width=667 ;;
+  70280001) physical_width=306 ;;
   *)
     echo "ERROR: Unknown cartridge SKU $actual_sku; physical print width not established. Job not sent." >&2
     exit 4

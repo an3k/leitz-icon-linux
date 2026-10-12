@@ -392,14 +392,18 @@ int main(int argc,char **argv){
  }
  const int cut_each_page=option(argv[5],"CutMedia","True")||
    !option(argv[5],"LabelCutter","OFF");
+ /* Non-default Current raw modes take precedence. Otherwise honor the
+  * original OptimizationLevel, even if CUPS supplies the old
+  * LeitzCurrentRaster=Optimized default as well. This makes vendor levels
+  * 0..3 operational rather than silently overriding them with mode zero. */
  unsigned current_mode=option(argv[5],"LeitzCurrentRaster","FullWidthRaw")?1u:
    option(argv[5],"LeitzCurrentRaster","TrimmedRaw")?2u:
    option(argv[5],"LeitzCurrentRaster","NoSkipRaw")?3u:
-   option(argv[5],"LeitzCurrentRaster","Optimized")?0u:
    option(argv[5],"OptimizationLevel","0")?3u:
    option(argv[5],"OptimizationLevel","1")?1u:
    option(argv[5],"OptimizationLevel","2")?2u:
-   option(argv[5],"OptimizationLevel","3")?1u:2u;
+   option(argv[5],"OptimizationLevel","3")?1u:
+   option(argv[5],"LeitzCurrentRaster","Optimized")?0u:2u;
  if((strstr(argv[5],"LeitzCurrentRaster=") &&
       !option(argv[5],"LeitzCurrentRaster","Optimized") &&
       !option(argv[5],"LeitzCurrentRaster","FullWidthRaw") &&
