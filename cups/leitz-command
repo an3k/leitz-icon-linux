@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# CUPS command-file filter. Strictly support ReportStatus, never emit
-# print/cut protocol commands. The exclusive USB backend performs ESC A.
+# CUPS command-file filter: ReportStatus/GetPrinterStatus (ESC A) and
+# GetFirmwareVersion (ESC V). No print, cut, Wi-Fi, or boot-mode commands.
 set -euo pipefail
 LC_ALL=C
 if (( $# != 5 && $# != 6 )); then
