@@ -15,3 +15,26 @@ Completed: binary identification, disassembly, initial function/branch identific
 Linux original C is useful as a reference for APIs and terminology only; no identical implementation is assumed. V3 is a distinct model-specific driver and is intentionally excluded from this stage.
 
 No fabricated C code has been created merely to satisfy a file count.
+
+## Disassembly-derived, compilable C fragments
+
+The `reconstructed/` directory now contains real C source files for small portions of both classic macOS binaries. Built locally using GCC C11 with `-Wall -Wextra -Werror`; `make check` succeeded. No macOS runtime or USB hardware test was performed.
+
+- `mac_classic_command_core.[ch]`: query letters for GetPrinterStatus / GetUnitedStatus / GetFirmvareVersion; ESC A response equality checks for 0x03, 0x20, 0x30, 0x40; ESC Z end marker.
+- `mac_classic_raster_boundaries.[ch]`: StartDocument 120 padding ESC bytes, ESC @, optional ESC i; EndPage ESC G plus optional ESC E; EndDocument optional ESC E plus ESC @ ESC Z.
+- `smoke.c` and `Makefile`: compile these isolated code fragments and check reconstructed byte sequences without CUPS or USB access.
+
+Relevant disassembly addresses (Mach-O x86-64 virtual addresses):
+
+| Original executable | Function | Address |
+|---|---|---|
+| command2leitz | GetPrinterStatus | 0x1000011d0 |
+| command2leitz | GetUnitedStatus | 0x1000012a0 |
+| command2leitz | GetFirmvareVersion | 0x100001370 |
+| command2leitz | GetStatus | 0x100001440 (only fragments covered) |
+| command2leitz | EndOfJob | 0x100001a30 |
+| raster2printer | StartDocument | 0x100006890 |
+| raster2printer | EndPage | 0x1000089b0 |
+| raster2printer | EndDocument | 0x100008ac0 |
+
+**Not reconstructed:** both complete `main` functions, CUPS option parsing, raster input, complete half-toning, page geometry, StartPage, ProcessPage, ReadPage, USB/socket output, macOS notifications, complete status backchannel, and all shared functions. The fragments are **not** a replacement for the originals. A successful fragment build is not a successful complete driver build.
