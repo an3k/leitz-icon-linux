@@ -63,3 +63,22 @@ This successfully compiled and ran locally under `-std=c11 -Wall -Wextra -Werror
 The `_raster2printer` case-insensitive choice comparisons at Mach-O virtual addresses `0x100004dbd..0x100005098` have now been reconstructed in `mac_classic_quality_from_ppd()`. This yields all **15 original PPD choices**, mapped to the exact integer selectors (0..14) used by `_DitherPage`. Choice `Draft` maps to selector 7 and sets single-bit raster input in the original PPD; it is intentionally not processed by the RGB24 dither routine. The 14 other selections map to 13 extracted manufacturer matrix arrays.
 
 The selection mapping and its case-insensitive behavior are included in the successful local `make check` run. This documents and reconstructs **the quality selector**, not the remainder of the original printing application.
+
+## ProcessPage raster encoder recovery (current milestone)
+
+From the classic original `raster2printer`, `_ProcessPage` at `0x100007560..0x1000089a6`:
+
+| `OptimizationLevel` | Mach-O code branch | Observed treatment |
+|---|---|---|
+| 0 | `0x10000889b` | Direct row submission, including white rows; full function not yet reconstructed |
+| 1 | `0x100007e6e` | White-row detection, packed raw row submission; full function not yet reconstructed |
+| 2 | `0x100007f32` | White-row skip, byte-edge trimming, ESC B/D, bit-run compression (0x17), fallback to 0x16 raw |
+| 3 | `0x100007a74` | White-row skip, byte-edge trimming, ESC B/D, 0x16 raw |
+
+`reconstructed/mac_classic_process_page.[ch]` now implements **isolated mode 2 and 3 row-framing**, including `ESC f` white-row flushing when the next printed row is encountered, `ESC B` left offset, `ESC D` width state, 0x16 raw data and 0x17 bit-run compression when shorter. The compressor reads high-to-low bits and emits run bytes (black bit in the high bit, count-minus-one in the lower seven bits). It preserves a non-obvious asymmetry in the original machine code: for mode 3, trailing white bytes are **not** trimmed when the first byte of a row is already nonzero (`0x100007ab4`); mode 2 always performs trailing-byte trimming (`0x1000080b6`).
+
+The code uses explicit bounded output buffers rather than the unsafe pointer arithmetic present in the original Mach-O binary. A failed output capacity request therefore returns an error. This is a **safe C reconstruction of identified fragments**, not a byte-by-byte decompilation of all original `ProcessPage`.
+
+The local `make clean check all` build and the same smoke assertions under AddressSanitizer/UndefinedBehaviorSanitizer completed successfully on Linux. They check selected expected command bytes and edge cases, not behavioral identity with the original macOS executable.
+
+**Remaining before full, re-compilable classic macOS source:** mode 0/1 submission and original buffer layout, all page-level option/length/offset handling, full CUPS entry and output flow, page-reading, all status/USB communication branches, and comparison against the manufacturer's executable. The assembled fragments must not be used as a functional replacement driver.
