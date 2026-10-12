@@ -28,4 +28,10 @@ assert "PROTOCOL=Current" not in wire
 assert "PROTOCOL=Native" not in wire
 assert '$dialect' not in wire
 assert "INFO: Leitz job transferred to USB" in wire
+# Cartridge-bearing CUPS media identifiers must be matched to ESC U before
+# any validated raster data can be transmitted to the physical printer.
+assert "PageSize=" in wire and "selected_sku" in wire
+assert "Selected PageSize requires cassette" in wire
+assert wire.index("Selected PageSize requires cassette") < wire.index("if ((job_width>physical_width))")
+
 print("PASS backend cancellation, validated width, and protocol-independent transport")
