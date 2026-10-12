@@ -13,3 +13,7 @@
       Original PPD's Plus90 does not by itself fix A/B/G print rotation.
 - [ ] Qualify imported options, quality modes and the explicit ESC A bypass
       on real hardware before promoting the development branch to main.
+- [ ] Port the macOS command2leitz protocol semantics for GetPrinterStatus,
+      GetUnitedStatus, GetFirmwareVersion and ReportState after obtaining the
+      executable/protocol reference. Until validated, cupsCommands must not
+      advertise these as supported; ReportStatus remains operational.

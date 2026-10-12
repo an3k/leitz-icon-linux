@@ -47,9 +47,11 @@ module additionally supports `LeitzCurrentRaster=FullWidthRaw`, using
 full-width packed 1-bit rows without RLE and a fresh `ESC D` width command
 per nonblank line, as in the original Linux 1.0.3 optimization-1 mode,
 but **retaining Current framing and cutting**.
-The default `Optimized` mode remains byte-identical to the previous Current
-implementation. The new mode is experimental and not hardware-qualified.
-Choosing `Native` with `FullWidthRaw` is rejected, not silently ignored.
+The original Linux/macOS PPD defaults are restored. The optional Current
+`Optimized` encoding is still available unchanged; explicitly selecting a
+vendor OptimizationLevel controls the alternative Current encoding. Native
+retains its own original framing and ignores Current-only raster selectors.
+The imported settings are not yet hardware-qualified.
 
 ## Known limitations
 
@@ -98,8 +100,8 @@ Uncertain transmission outcomes are never automatically retried.
 with leading and trailing white-byte margins removed, analogous to the
 original Linux optimization-level-2 raster strategy. It retains Current
 framing and cutting; it does not reproduce the vendor's entire protocol.
-`Optimized` remains the byte-identical default, `FullWidthRaw` is unchanged,
-and both optional modes are experimental and rejected by Native.
+`Optimized` remains selectable with identical encoding, `FullWidthRaw` is
+unchanged, and all optional modes are experimental and do not modify Native.
 
 ## Development GitHub Actions
 
@@ -108,3 +110,13 @@ any published CUPS image dependency. For an experimental development release,
 create a `dev-v*` tag on a `driver` branch commit; the separate
 `Driver - Development Release` workflow publishes its independent package.
 The `main` baseline uses separate `v*` tags.
+
+## Original PPD options (development)
+
+The 1.0.3 Linux and 1.2.190 macOS PPD identifiers, defaults, 12 status reasons,
+15 macOS PrintQuality selections and four Unidrv Halftone selections are
+inventoried in [docs/ORIGINAL_LINUX_103_OPTIONS.md](docs/ORIGINAL_LINUX_103_OPTIONS.md).
+Current adapts available behavior without modifying the Native encoder.
+The exact proprietary macOS dithering algorithms and non-ReportStatus CUPS
+maintenance commands are not verified and are **not** advertised as working.
+Localization remains deferred; see [docs/TODO.md](docs/TODO.md).

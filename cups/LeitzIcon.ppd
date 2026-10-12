@@ -37,6 +37,8 @@
 *cupsIPPReason com.leitz.incompatible-cartridge-error/Incompatible cartridge.: ""
 *cupsFilter: "application/vnd.cups-raster 0 leitz-rastertoicon"
 *cupsFilter: "application/vnd.cups-command 0 leitz-command"
+*% Original macOS cupsCommands: GetPrinterStatus GetUnitedStatus GetFirmwareVersion ReportState
+*% Unverified commands are not advertised as supported; only ReportStatus is implemented.
 *cupsCommands: "ReportStatus"
 *% The printer has no verified hardware copy-generation command.
 *% The upstream CUPS RIP must produce complete raster pages for each copy.
