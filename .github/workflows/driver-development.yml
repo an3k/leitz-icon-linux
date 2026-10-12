@@ -52,7 +52,7 @@ jobs:
 
   release:
     name: Publish explicitly requested development prerelease
-    if: ${{ github.event_name == 'push' && (contains(github.event.head_commit.added, 'requests/release.trigger') || contains(github.event.head_commit.modified, 'requests/release.trigger')) }}
+    if: ${{ github.event_name == 'push' }}
     needs: package
     permissions:
       contents: write
@@ -61,12 +61,25 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+          fetch-depth: 2
+      - name: Detect explicit release request in committed files
+        id: request
+        shell: bash
+        run: |
+          if git diff-tree --no-commit-id --name-only -r HEAD | grep -Fxq 'requests/release.trigger'; then
+            echo 'publish=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'No explicit development release requested.'
+            echo 'publish=false' >> "$GITHUB_OUTPUT"
+          fi
       - name: Download successfully built standalone driver package
+        if: ${{ steps.request.outputs.publish == 'true' }}
         uses: actions/download-artifact@v4
         with:
           name: leitz-icon-standalone-driver
           path: dist
       - name: Validate the explicit release request and archive
+        if: ${{ steps.request.outputs.publish == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -78,6 +91,7 @@ jobs:
           echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
           (cd dist && sha256sum -c leitz-icon-driver-linux-amd64.tar.gz.sha256)
       - name: Publish development prerelease
+        if: ${{ steps.request.outputs.publish == 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
