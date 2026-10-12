@@ -38,3 +38,22 @@ Relevant disassembly addresses (Mach-O x86-64 virtual addresses):
 | raster2printer | EndDocument | 0x100008ac0 |
 
 **Not reconstructed:** both complete `main` functions, CUPS option parsing, raster input, complete half-toning, page geometry, StartPage, ProcessPage, ReadPage, USB/socket output, macOS notifications, complete status backchannel, and all shared functions. The fragments are **not** a replacement for the originals. A successful fragment build is not a successful complete driver build.
+
+## Reconstruction update: raster geometry and original half-toning
+
+Reconstructed source in `reconstructed/` now additionally contains:
+
+- `mac_classic_dither.c` / `.h`: independent disassembly-based reconstruction of `_DitherPage` (`0x100006dd0`). All **13 distinct manufacturer integer matrices** have been extracted directly from the classic Mach-O data segment, with source addresses and SHA-256 of each matrix block preserved in comments. The switch table maps 14 modes to these tables, dimensions, and floating-point scaling factors. Mode 7 falls through without an initialized table pointer in the observed binary and is rejected by the reconstructed safe API rather than dereferenced.
+- `mac_classic_raster_boundaries.c` / `.h`: `_StartPage` (`0x100007380`) now emits the **original 11-byte page setup** `ESC L <length-hi> <length-lo> ESC w <width-hi> <width-lo> ESC B 0`. Its 300/600 dpi-dependent length arithmetic comes directly from the binary.
+- `smoke.c` tests those page-setup bytes, dither mode dimensions/scales, representative black/white raster output and malformed input rejection.
+
+For reproducibility on Linux with GCC:
+
+```sh
+cd sources/macos-5.1.465-classic/reconstructed
+make clean check all
+```
+
+This successfully compiled and ran locally under `-std=c11 -Wall -Wextra -Werror`.
+
+**Limitations:** This is still a **partial C reconstruction**. The full raster loop (`_ProcessPage`), document option handling, original CUPS API integration, complete `command2leitz` response/error control flow and executable entry points are **not** fully reconstructed. Behavioral equivalence to a running Mach-O filter has not been demonstrated. Matrix bytes are verified independently of behavior.
