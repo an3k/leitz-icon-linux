@@ -1,8 +1,18 @@
 /* Derived independently from 5.1.465 classic Mach-O raster2printer.asm,
- * _EndPage 0x1000089b0 and _EndDocument 0x100008ac0.
+ * _StartDocument 0x100006890, _EndPage 0x1000089b0 and _EndDocument 0x100008ac0.
  * This does not recreate the whole raster2printer executable.
  */
 #include "mac_classic_raster_boundaries.h"
+
+size_t mac_classic_start_document(int high_resolution, uint8_t out[124]) {
+  if (!out) return 0;
+  /* 120 ESC padding bytes plus ESC @ = 0x7a bytes per binary. */
+  for (size_t i = 0; i < 121; ++i) out[i] = 0x1b;
+  out[121] = (uint8_t)'@';
+  if (!high_resolution) return 122;
+  out[122] = 0x1b; out[123] = (uint8_t)'i';
+  return 124;
+}
 
 size_t mac_classic_end_page(int cut_every_label, uint8_t out[4]) {
   if (!out) return 0;
