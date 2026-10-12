@@ -11,6 +11,7 @@
  */
 #include "mac_classic_job.h"
 #include "mac_classic_dither.h"
+#include "mac_classic_output.h"
 #include <cups/cups.h>
 #include <cups/ppd.h>
 #include <cups/raster.h>
@@ -38,8 +39,9 @@ static size_t raster_pixels(void *v,uint8_t *dst,size_t size) {
   return cupsRasterReadPixels(c->raster,dst,(unsigned)size);
 }
 static int stdout_write(void *ctx,const uint8_t *data,size_t length) {
-  FILE *out=ctx;
-  return fwrite(data,1,length,out) == length ? 0 : -1;
+  mac_classic_output output={MAC_CLASSIC_STDOUT,
+                             mac_classic_file_write,ctx,NULL,NULL};
+  return mac_classic_write_data(&output,data,length);
 }
 static const char *choice(ppd_file_t *ppd,const char *key,const char *fallback) {
   ppd_choice_t *c=ppdFindMarkedChoice(ppd,key);

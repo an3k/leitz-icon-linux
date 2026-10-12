@@ -110,3 +110,24 @@ An additional **independent integration layer** now connects the recovered class
 **Verified locally:** GCC `-std=c11 -Wall -Wextra -Werror` regular compilation and both smoke programs; `job_smoke` also passed ASan/UBSan. The CUPS adapter was syntactically checked using locally defined CUPS-type/function declarations because actual CUPS headers and libraries are not installed in this environment. **The real CUPS adapter has not been compiled or run against CUPS itself.**
 
 **Not yet established:** faithful full macOS CUPS filter execution, original debug/PRN/socket pathways, options for media-specific transformations, several `ProcessPage` branches, full macOS status decoder, correctness of printer hardware operation, or equivalence against executions of the original Mach-O binaries. These files must **not** be deployed to a physical printer. They are readable, compilable C source with documented reconstructed and newly authored portions, not recovered original full C source.
+
+## Recovered classic WriteData / status exchange (13 October 2026)
+
+The classic executables have parallel `_WriteData` routines (`raster2printer` address `0x100001450`, `command2leitz` address `0x100001a80`). Their disassembly confirms:
+- a conditional socket `send` path (selection includes a `strstr(...,"ipp")` check),
+- a `__fd_stdout` `fwrite` path with optional preceding `__fd_dump` `fwrite`,
+- the original's **positive-result success check** accepts short socket sends as successful and does not validate full byte counts. This is a manufacturer implementation defect, not a feature.
+
+`reconstructed/mac_classic_output.[ch]` safely models these as **explicitly selected** socket or stdout sinks, with optional PRN dump on the stdout route. It loops until all bytes are transmitted, rejects zero/negative responses, and propagates dump errors. Such guards differ intentionally from the original; it does not reproduce the unsafe implicit selection based on caller memory. `mac_classic_cups_filter.c` now passes its stdout bytes through this common output helper. This CUPS adapter itself is not yet built against real CUPS headers.
+
+Classic `command2leitz` entry (`_main`, `0x1000010b4..0x100001176`) uses **case-insensitive** CUPS command names `ReportStatus`, `GetUnitedStatus`, `GetFirmwareVersion`, mapping to `ESC A`, `ESC U`, `ESC V`, respectively. `GetPrinterStatus` is the **internal C function name**, not the external command name. The PPD choice `ShouldSend_ESC_A` is compared with `YES`; its resulting flag flows into `_EndOfJob` but the observed implementation of that function emits `ESC Z` unconditionally (`0x100001a30`).
+
+`reconstructed/mac_classic_command_dispatch.[ch]` captures command selection and option interpretation.
+
+Classic `_GetStatus` (`0x100001440..0x100001a26`) writes the two-byte command, calls `cupsBackChannelRead` into a 1024-byte buffer, and distinguishes -1 (read failure), 0 (no data), and >0 (response). For **non-empty** responses it calls `_EndOfJob` to emit `ESC Z`; read failures and empty responses do **not** emit `ESC Z`. For `ESC A`, the first byte is compared with 0x03, 0x20, 0x30 and 0x40, each producing original CUPS `STATE` reasons; before the comparison it prints a state-clearing line. For `ESC U` and `ESC V`, the original follows a separate `/private/var/log/leitz.log` / notification / `marker-message` path, not yet recovered fully.
+
+`reconstructed/mac_classic_status_exchange.[ch]` implements isolated command/backchannel exchange, keeps the complete raw response, maps the observed `ESC A` status byte **without bitmask assumptions**, and provides original state reason strings. Unlike the original, it does not append a terminating NUL **outside** a full 1024-byte response buffer.
+
+`reconstructed/io_smoke.c` checks short output writes, dump mirroring, I/O failures, command names, empty/error/normal backchannel responses, expected `ESC Z`, and the original status reason text. The standalone fragments compile using GCC and Clang with `-std=c11 -Wall -Wextra -Werror`; local `make check all` passed and the sanitizer build `-fsanitize=address,undefined` passed.
+
+**Scope remains partial:** There is not yet a fully reconstructed manufacturer CUPS command executable, no exact reconstruction of the U/V notification formatting, no full macOS PRN/socket setup, and no byte-for-byte comparison with running Mach-O originals. No hardware confirmation. Reconstructed C includes explicit safety improvements and is not claimed to be the manufacturer's exact source.
