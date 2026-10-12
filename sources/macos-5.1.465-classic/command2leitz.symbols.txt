@@ -1,0 +1,186 @@
+/mnt/data/leitz_mac_classic_analysis/command2leitz:
+
+SYMBOL TABLE:
+0000000000000000      d  *UND* /Volumes/hfsbuild/leitzicon-mac/PinterDriver/SampleRaster&Dymo/Leitz/
+0000000000000000      d  *UND* command2leitz.c
+00000000636a26a1      d  *UND* /Users/build/Library/Developer/Xcode/DerivedData/LeitzIcon-fhlsjxfcqaoqafekfsruqeowcorf/Build/Intermediates.noindex/LeitzIcon.build/Debug/command2leitz.build/Objects-normal/x86_64/command2leitz.o
+0000000100000b10      d  *UND* 
+0000000100000b10      d  *UND* _main
+00000000000006c0      d  *UND* 
+00000000000006c0      d  *UND* 
+00000001000011d0      d  *UND* 
+00000001000011d0      d  *UND* _GetPrinterStatus
+00000000000000d0      d  *UND* 
+00000000000000d0      d  *UND* 
+00000001000012a0      d  *UND* 
+00000001000012a0      d  *UND* _GetUnitedStatus
+00000000000000d0      d  *UND* 
+00000000000000d0      d  *UND* 
+0000000100001370      d  *UND* 
+0000000100001370      d  *UND* _GetFirmvareVersion
+00000000000000d0      d  *UND* 
+00000000000000d0      d  *UND* 
+0000000100001440      d  *UND* 
+0000000100001440      d  *UND* _GetStatus
+00000000000005f0      d  *UND* 
+00000000000005f0      d  *UND* 
+0000000100001a30      d  *UND* 
+0000000100001a30      d  *UND* _EndOfJob
+0000000000000047      d  *UND* 
+0000000000000047      d  *UND* 
+00000001000061d0      d  *UND* _kPIPrinterStatusCommandPrefix
+00000001000061d8      d  *UND* _kPIUnitedStatusCommandPrefix
+00000001000061e0      d  *UND* _kPIFirmawareVersionCommandPrefix
+00000001000061e8      d  *UND* _kPILeitzIconDomain
+0000000000000000      d  *UND* 
+0000000000000000      d  *UND* /Volumes/hfsbuild/leitzicon-mac/PinterDriver/SampleRaster&Dymo/Leitz/
+0000000000000000      d  *UND* raster_c_functions.c
+00000000636a26a1      d  *UND* /Users/build/Library/Developer/Xcode/DerivedData/LeitzIcon-fhlsjxfcqaoqafekfsruqeowcorf/Build/Intermediates.noindex/LeitzIcon.build/Debug/command2leitz.build/Objects-normal/x86_64/raster_c_functions.o
+0000000100001a80      d  *UND* 
+0000000100001a80      d  *UND* _WriteData
+00000000000001a0      d  *UND* 
+00000000000001a0      d  *UND* 
+0000000100001c20      d  *UND* 
+0000000100001c20      d  *UND* _FlushDataStreams
+0000000000000040      d  *UND* 
+0000000000000040      d  *UND* 
+0000000100001c60      d  *UND* 
+0000000100001c60      d  *UND* _is_bit_set
+0000000000000030      d  *UND* 
+0000000000000030      d  *UND* 
+0000000100001c90      d  *UND* 
+0000000100001c90      d  *UND* _OpenDebugFile
+00000000000002b0      d  *UND* 
+00000000000002b0      d  *UND* 
+0000000100001f40      d  *UND* 
+0000000100001f40      d  *UND* _OpenLogFile
+0000000000000230      d  *UND* 
+0000000000000230      d  *UND* 
+0000000100002170      d  *UND* 
+0000000100002170      d  *UND* _SendDebugFileToPrinter
+00000000000002d0      d  *UND* 
+00000000000002d0      d  *UND* 
+0000000100002440      d  *UND* 
+0000000100002440      d  *UND* _CloseDebugFile
+0000000000000040      d  *UND* 
+0000000000000040      d  *UND* 
+0000000100002480      d  *UND* 
+0000000100002480      d  *UND* _CloseLogFile
+0000000000000040      d  *UND* 
+0000000000000040      d  *UND* 
+00000001000024c0      d  *UND* 
+00000001000024c0      d  *UND* _WriteDebugBuffer
+0000000000000060      d  *UND* 
+0000000000000060      d  *UND* 
+0000000100002520      d  *UND* 
+0000000100002520      d  *UND* _output_cups_info
+0000000000001d70      d  *UND* 
+0000000000001d70      d  *UND* 
+0000000100004290      d  *UND* 
+0000000100004290      d  *UND* _test_raster
+00000000000001f0      d  *UND* 
+00000000000001f0      d  *UND* 
+0000000100004480      d  *UND* 
+0000000100004480      d  *UND* _PrintPageDebugInfo
+00000000000005ca      d  *UND* 
+00000000000005ca      d  *UND* 
+0000000000000000      d  *UND* _ESC
+0000000000000000      d  *UND* _SYN
+0000000000000000      d  *UND* _SYN_COMPRESSED_RASTER
+0000000000000000      d  *UND* __fd_err
+0000000000000000      d  *UND* __fd_dump
+0000000000000000      d  *UND* __fd_log
+0000000000000000      d  *UND* __fd_stdout
+0000000000000000      d  *UND* _dbgprn_filename
+0000000000000000      d  *UND* _log_filename
+0000000000000000      d  *UND* 
+0000000100006000 l     O __DATA,__program_vars _pvars
+00000001000061d0 l     O __DATA,__data _kPIPrinterStatusCommandPrefix
+00000001000061d8 l     O __DATA,__data _kPIUnitedStatusCommandPrefix
+00000001000061e0 l     O __DATA,__data _kPIFirmawareVersionCommandPrefix
+00000001000061e8 l     O __DATA,__data _kPILeitzIconDomain
+0000000100002440 g     F __TEXT,__text _CloseDebugFile
+0000000100002480 g     F __TEXT,__text _CloseLogFile
+0000000100004d68 g     O __TEXT,__const _ESC
+0000000100001a30 g     F __TEXT,__text _EndOfJob
+0000000100001c20 g     F __TEXT,__text _FlushDataStreams
+0000000100001370 g     F __TEXT,__text _GetFirmvareVersion
+00000001000011d0 g     F __TEXT,__text _GetPrinterStatus
+0000000100001440 g     F __TEXT,__text _GetStatus
+00000001000012a0 g     F __TEXT,__text _GetUnitedStatus
+00000001000061f0 g     O __DATA,__common _NXArgc
+00000001000061f8 g     O __DATA,__common _NXArgv
+0000000100001c90 g     F __TEXT,__text _OpenDebugFile
+0000000100001f40 g     F __TEXT,__text _OpenLogFile
+0000000100004480 g     F __TEXT,__text _PrintPageDebugInfo
+0000000100004d69 g     O __TEXT,__const _SYN
+0000000100004d6a g     O __TEXT,__const _SYN_COMPRESSED_RASTER
+0000000100002170 g     F __TEXT,__text _SendDebugFileToPrinter
+0000000100001a80 g     F __TEXT,__text _WriteData
+00000001000024c0 g     F __TEXT,__text _WriteDebugBuffer
+0000000100006208 g     O __DATA,__common ___progname
+0000000100006218 g     O __DATA,__common __fd_dump
+0000000100006210 g     O __DATA,__common __fd_err
+0000000100006220 g     O __DATA,__common __fd_log
+0000000100006228 g     O __DATA,__common __fd_stdout
+0000000100000000 g     F __TEXT,__text __mh_execute_header
+0000000100006230 g     O __DATA,__common _dbgprn_filename
+0000000100006200 g     O __DATA,__common _environ
+0000000100001c60 g     F __TEXT,__text _is_bit_set
+0000000100006630 g     O __DATA,__common _log_filename
+0000000100000b10 g     F __TEXT,__text _main
+0000000100002520 g     F __TEXT,__text _output_cups_info
+0000000100004290 g     F __TEXT,__text _test_raster
+0000000100000ad0 g     F __TEXT,__text start
+0000000000000000         *UND* ___error
+0000000000000000         *UND* ___snprintf_chk
+0000000000000000         *UND* ___sprintf_chk
+0000000000000000         *UND* ___stack_chk_fail
+0000000000000000         *UND* ___stack_chk_guard
+0000000000000000         *UND* ___stderrp
+0000000000000000         *UND* ___stdoutp
+0000000000000000         *UND* _chmod
+0000000000000000         *UND* _cupsBackChannelRead
+0000000000000000         *UND* _cupsFileClose
+0000000000000000         *UND* _cupsFileGetConf
+0000000000000000         *UND* _cupsFileOpen
+0000000000000000         *UND* _cupsFilePrintf
+0000000000000000         *UND* _cupsFileStdin
+0000000000000000         *UND* _cupsFreeOptions
+0000000000000000         *UND* _cupsMarkOptions
+0000000000000000         *UND* _cupsParseOptions
+0000000000000000         *UND* _cupsRasterClose
+0000000000000000         *UND* _cupsRasterOpen
+0000000000000000         *UND* _cupsRasterReadHeader2
+0000000000000000         *UND* _cupsRasterReadPixels
+0000000000000000         *UND* _exit
+0000000000000000         *UND* _fclose
+0000000000000000         *UND* _fflush
+0000000000000000         *UND* _fgetc
+0000000000000000         *UND* _fopen
+0000000000000000         *UND* _fprintf
+0000000000000000         *UND* _fputc
+0000000000000000         *UND* _free
+0000000000000000         *UND* _fwrite
+0000000000000000         *UND* _getenv
+0000000000000000         *UND* _malloc
+0000000000000000         *UND* _memcpy
+0000000000000000         *UND* _memset
+0000000000000000         *UND* _mkdir
+0000000000000000         *UND* _notify_post
+0000000000000000         *UND* _perror
+0000000000000000         *UND* _ppdClose
+0000000000000000         *UND* _ppdFindMarkedChoice
+0000000000000000         *UND* _ppdMarkDefaults
+0000000000000000         *UND* _ppdOpenFile
+0000000000000000         *UND* _ppdPageLength
+0000000000000000         *UND* _ppdPageSize
+0000000000000000         *UND* _ppdPageWidth
+0000000000000000         *UND* _putchar
+0000000000000000         *UND* _send
+0000000000000000         *UND* _strcasecmp
+0000000000000000         *UND* _strerror
+0000000000000000         *UND* _strlen
+0000000000000000         *UND* _strrchr
+0000000000000000         *UND* _strstr
+0000000000000000         *UND* dyld_stub_binder
