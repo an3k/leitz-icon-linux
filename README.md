@@ -38,12 +38,14 @@ The temporary copy is not committed to the driver branch.
 The independent CUPS integration workflow checks out `cups`,
 verifies **all** individually named `.sha256` archives, reconstructs the
 selected Debian CUPS revision from its original `.dsc` and compares the
-result with `sources/unpacked/cups-<version>/`. It then builds an isolated
-container **from that exact checked-in source** and the approved `main`
-driver, installs the standalone development `driver` package, and checks
-the installed CUPS version, driver files, PPD and queue. It never writes
-back to `cups` and needs no pinned image digest, lockfile, old
-Docker-layer reconstruction or manual version-specific edits.
+result with `sources/unpacked/cups-<version>/`. It builds the
+`cups-base` container **from that exact checked-in source, without any
+preinstalled Leitz driver**, then separately builds and installs the
+development `driver` package. Integration checks include CUPS start and
+restart with persistent configuration, driver installation from a mounted
+archive, installed filters and PPD, and updating an existing Leitz queue.
+The workflow does not modify the `cups` branch or require a published
+combined CUPS/driver image.
 
 The protocol suite also checks Current's opt-in full-width and trimmed raw raster options,
 its unchanged default encoding, and the rejection of Current-only options
