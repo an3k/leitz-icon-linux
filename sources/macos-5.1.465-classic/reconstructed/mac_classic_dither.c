@@ -5,6 +5,7 @@
  */
 #include "mac_classic_dither.h"
 #include <stddef.h>
+#include <string.h>
 
 /* supercell @ Mach-O VA 0x10000c240; raw SHA256 de625ad93312b97349a1aea6ed61ef98004b4db4005e9c27d53c45c929393a04 */
 static const int32_t matrix_supercell[64] = {
@@ -250,6 +251,31 @@ static const dither_desc selectors[15] = {
     {matrix_nasik4x4,4,16.0},
     {matrix_dithering3x3,3,8.0},
 };
+
+/* Original _raster2printer option parsing, VA 0x100004dbd..0x100005098.
+ * Exact PPD spellings and selector constants from the x86-64 code.
+ */
+static const char *const quality_names[15]={
+    "Bayer8x8", "Bayer8x8SuperCell1", "Bayer8x8SuperCell2",
+    "SuperCell1", "SuperCell2", "SuperCell3", "CUPSThresold64x64",
+    "Draft", "SuperCell", "Bayer4x4", "Bayer14x14", "Clustered8x8",
+    "Dispersed8x8", "Nasik4x4", "Dithering3x3"
+};
+static int equivalent_ignore_ascii_case(const char *a, const char *b){
+    while(*a && *b){
+        unsigned char c=(unsigned char)*a++,d=(unsigned char)*b++;
+        if(c>='A' && c<='Z') c=(unsigned char)(c+('a'-'A'));
+        if(d>='A' && d<='Z') d=(unsigned char)(d+('a'-'A'));
+        if(c!=d) return 0;
+    }
+    return *a==*b;
+}
+int mac_classic_quality_from_ppd(const char *choice){
+    if(!choice) return -1;
+    for(int i=0;i<15;++i)
+        if(equivalent_ignore_ascii_case(choice,quality_names[i]))return i;
+    return -1;
+}
 
 int mac_classic_quality_info(unsigned mode, mac_classic_quality *info) {
     if (!info || mode >= 15 || !selectors[mode].values) return -1;
