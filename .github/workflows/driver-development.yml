@@ -29,6 +29,7 @@ jobs:
       - name: Verify package and installed PPD
         run: |
           python3 build/generate_media.py --check
+          python3 build/check_vendor_controls.py
           sudo install -m 0755 leitz-rastertoicon /usr/lib/cups/filter/leitz-rastertoicon
           sudo install -m 0755 cups/leitz-command /usr/lib/cups/filter/leitz-command
           cupstestppd -v cups/LeitzIcon.ppd

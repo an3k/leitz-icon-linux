@@ -64,3 +64,33 @@ in Linux and macOS; the original Linux description is retained.
 The original LandscapeOrientation=Plus90, HWMargins=3.6 pt and custom
 Orientation 0..3 are restored without changing source-backed per-format
 PageSize, PaperDimension, ImageableArea or the per-job cut and feed logic.
+
+## Source-backed macOS cartridge and page compatibility
+
+The new `media/vendor_macos_catalog.json` was extracted directly from the
+uploaded macOS `CartridgesCatalog.plist` (23 SKUs) and `PaperCatalog.plist`
+(22 catalog format records). This explicitly distinguishes cartridge physical
+width, adhesive/stock type, format compatibility, and orientation metadata.
+The source reports SKU `170030001` (9 digits), therefore ESC U also accepts
+a nine-digit SKU where present.
+
+The CUPS USB backend uses the vendor's `CompatibleSKUs` for an explicitly
+selected PPD `PageSize` when a macOS catalog entry exists, instead of guessing
+an SKU from the page name. For formats absent from that macOS source the
+existing strictly bounded print-width checks remain in force. The normal
+PPD default for `IsCurrentInsertedCartridgeDieCut` becomes `Auto`, while
+the original YES and NO remain available and enforce the actual stock
+classification when explicitly selected. This prevents the original hardcoded
+YES default from incorrectly refusing roll-material jobs.
+
+The vendor `validate_reception.py` also confirms read-only USB queries
+ESC A (status), ESC V (version), and ESC u 00 (Wi-Fi state). The CUPS command
+filter and backend now support `ReportStatus`, `GetPrinterStatus`,
+`GetFirmwareVersion` and the additional `GetWiFiState`; they do **not**
+send the script's device-modifying Wi-Fi or boot-mode commands.
+These read-only commands are source-backed but not yet hardware-verified.
+
+The uploaded macOS and Windows application archives, their internal binaries,
+and the two `LeitzUSRes` DLLs could not be enumerated in this environment
+(the mounted file container returned an access error). No claim of exhaustive
+binary review or a pixel-exact vendor dithering implementation is made.

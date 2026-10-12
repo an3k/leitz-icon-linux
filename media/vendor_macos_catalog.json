@@ -1,0 +1,405 @@
+{
+  "source": "CartridgesCatalog.plist and PaperCatalog.plist, macOS original files provided by user 2026-10-12",
+  "cartridges": [
+    {
+      "sku": "70030001",
+      "width_mm": "88",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70270001",
+      "width_mm": "88",
+      "kind": "continuous",
+      "adhesive": false
+    },
+    {
+      "sku": "170030001",
+      "width_mm": "88",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70040001",
+      "width_mm": "61",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70050001",
+      "width_mm": "57",
+      "kind": "continuous",
+      "adhesive": false
+    },
+    {
+      "sku": "70060001",
+      "width_mm": "50",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70070001",
+      "width_mm": "39",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70080001",
+      "width_mm": "32",
+      "kind": "continuous",
+      "adhesive": false
+    },
+    {
+      "sku": "70090001",
+      "width_mm": "25",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70100001",
+      "width_mm": "19",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70110001",
+      "width_mm": "12",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70120001",
+      "width_mm": null,
+      "kind": "diecut",
+      "adhesive": true
+    },
+    {
+      "sku": "70130001",
+      "width_mm": null,
+      "kind": "diecut",
+      "adhesive": true
+    },
+    {
+      "sku": "70150001",
+      "width_mm": "12",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70150015",
+      "width_mm": "12",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70150025",
+      "width_mm": "12",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70160001",
+      "width_mm": "88",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70160015",
+      "width_mm": "88",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70160025",
+      "width_mm": "88",
+      "kind": "continuous",
+      "adhesive": true
+    },
+    {
+      "sku": "70170001",
+      "width_mm": null,
+      "kind": "diecut",
+      "adhesive": true
+    },
+    {
+      "sku": "70180001",
+      "width_mm": null,
+      "kind": "diecut",
+      "adhesive": true
+    },
+    {
+      "sku": "70190001",
+      "width_mm": "91",
+      "kind": "continuous",
+      "adhesive": false
+    },
+    {
+      "sku": "70280001",
+      "width_mm": "28.5",
+      "kind": "diecut",
+      "adhesive": true
+    }
+  ],
+  "paper_formats": [
+    {
+      "page_size": "DHLShippingLabel",
+      "compatible_skus": [
+        "70270001",
+        "70030001",
+        "170030001",
+        "70160001",
+        "70160015",
+        "70160025",
+        "70190001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": "om_package-label_88x178mm"
+    },
+    {
+      "page_size": "LeitzLeverArchFile1005",
+      "compatible_skus": [
+        "70060001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": "om_active-file_50x110mm"
+    },
+    {
+      "page_size": "AppointmentCard",
+      "compatible_skus": [
+        "70270001",
+        "70190001",
+        "70030001",
+        "170030001",
+        "70160001",
+        "70160015",
+        "70160025"
+      ],
+      "rotate_before_printing": false,
+      "portrait": false,
+      "ipp_name": "om_appointment-card_50.8x91mm"
+    },
+    {
+      "page_size": "Continuous112",
+      "compatible_skus": [
+        "70070001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "Continuous70030001",
+      "compatible_skus": [
+        "70270001",
+        "70030001",
+        "170030001",
+        "70160001",
+        "70160015",
+        "70160025",
+        "70190001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "Continuous70040001",
+      "compatible_skus": [
+        "70040001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "Continuous70050001",
+      "compatible_skus": [
+        "70050001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "Continuous70060001",
+      "compatible_skus": [
+        "70060001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "Continuous70080001",
+      "compatible_skus": [
+        "70080001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "Continuous70090001",
+      "compatible_skus": [
+        "70090001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "Continuous70100001",
+      "compatible_skus": [
+        "70100001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "Continuous70110001",
+      "compatible_skus": [
+        "70110001",
+        "70150001",
+        "70150015",
+        "70150025"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": "roll_current_12.5x0mm"
+    },
+    {
+      "page_size": "Continuous70190001",
+      "compatible_skus": [
+        "70270001",
+        "70190001",
+        "70030001",
+        "170030001",
+        "70160001",
+        "70160015",
+        "70160025"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "FileFolderLabel",
+      "compatible_skus": [
+        "70110001",
+        "70150001",
+        "70150015",
+        "70150025"
+      ],
+      "rotate_before_printing": false,
+      "portrait": true,
+      "ipp_name": "om_file-folder-label_12.5x88.9mm"
+    },
+    {
+      "page_size": "InternationalAddressLabel",
+      "compatible_skus": [
+        "70270001",
+        "70120001",
+        "70030001",
+        "170030001",
+        "70160001",
+        "70160015",
+        "70160025",
+        "70190001"
+      ],
+      "rotate_before_printing": false,
+      "portrait": false,
+      "ipp_name": "om_international-address-label_36x88mm"
+    },
+    {
+      "page_size": "LargePendaflexTab",
+      "compatible_skus": [
+        "70060001",
+        "70080001"
+      ],
+      "rotate_before_printing": false,
+      "portrait": false,
+      "ipp_name": null
+    },
+    {
+      "page_size": "Multipurpose70030001",
+      "compatible_skus": [
+        "70270001",
+        "70180001",
+        "70030001",
+        "170030001",
+        "70060001",
+        "70160001",
+        "70160015",
+        "70160025",
+        "70190001"
+      ],
+      "rotate_before_printing": false,
+      "portrait": false,
+      "ipp_name": "om_multipurpose_50.8x88mm"
+    },
+    {
+      "page_size": "Multipurpose70090001",
+      "compatible_skus": [
+        "70090001"
+      ],
+      "rotate_before_printing": true,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "Multipurpose70100001",
+      "compatible_skus": [
+        "70100001"
+      ],
+      "rotate_before_printing": false,
+      "portrait": true,
+      "ipp_name": null
+    },
+    {
+      "page_size": "Multipurpose70110001",
+      "compatible_skus": [
+        "70110001",
+        "70150001",
+        "70150015",
+        "70150025"
+      ],
+      "rotate_before_printing": false,
+      "portrait": true,
+      "ipp_name": "om_multipurpose_12.5x48mm"
+    },
+    {
+      "page_size": "NameBadgeCard70190001",
+      "compatible_skus": [
+        "70270001",
+        "70190001",
+        "70030001",
+        "170030001",
+        "70160001",
+        "70160015",
+        "70160025",
+        "70050001"
+      ],
+      "rotate_before_printing": false,
+      "portrait": false,
+      "ipp_name": "om_name-badge-card_57.15x88mm"
+    },
+    {
+      "page_size": "NameBadgeCard8214",
+      "compatible_skus": [
+        "70270001",
+        "70190001",
+        "70030001",
+        "170030001",
+        "70160001",
+        "70160015",
+        "70160025"
+      ],
+      "rotate_before_printing": false,
+      "portrait": false,
+      "ipp_name": "om_name-badge-card_57.15x88mm"
+    }
+  ]
+}

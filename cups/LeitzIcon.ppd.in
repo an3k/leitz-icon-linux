@@ -38,8 +38,9 @@
 *cupsFilter: "application/vnd.cups-raster 0 leitz-rastertoicon"
 *cupsFilter: "application/vnd.cups-command 0 leitz-command"
 *% Original macOS cupsCommands: GetPrinterStatus GetUnitedStatus GetFirmwareVersion ReportState
-*% Unverified commands are not advertised as supported; only ReportStatus is implemented.
-*cupsCommands: "ReportStatus"
+*% GetPrinterStatus and ReportStatus use ESC A; GetFirmwareVersion uses ESC V; GetWiFiState uses ESC u 00.
+*% GetUnitedStatus and ReportState remain unverified and unavailable.
+*cupsCommands: "ReportStatus GetPrinterStatus GetFirmwareVersion GetWiFiState"
 *% The printer has no verified hardware copy-generation command.
 *% The upstream CUPS RIP must produce complete raster pages for each copy.
 *cupsManualCopies: True
@@ -155,7 +156,8 @@
 *CloseUI: *ShouldCorrectMargins
 *OpenUI *IsCurrentInsertedCartridgeDieCut/Is current inserted cartridge die-cut: PickOne
 *OrderDependency: 19 AnySetup *IsCurrentInsertedCartridgeDieCut
-*DefaultIsCurrentInsertedCartridgeDieCut: YES
+*DefaultIsCurrentInsertedCartridgeDieCut: Auto
+*IsCurrentInsertedCartridgeDieCut Auto/Automatic (manufacturer cassette catalog): ""
 *IsCurrentInsertedCartridgeDieCut YES/Cartridge is die-cut: ""
 *IsCurrentInsertedCartridgeDieCut NO/Cartridge is continuous: ""
 *CloseUI: *IsCurrentInsertedCartridgeDieCut

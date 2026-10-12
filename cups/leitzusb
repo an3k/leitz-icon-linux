@@ -26,7 +26,7 @@ fi
 uri=${DEVICE_URI:-}
 # CUPS discovery advertises sku=auto. Also accept older queue URIs
 # without a query, so pre-existing queues remain usable after upgrade.
-if [[ ! "$uri" =~ ^leitzusb:/dev/usb/(lp[0-9]+)(\?sku=(auto|[0-9]{8}))?$ ]]; then
+if [[ ! "$uri" =~ ^leitzusb:/dev/usb/(lp[0-9]+)(\?sku=(auto|[0-9]{8,9}))?$ ]]; then
   echo 'ERROR: DEVICE_URI must be leitzusb:/dev/usb/lpN[?sku=auto|NNNNNNNN]' >&2
   exit 4
 fi
@@ -74,8 +74,13 @@ size=$(stat -c %s -- "$tmp")
 # The only maintenance frame is produced by cups/leitz-command and
 # issues ESC A without raster bytes, a feed, a cut, or an automatic retry.
 control_request=0
+control_kind=''
 if cmp -s "$tmp" <(printf 'LEITZ-CMD-V1:REPORT_STATUS\n'); then
-  control_request=1
+  control_request=1;control_kind=status
+elif cmp -s "$tmp" <(printf 'LEITZ-CMD-V1:GET_FIRMWARE_VERSION\n'); then
+  control_request=1;control_kind=firmware
+elif cmp -s "$tmp" <(printf 'LEITZ-CMD-V1:GET_WIFI_STATE\n'); then
+  control_request=1;control_kind=wifi
 fi
 # The raster filter supports up to 64 pages, each with up to 64000
 # rows of 960 pixels. A valid multi-page job can exceed 25 MB by far.
@@ -116,6 +121,25 @@ fi
 }
 exec 3<>"$usb_device" || { echo 'ERROR: Cannot open Leitz USB printer (busy or inaccessible)' >&2;exit 4; }
 if (( control_request )); then
+  # These frames are read-only and source-backed:
+  # validate_reception.py: ESC A=status, ESC V=firmware, ESC u 00=WiFi state.
+  # Do not expose its ESC W boot-mode or WiFi-writing commands.
+  if [[ "$control_kind" != status ]]; then
+    if [[ "$control_kind" == firmware ]]; then
+      printf '\033V' >&3 || exit 4
+    else
+      printf '\033u\000' >&3 || exit 4
+    fi
+    data=''
+    IFS= read -r -d '' -n 64 -t 5 data <&3 || :
+    if [[ -z "$data" || ! "$data" =~ ^[[:print:]]+$ ]]; then
+      echo "ERROR: Invalid or absent Leitz $control_kind reply" >&2
+      exit 4
+    fi
+    echo "INFO: Leitz $control_kind reply: $data" >&2
+    exec 3>&-
+    exit 0
+  fi
   printf '\033A' >&3 || { echo 'ERROR: CUPS ReportStatus ESC A request failed' >&2;exit 4; }
   IFS= read -r -N 1 -t 5 status_byte <&3 || {
     echo 'ERROR: CUPS ReportStatus returned no status byte' >&2;exit 4;
@@ -146,40 +170,85 @@ if [[ -z "$response" ]]; then
   echo 'ERROR: No cartridge response' >&2;exit 4
 fi
 if [[ "$response" == 'SKU:No Cartridge;;;' ]]; then
-  echo 'STATE: +media-empty' >&2
+  echo 'STATE: +media-empty +com.leitz.no-cartridge-error' >&2
   echo 'ERROR: No cartridge; job blocked' >&2;exit 4
 fi
-if [[ "$response" =~ ^SKU:([0-9]{8})\;INIT:([0-9]+)\;USED:([0-9]+)\;$ ]]; then
+if [[ "$response" =~ ^SKU:([0-9]{8,9})\;INIT:([0-9]+)\;USED:([0-9]+)\;$ ]]; then
   actual_sku=${BASH_REMATCH[1]}
 else
   echo 'ERROR: Unknown cartridge response; job blocked' >&2;exit 4
 fi
-echo 'STATE: -media-empty' >&2
+echo 'STATE: -media-empty -com.leitz.no-cartridge-error' >&2
 if [[ "$expected" != auto && "$actual_sku" != "$expected" ]]; then
+  echo 'STATE: +com.leitz.incompatible-cartridge-error' >&2
   echo "ERROR: Wrong cartridge; expected $expected, got $response" >&2;exit 4
 fi
-# macOS vendor control: explicit cassette material kind check. This is not
-# inferred merely from the selected PPD page's dimensions.
+# The macOS PaperCatalog.plist lists multiple compatible cartridges for
+# many PageSize choices. This is a source-backed whitelist, NOT an SKU
+# extracted from a page-name suffix. New/unlisted vendor media remain
+# subject to the separate physical printable-width check below.
+selected_media=''
+if [[ " $5 " =~ [[:space:]]PageSize=([[:alnum:]_]+)[[:space:]] ]]; then
+  selected_media=${BASH_REMATCH[1]}
+  # A/B profile aliases share vendor geometry but not all vendor options.
+  if [[ "$selected_media" == Leitz* ]]; then selected_media=${selected_media#Leitz}; fi
+fi
+allowed_skus=''
+# BEGIN GENERATED SOURCE: macOS PaperCatalog.plist CompatibleSKUs
+case "$selected_media" in
+  DHLShippingLabel) allowed_skus=' 70270001 70030001 170030001 70160001 70160015 70160025 70190001 ' ;;
+  LeitzLeverArchFile1005) allowed_skus=' 70060001 ' ;;
+  AppointmentCard) allowed_skus=' 70270001 70190001 70030001 170030001 70160001 70160015 70160025 ' ;;
+  Continuous112) allowed_skus=' 70070001 ' ;;
+  Continuous70030001) allowed_skus=' 70270001 70030001 170030001 70160001 70160015 70160025 70190001 ' ;;
+  Continuous70040001) allowed_skus=' 70040001 ' ;;
+  Continuous70050001) allowed_skus=' 70050001 ' ;;
+  Continuous70060001) allowed_skus=' 70060001 ' ;;
+  Continuous70080001) allowed_skus=' 70080001 ' ;;
+  Continuous70090001) allowed_skus=' 70090001 ' ;;
+  Continuous70100001) allowed_skus=' 70100001 ' ;;
+  Continuous70110001) allowed_skus=' 70110001 70150001 70150015 70150025 ' ;;
+  Continuous70190001) allowed_skus=' 70270001 70190001 70030001 170030001 70160001 70160015 70160025 ' ;;
+  FileFolderLabel) allowed_skus=' 70110001 70150001 70150015 70150025 ' ;;
+  InternationalAddressLabel) allowed_skus=' 70270001 70120001 70030001 170030001 70160001 70160015 70160025 70190001 ' ;;
+  LargePendaflexTab) allowed_skus=' 70060001 70080001 ' ;;
+  Multipurpose70030001) allowed_skus=' 70270001 70180001 70030001 170030001 70060001 70160001 70160015 70160025 70190001 ' ;;
+  Multipurpose70090001) allowed_skus=' 70090001 ' ;;
+  Multipurpose70100001) allowed_skus=' 70100001 ' ;;
+  Multipurpose70110001) allowed_skus=' 70110001 70150001 70150015 70150025 ' ;;
+  NameBadgeCard70190001) allowed_skus=' 70270001 70190001 70030001 170030001 70160001 70160015 70160025 70050001 ' ;;
+  NameBadgeCard8214) allowed_skus=' 70270001 70190001 70030001 170030001 70160001 70160015 70160025 ' ;;
+esac
+# END GENERATED SOURCE
+if [[ -n "$allowed_skus" && "$allowed_skus" != *" $actual_sku "* ]]; then
+  echo 'STATE: +com.leitz.incompatible-cartridge-error' >&2
+  echo "ERROR: Cassette $actual_sku is not listed as compatible with PageSize $selected_media by macOS PaperCatalog" >&2
+  exit 4
+fi
+
+# macOS CartridgesCatalog.plist classifies roll versus die-cut cassettes.
+# Auto is necessary: the original YES default cannot correctly describe
+# every installed cassette, especially continuous rolls. Explicit YES/NO
+# are strictly verified if the catalog proves the material kind.
 case "$actual_sku" in
-  70030001|70040001|70050001|70060001|70070001|70080001|70090001|70100001|70110001)
-    media_kind=continuous ;;
-  70130001|70180001)
-    media_kind=diecut ;;
-  *)
-    media_kind=unknown ;;
+  70030001|70270001|170030001|70040001|70050001|70060001|70070001|70080001|70090001|70100001|70110001|70150001|70150015|70150025|70160001|70160015|70160025|70190001) media_kind=continuous ;;
+  70120001|70130001|70170001|70180001|70280001) media_kind=diecut ;;
+  *) media_kind=unknown ;;
 esac
 if [[ " $5 " == *"IsCurrentInsertedCartridgeDieCut=YES"* && "$media_kind" == continuous ]] ||
    [[ " $5 " == *"IsCurrentInsertedCartridgeDieCut=NO"* && "$media_kind" == diecut ]]; then
-  echo "ERROR: CUPS IsCurrentInsertedCartridgeDieCut disagrees with cartridge SKU $actual_sku" >&2
+  echo 'STATE: +com.leitz.incompatible-cartridge-error' >&2
+  echo "ERROR: Explicit die-cut setting disagrees with macOS catalog for cassette $actual_sku" >&2
   exit 4
 fi
+echo 'STATE: -com.leitz.incompatible-cartridge-error' >&2
 # Match known installed cartridge capacities to selected raster *width*.
 # Widths other than 88mm are from vendor GPD catalog, not hardware tested.
 # Smaller selections on wider continuous media are permitted; applications
 # control positioning. An explicitly selected SKU proves identity, NOT width.
 # Never assume 960 pixels for a cartridge with unknown geometry.
 case "$actual_sku" in
-  70030001|70160015|70160025|70180001|70190001) physical_width=960 ;;
+  70030001|70270001|170030001|70160001|70160015|70160025|70180001|70190001) physical_width=960 ;;
   70040001) physical_width=690 ;;
   70050001) physical_width=643 ;;
   70060001) physical_width=561 ;;
@@ -187,7 +256,7 @@ case "$actual_sku" in
   70080001) physical_width=348 ;;
   70090001) physical_width=265 ;;
   70100001) physical_width=194 ;;
-  70110001) physical_width=118 ;;
+  70110001|70150001|70150015|70150025) physical_width=118 ;;
   70130001) physical_width=667 ;;
   *)
     echo "ERROR: Unknown cartridge SKU $actual_sku; physical print width not established. Job not sent." >&2
