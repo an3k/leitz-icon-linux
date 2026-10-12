@@ -8,6 +8,13 @@
  * optional ESC i when high_resolution != 0. */
 size_t mac_classic_start_document(int high_resolution, uint8_t out[124]);
 
+/* _StartPage (0x100007380): payload ESC L length ESC w width ESC B 0.
+ * page_length = (raster_height + (high_resolution ? 60 : 30)) /
+ *               (high_resolution ? 2 : 1).
+ * Returns zero on null input. */
+size_t mac_classic_start_page(uint16_t raster_width, uint16_t raster_height,
+                              int high_resolution, uint8_t out[11]);
+
 /* _EndPage (0x1000089b0): emit ESC G and, if cutEveryLabel != 0, ESC E. */
 size_t mac_classic_end_page(int cut_every_label, uint8_t out[4]);
 
