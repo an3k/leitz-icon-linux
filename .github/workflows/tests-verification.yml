@@ -9,20 +9,53 @@ on:
 permissions:
   contents: read
 jobs:
-  verify:
+  revisions:
     if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'driver' && github.event.workflow_run.conclusion == 'success') }}
+    runs-on: ubuntu-24.04
+    outputs:
+      tests: ${{ steps.pin.outputs.tests }}
+      driver: ${{ steps.pin.outputs.driver }}
+      cups: ${{ steps.pin.outputs.cups }}
+    steps:
+      - id: pin
+        name: Pin all independent branch commits
+        shell: bash
+        env:
+          EVENT_TYPE: ${{ github.event_name }}
+          PUSH_SHA: ${{ github.sha }}
+          TRIGGER_DRIVER_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          remote="https://github.com/$GITHUB_REPOSITORY.git"
+          resolve() { git ls-remote "$remote" "refs/heads/$1" | cut -f1; }
+          tests=$(resolve tests)
+          driver=$(resolve driver)
+          cups=$(resolve cups)
+          if [[ "$EVENT_TYPE" == push ]]; then tests=$PUSH_SHA; fi
+          if [[ "$EVENT_TYPE" == workflow_run ]]; then driver=$TRIGGER_DRIVER_SHA; fi
+          for value in "$tests" "$driver" "$cups"; do
+            [[ "$value" =~ ^[a-f0-9]{40}$ ]] || exit 1
+          done
+          {
+            echo "tests=$tests"
+            echo "driver=$driver"
+            echo "cups=$cups"
+          } >> "$GITHUB_OUTPUT"
+          echo "Verification commits: tests=$tests driver=$driver cups=$cups"
+  verify:
+    needs: revisions
     name: Verify separately checked-out driver
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout verification branch
         uses: actions/checkout@v4
         with:
-          ref: tests
+          ref: ${{ needs.revisions.outputs.tests }}
           path: suite
       - name: Checkout independent driver branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || 'driver' }}
+          ref: ${{ needs.revisions.outputs.driver }}
           path: product
       - name: Install compiler and CUPS development headers
         run: |
@@ -47,7 +80,7 @@ jobs:
           test -d suite/integration
 
   cups-integration:
-    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'driver' && github.event.workflow_run.conclusion == 'success') }}
+    needs: revisions
     name: Install development driver into verified Debian CUPS image
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -55,17 +88,17 @@ jobs:
       - name: Checkout independent integration tests
         uses: actions/checkout@v4
         with:
-          ref: tests
+          ref: ${{ needs.revisions.outputs.tests }}
           path: suite
       - name: Checkout standalone development driver
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || 'driver' }}
+          ref: ${{ needs.revisions.outputs.driver }}
           path: product
       - name: Checkout versioned Debian CUPS sources
         uses: actions/checkout@v4
         with:
-          ref: cups
+          ref: ${{ needs.revisions.outputs.cups }}
           path: frozen
       - name: Ensure Debian source tooling is present
         run: |
