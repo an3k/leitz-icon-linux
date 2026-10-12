@@ -3,6 +3,9 @@
  * Original evidence: output boundaries and compression selection at
  * 0x100007972-0x100007e69 (mode 3), 0x100007f32-0x10000887d
  * (mode 2), and blank skip at 0x100007939-0x100007a74.
+ * Modes 0/1: 0x100007633-0x100007739 (initial ESC D width SYN),
+ * mode 0: 0x10000889b-0x100008945 (full raw row),
+ * mode 1: 0x100007e6e-0x100007f32 (raw row after blank-feed handling).
  *
  * The manufacturer code contains raw buffer pointer arithmetic. This C
  * reconstruction uses bounded memcpy and explicit command bytes instead.
@@ -17,7 +20,7 @@
 
 static int append(uint8_t *out, size_t cap, size_t *at,
                   const uint8_t *data, size_t size) {
-  if (size > cap - *at) return -1;
+  if (*at > cap || size > cap - *at) return -1;
   memcpy(out + *at, data, size);
   *at += size;
   return 0;
@@ -29,12 +32,23 @@ static int push(uint8_t *out, size_t cap, size_t *at, uint8_t byte) {
 }
 int mac_classic_row_init(mac_classic_raster_row *s, unsigned mode,
                          unsigned stride) {
-  if (!s || (mode != 2 && mode != 3) || stride == 0 || stride > 120) return -1;
+  if (!s || mode > 3 || stride == 0 || stride > 120) return -1;
   memset(s, 0, sizeof(*s));
   s->optimization = mode;
   s->stride = stride;
   s->first_nonblank = 1;
   return 0;
+}
+
+size_t mac_classic_row_preamble(const mac_classic_raster_row *s,
+                                uint8_t out[4]) {
+  if (!s || s->stride == 0 || s->stride > 120 || s->optimization > 3)
+    return 0;
+  if (s->optimization >= 2) return 0;
+  if (!out) return 0;
+  const uint8_t header[] = {ESC, 'D', (uint8_t)s->stride, SYN};
+  memcpy(out, header, sizeof header);
+  return sizeof header;
 }
 
 /* The original bit traversal goes from bit 7 down to bit 0 (_is_bit_set at
@@ -65,8 +79,17 @@ static size_t rle_bits(const uint8_t *row, unsigned bytes,
 
 int mac_classic_row_encode(mac_classic_raster_row *s, const uint8_t *row,
                            uint8_t *out, size_t capacity, size_t *used) {
-  if (!s || !row || !out || !used || (s->optimization != 2 && s->optimization != 3)) return -1;
+  if (!s || !row || !out || !used || s->optimization > 3 ||
+      s->stride == 0 || s->stride > 120) return -1;
   *used = 0;
+  /* Mode 0 bypasses the ink test entirely (0x1000078dc -> 0x10000889b).
+   * ESC D width SYN is sent once by mac_classic_row_preamble(). */
+  if (s->optimization == 0) {
+    if (capacity < s->stride) return -1;
+    memcpy(out, row, s->stride);
+    *used = s->stride;
+    return 0;
+  }
   unsigned left = 0;
   while (left < s->stride && row[left] == 0) ++left;
   if (left == s->stride) {
@@ -74,17 +97,31 @@ int mac_classic_row_encode(mac_classic_raster_row *s, const uint8_t *row,
     ++s->pending_blank;
     return 0;
   }
+  /* Mode 1: raw full-width bytes, without a per-row ESC D/SYN header.
+   * Its original header is emitted only at the beginning of ProcessPage.
+   * All optimized modes share the prior ESC f blank-run handling. */
+  if (s->optimization == 1) {
+    size_t at = 0;
+    if (s->pending_blank) {
+      const uint8_t feed[] = {ESC, 'f', (uint8_t)(s->pending_blank >> 8),
+                              (uint8_t)s->pending_blank};
+      if (append(out, capacity, &at, feed, sizeof feed)) return -1;
+    }
+    if (append(out, capacity, &at, row, s->stride)) return -1;
+    s->pending_blank = 0;
+    *used = at;
+    return 0;
+  }
   unsigned right = s->stride;
-  /* _ProcessPage 0x100007ab4: mode 3 tests the leading offset before
-   * counting trailing white bytes; if left == 0, trailing bytes are kept.
-   * Mode 2 always performs trailing-byte trimming (0x1000080b6).
-   * This asymmetric vendor behavior is intentionally preserved. */
+  /* 0x100007ab4 mode 3 tests the leading offset before trimming end.
+   * Mode 2 always trims trailing white bytes (0x1000080b6). */
   if (s->optimization == 2 || left != 0)
     while (right > left && row[right-1] == 0) --right;
-  unsigned n = right-left;
+  unsigned n = right - left;
   size_t at = 0;
   if (s->pending_blank) {
-    const uint8_t feed[] = {ESC, 'f', (uint8_t)(s->pending_blank >> 8), (uint8_t)s->pending_blank};
+    const uint8_t feed[] = {ESC, 'f', (uint8_t)(s->pending_blank >> 8),
+                            (uint8_t)s->pending_blank};
     if (append(out, capacity, &at, feed, sizeof feed)) return -1;
   }
   if (s->optimization == 2 || left != s->previous_offset) {
