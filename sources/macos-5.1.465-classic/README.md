@@ -1,24 +1,17 @@
-# macOS 5.1.465 — classic driver, PPD 1.2.190
+# Original macOS classic driver — installer 5.1.465, PPD 1.2.190
 
-Archive: `LeitzIconSoftware-Installer_5.1.465.dmg.zip`.
-
-| Original Mach-O x86-64 executable | Size | SHA-256 | Evidence |
+| Component | Original size | SHA-256 | Branch contents |
 |---|---:|---|---|
-| `raster2printer` | 84,252 bytes | `72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13` | Full disassembly obtained locally |
-| `command2leitz` | 35,932 bytes | `6e43cae5e152d5e2d8e9e975d026375563afdffdadca08f835cb4c3a58d3f3ee` | Full disassembly obtained locally |
+| `LeitzIcon.ppd` | 151,524 bytes | See git blob `14628cebde52eba5cc731b4679eda1471f50e312` | Original PPD, byte-identical |
+| `raster2printer` | 84,252 bytes | `72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13` | Symbol inventory; full disassembly held in separate analysis bundle |
+| `command2leitz` | 35,932 bytes | `6e43cae5e152d5e2d8e9e975d026375563afdffdadca08f835cb4c3a58d3f3ee` | Symbol inventory; full disassembly held in separate analysis bundle |
 
-Mach-O debugging symbols identify original C compilation units including `raster2printer.c`, `command2leitz.c`, and shared `raster_c_functions.c`. These are **source filenames, not recovered full C sources**.
+The two original executable files are Mach-O x86-64. Original debug metadata identifies `raster2printer.c`, `command2leitz.c`, and the shared `raster_c_functions.c`; these filenames **do not establish that the full original C source is present**.
 
-## Reconstruction status
+Completed: binary identification, disassembly, initial function/branch identification, acquisition of PPD, symbol inventories.
 
-- Both executable files extracted, identified as Mach-O x86-64.
-- Instructions and available function symbols inspected; assembly listings retained in the working analysis archive.
-- Functions for raster handling, compression, dithering, device queries, and status decoding identified.
-- **No complete, compilable C reconstruction available.**
-- No successful reconstructed build and no byte-level hardware equivalence established.
+**Not completed:** full decompilation into C, correct recreation of globals/constants and macOS dependencies, successful compilation, functional comparison on controlled equivalent inputs, hardware qualification.
 
-Linux 1.0.3 original C may guide identification of external APIs and shared functionality, but it is not evidence that the macOS code is identical. The macOS-specific branches must be established independently from its binaries.
+Linux original C is useful as a reference for APIs and terminology only; no identical implementation is assumed. V3 is a distinct model-specific driver and is intentionally excluded from this stage.
 
-Missing requirements for claiming completion: precise control/data flow reconstruction for every relevant function, global/static data recovery, Apple/CUPS API declarations, compilation of both recreated CUPS programs, and behavioral comparison against the original output on equivalent inputs.
-
-Do not equate this classic model with the separately installed macOS V3 driver.
+No fabricated C code has been created merely to satisfy a file count.
