@@ -22,7 +22,7 @@ $(MOD)/leitz-native.so: $(SRC)/leitz_protocol_native.c $(SRC)/leitz_protocols.h
 leitz-cli: $(SRC)/leitz_cli.c $(SRC)/leitz_status.c $(SRC)/leitz_status.h $(CORE_SOURCES) $(CORE_HEADERS)
 	$(CC) $(CFLAGS) -o $@ $(SRC)/leitz_cli.c $(SRC)/leitz_status.c $(CORE_SOURCES) $(LDLIBS)
 cups: leitz-rastertoicon
-leitz-rastertoicon: modules $(SRC)/leitz_raster.c $(SRC)/leitz_media.h $(CORE_SOURCES) $(CORE_HEADERS)
+leitz-rastertoicon: modules $(SRC)/leitz_raster.c $(SRC)/leitz_media.h $(SRC)/leitz_vendor_dither.h $(CORE_SOURCES) $(CORE_HEADERS)
 	$(CC) $(CFLAGS) -o $@ $(SRC)/leitz_raster.c $(CORE_SOURCES) -lcups $(LDLIBS)
 ppd:
 	python3 build/generate_media.py --check

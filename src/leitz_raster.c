@@ -4,6 +4,7 @@
  */
 #include "leitz_jobs.h"
 #include "leitz_media.h"
+#include "leitz_vendor_dither.h"
 #include <cups/raster.h>
 #include <ctype.h>
 #include <fcntl.h>
@@ -50,6 +51,28 @@ static unsigned bayer_value(unsigned x,unsigned y,unsigned bits){
  return value;
 }
 static unsigned ordered_threshold(unsigned kind,unsigned x,unsigned y){
+ /* Exact manufacturer threshold TABLES (source: macOS 1.2.190 binary).
+  * The mapping from matrix values to an 8-bit threshold is our Current
+  * implementation; the original proprietary filter arithmetic has not
+  * been claimed byte-identical. */
+ const uint8_t *matrix=NULL;
+ unsigned order=0,levels=0,subtract=0;
+ switch(kind){
+   case 1: matrix=leitz_supercell;order=8;levels=32;break;
+   case 2: matrix=leitz_bayer4;order=4;levels=16;subtract=1;break;
+   case 3: matrix=leitz_bayer8;order=8;levels=64;break;
+   case 10: matrix=leitz_bayer14;order=14;levels=196;break;
+   case 11: matrix=leitz_clustered8;order=8;levels=32;subtract=1;break;
+   case 12: matrix=leitz_dispersed8;order=8;levels=32;subtract=1;break;
+   case 13: matrix=leitz_nasik4;order=4;levels=16;break;
+   case 14: matrix=leitz_dither3;order=3;levels=9;subtract=1;break;
+   default: break;
+ }
+ if(matrix){
+   unsigned v=matrix[(y%order)*order+(x%order)];
+   if(v<subtract)return 0;
+   return (2u*(v-subtract)+1u)*255u/(2u*levels);
+ }
  unsigned v,den;
  switch(kind){
   case 0: return 127u; /* Draft: threshold, no synthetic gray pattern. */

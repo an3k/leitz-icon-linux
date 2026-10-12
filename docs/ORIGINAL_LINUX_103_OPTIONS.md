@@ -94,3 +94,34 @@ The uploaded macOS and Windows application archives, their internal binaries,
 and the two `LeitzUSRes` DLLs could not be enumerated in this environment
 (the mounted file container returned an access error). No claim of exhaustive
 binary review or a pixel-exact vendor dithering implementation is made.
+
+## Review of full uploaded 2026-10-12 vendor archives
+
+The Windows OEMPRINT.INF identifies the v3 Unidrv driver (2.17.4.112),
+LeitzLm.dll (language monitor), LeitzRp.dll (rendering plug-in),
+LeitzUI.dll, LeitzDevMode.dll and LeitzUSRes.dll (resource strings).
+The resource DLL provides actual English label names; standard Halftone
+names refer to Windows Unidrv rather than Leitz-specific Dither kernels.
+The macOS leitzprint.pkg contains command2leitz, command2leitzV3,
+raster2printer and raster2printerV3. The V3 binary has additional
+cartridge, Wi-Fi and status branches.
+
+In raster2printer the macOS 1.2.190 x86_64 Mach-O __DATA,__data
+contains exact manufacturer matrices for SuperCell (8x8),
+Bayer4x4, Bayer8x8, Bayer14x14, Clustered8x8,
+Dispersed8x8, Nasik4x4, and Dithering3x3. Those eight original
+TABLES are preserved in src/leitz_vendor_dither.h and selected by
+PrintQuality in Current. Threshold scaling is a source-based
+adaptation; complete macOS DitherPage arithmetic has not yet been
+reconstructed. Other PrintQuality methods still use the documented
+Current approximations and are NOT original-equivalent.
+
+The vendor Python validate_reception.py documents the read-only
+ESC V firmware response, ESC u 00 Wi-Fi status, and ESC A status flags.
+Changing Wi-Fi state and entering boot mode are deliberately NOT
+wired into printing or default maintenance.
+
+The two label-template archives were inventoried. Their LeitzLbl
+files are application-level label layouts (not printer raster
+encoders); the CUPS raster filter accepts output from those apps.
+No template-to-PPD assumptions are made.
