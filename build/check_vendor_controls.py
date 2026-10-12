@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 catalog = json.loads((ROOT / "media/vendor_macos_catalog.json").read_text())
 backend = (ROOT / "cups/leitzusb").read_text()
 assert len(catalog["cartridges"]) == 23
-assert len(catalog["paper_formats"]) == 22
+assert len(catalog["paper_formats"]) == 37
 skus = {c["sku"] for c in catalog["cartridges"]}
 assert len(skus) == 23
 for record in catalog["paper_formats"]:
@@ -24,6 +24,7 @@ filter_script = ROOT / "cups/leitz-command"
 cases = {
     "ReportStatus": "REPORT_STATUS",
     "GetPrinterStatus": "REPORT_STATUS",
+    "GetUnitedStatus": "GET_UNITED_STATUS",
     "GetFirmwareVersion": "GET_FIRMWARE_VERSION",
 }
 for command, frame in cases.items():
