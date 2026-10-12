@@ -86,8 +86,9 @@ YES default from incorrectly refusing roll-material jobs.
 The vendor `validate_reception.py` also confirms read-only USB queries
 ESC A (status), ESC V (version), and ESC u 00 (Wi-Fi state). The CUPS command
 filter and backend now support `ReportStatus`, `GetPrinterStatus`,
-`GetFirmwareVersion` and the additional `GetWiFiState`; they do **not**
-send the script's device-modifying Wi-Fi or boot-mode commands.
+`GetFirmwareVersion` but deliberately do **not** expose Wi-Fi or boot-mode controls:
+the script's default PID 0x1001 and the macOS `LeitzIconV3.drv`
+describe the separate Icon 900 Pro Turbo/V3 model.
 These read-only commands are source-backed but not yet hardware-verified.
 
 The uploaded macOS and Windows application archives, their internal binaries,
@@ -104,7 +105,8 @@ The resource DLL provides actual English label names; standard Halftone
 names refer to Windows Unidrv rather than Leitz-specific Dither kernels.
 The macOS leitzprint.pkg contains command2leitz, command2leitzV3,
 raster2printer and raster2printerV3. The V3 binary has additional
-cartridge, Wi-Fi and status branches.
+cartridge, Wi-Fi and status branches for the **separate Icon 900 Pro
+Turbo**. They are not assumptions about the original Icon USB (0x1000).
 
 In raster2printer the macOS 1.2.190 x86_64 Mach-O __DATA,__data
 contains exact manufacturer matrices for SuperCell (8x8),

@@ -43,7 +43,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   read -r command argument <<< "$line"
   case "$command" in
     ReportStatus|GetPrinterStatus) command=ReportStatus ;;
-    GetFirmwareVersion|GetWiFiState) ;;
+    GetFirmwareVersion) ;;
     *) echo 'ERROR: Unsupported Leitz CUPS maintenance command' >&2; exit 1 ;;
   esac
   if [[ -n "$argument" || ( -n "$request" && "$request" != "$command" ) ]]; then
@@ -62,5 +62,4 @@ fi
 case "$request" in
   ReportStatus) printf 'LEITZ-CMD-V1:REPORT_STATUS\n' ;;
   GetFirmwareVersion) printf 'LEITZ-CMD-V1:GET_FIRMWARE_VERSION\n' ;;
-  GetWiFiState) printf 'LEITZ-CMD-V1:GET_WIFI_STATE\n' ;;
 esac

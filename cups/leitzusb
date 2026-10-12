@@ -79,8 +79,6 @@ if cmp -s "$tmp" <(printf 'LEITZ-CMD-V1:REPORT_STATUS\n'); then
   control_request=1;control_kind=status
 elif cmp -s "$tmp" <(printf 'LEITZ-CMD-V1:GET_FIRMWARE_VERSION\n'); then
   control_request=1;control_kind=firmware
-elif cmp -s "$tmp" <(printf 'LEITZ-CMD-V1:GET_WIFI_STATE\n'); then
-  control_request=1;control_kind=wifi
 fi
 # The raster filter supports up to 64 pages, each with up to 64000
 # rows of 960 pixels. A valid multi-page job can exceed 25 MB by far.
@@ -121,15 +119,11 @@ fi
 }
 exec 3<>"$usb_device" || { echo 'ERROR: Cannot open Leitz USB printer (busy or inaccessible)' >&2;exit 4; }
 if (( control_request )); then
-  # These frames are read-only and source-backed:
-  # validate_reception.py: ESC A=status, ESC V=firmware, ESC u 00=WiFi state.
-  # Do not expose its ESC W boot-mode or WiFi-writing commands.
-  if [[ "$control_kind" != status ]]; then
-    if [[ "$control_kind" == firmware ]]; then
-      printf '\033V' >&3 || exit 4
-    else
-      printf '\033u\000' >&3 || exit 4
-    fi
+  # Original Icon: ESC A=status and ESC V=firmware.
+  # ESC u 00, Wi-Fi writes, and boot mode belong to the V3 printer family,
+  # identified in the supplied macOS LeitzIconV3.drv as 900 Pro Turbo.
+  if [[ "$control_kind" == firmware ]]; then
+    printf '\033V' >&3 || exit 4
     data=''
     IFS= read -r -d '' -n 64 -t 5 data <&3 || :
     if [[ -z "$data" || ! "$data" =~ ^[[:print:]]+$ ]]; then

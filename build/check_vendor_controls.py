@@ -25,7 +25,6 @@ cases = {
     "ReportStatus": "REPORT_STATUS",
     "GetPrinterStatus": "REPORT_STATUS",
     "GetFirmwareVersion": "GET_FIRMWARE_VERSION",
-    "GetWiFiState": "GET_WIFI_STATE",
 }
 for command, frame in cases.items():
     proc = subprocess.run(
@@ -36,6 +35,7 @@ for command, frame in cases.items():
     assert proc.stdout == f"LEITZ-CMD-V1:{frame}\n", (command, proc.stdout)
 for contents in (
     "#CUPS-COMMAND\nBootMode\n",
+    "#CUPS-COMMAND\nGetWiFiState\n",
     "#CUPS-COMMAND\nGetFirmwareVersion\nGetWiFiState\n",
     "#CUPS-COMMAND\nGetFirmwareVersion=xxx\n",
 ):
