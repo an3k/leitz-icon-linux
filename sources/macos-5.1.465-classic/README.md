@@ -131,3 +131,34 @@ Classic `_GetStatus` (`0x100001440..0x100001a26`) writes the two-byte command, c
 `reconstructed/io_smoke.c` checks short output writes, dump mirroring, I/O failures, command names, empty/error/normal backchannel responses, expected `ESC Z`, and the original status reason text. The standalone fragments compile using GCC and Clang with `-std=c11 -Wall -Wextra -Werror`; local `make check all` passed and the sanitizer build `-fsanitize=address,undefined` passed.
 
 **Scope remains partial:** There is not yet a fully reconstructed manufacturer CUPS command executable, no exact reconstruction of the U/V notification formatting, no full macOS PRN/socket setup, and no byte-for-byte comparison with running Mach-O originals. No hardware confirmation. Reconstructed C includes explicit safety improvements and is not claimed to be the manufacturer's exact source.
+
+## Classic command2leitz executable reconstruction (2026-10-13)
+
+**Functional, compilable command entrypoint now added:** `reconstructed/mac_classic_command_filter.c`, `mac_classic_command_job.[ch]`, `mac_classic_command_abi.h`, `command_job_smoke.c`, and updated Makefile.
+
+Evidence from original classic macOS `command2leitz` Mach-O:
+- `_main` (`0x100000b10..0x1000011c0`) reads CUPS command files (`cupsFileOpen` / `cupsFileStdin` + `cupsFileGetConf`) and reads printer options. The original reads the `ShouldSend_ESC_A` PPD choice, but its `_EndOfJob` issues `ESC Z` unconditionally.
+- Original `__TEXT,__const` at `0x100004d60` stores **7.0 seconds** as the timeout supplied to `cupsBackChannelRead`.
+- `_GetStatus` (`0x100001440..`) distinguishes read failure, empty response, and received data. Only the received-data path emits `ESC Z`. Exact ESC A comparison values: 0x03/0x20/0x30/0x40.
+- Non-A replies are combined with the command value for `ATTR: marker-message`, written to `/private/var/log/leitz.log`, and notified with domain **`com.xyron.Leitz-Icon-Software`**.
+- **Existing OEM mismatch:** original PPD's `*cupsCommands` advertises `GetPrinterStatus GetUnitedStatus GetFirmwareVersion ReportState`; the original `_main` *handles* `ReportStatus GetUnitedStatus GetFirmwareVersion`. `GetPrinterStatus` is an internal function name. Our reconstruction preserves the original handled names and does not invent aliases.
+
+### Actual build result
+
+`make clean all check` built the command executable **against real Debian CUPS 2.x runtime `libcups.so.2`** and passed all four portable smoke programs with GCC `-std=c11 -Wall -Wextra -Werror`. The command entrypoint used only opaque public CUPS function signatures because the local system lacks the development headers; on macOS the Makefile selects the CUPS SDK headers and `-lcups`. This is **not** yet a macOS build.
+
+A **real CUPS command-file parser + shared-library exercise**, with a locally interposed *fake backchannel* and **no printer attached**, showed:
+- Input `ReportStatus`, reply `0x03`: output bytes `1B 41 1B 5A`, correct CUPS `STATE` remove/ready messages, exit status 0.
+- Input `GetUnitedStatus`, reply `0x03`: output bytes `1B 55 1B 5A`, safe marker-message encoding, and opt-in local archive file.
+- Input unsupported `ReportState`: nonzero exit, no synthetic device query.
+- `command_job_smoke` passed under Clang AddressSanitizer and UndefinedBehaviorSanitizer.
+
+### Intentional differences from vendor
+
+Output writes retry after EINTR; partial writes are completed or rejected, rather than regarded as success. Binary and control characters in CUPS marker values are encoded as printable escapes. Original `/private/var/log/leitz.log` replacement and `notify_post` side effects are **disabled by default**; set `LEITZ_MAC_CLASSIC_STATUS_LOG` to explicitly request a log copy, and `notify_post` is compiled only on macOS. Actual macOS notification behavior has **not** been exercised.
+
+The CUPS command adapter does not yet reproduce original PPD-marking internals, vendor debug/network paths, or all macOS UI integration. This is a source-identified **new C reconstruction**, not verbatim lost OEM C source, and is **not hardware-qualified**.
+
+### Remaining overall classic driver work
+
+`raster2printer` still lacks complete macOS-specific page/media option handling, original PRN/socket setup, native CUPS SDK compilation, and byte-level equivalence testing with an executing Mach-O original. `command2leitz` still requires verification of U/V notification formatting and final platform-specific behavior. Do not distribute these experiments as production drivers.
