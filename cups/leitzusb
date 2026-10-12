@@ -51,6 +51,7 @@ if [[ -z "${LEITZ_VALIDATE_BIN:-}" ]]; then LEITZ_VALIDATE_BIN=/usr/lib/cups/fil
 # fatal; failed data must never reach the printer.
 tmp=$(mktemp "${TMPDIR:-/tmp}/leitzjob.XXXXXXXX") || exit 4
 writer_pid=''
+prn_file=''
 cleanup() {
   # Cancellation must not leave an orphaned writer continuing to print
   # after CUPS has stopped the backend. Partial USB delivery is possible.
@@ -58,6 +59,7 @@ cleanup() {
     kill -TERM "$writer_pid" 2>/dev/null || :
   fi
   rm -f -- "$tmp"
+  if [[ -n "$prn_file" ]]; then rm -f -- "$prn_file"; fi
 }
 on_cancel() {
   echo 'ERROR: USB transfer cancelled; output may be incomplete. Inspect printer before resubmission.' >&2
@@ -156,6 +158,21 @@ echo 'STATE: -media-empty' >&2
 if [[ "$expected" != auto && "$actual_sku" != "$expected" ]]; then
   echo "ERROR: Wrong cartridge; expected $expected, got $response" >&2;exit 4
 fi
+# macOS vendor control: explicit cassette material kind check. This is not
+# inferred merely from the selected PPD page's dimensions.
+case "$actual_sku" in
+  70030001|70040001|70050001|70060001|70070001|70080001|70090001|70100001|70110001|70190001)
+    media_kind=continuous ;;
+  70130001|70180001)
+    media_kind=diecut ;;
+  *)
+    media_kind=unknown ;;
+esac
+if [[ " $5 " == *"IsCurrentInsertedCartridgeDieCut=YES"* && "$media_kind" == continuous ]] ||
+   [[ " $5 " == *"IsCurrentInsertedCartridgeDieCut=NO"* && "$media_kind" == diecut ]]; then
+  echo "ERROR: CUPS IsCurrentInsertedCartridgeDieCut disagrees with cartridge SKU $actual_sku" >&2
+  exit 4
+fi
 # Match known installed cartridge capacities to selected raster *width*.
 # Widths other than 88mm are from vendor GPD catalog, not hardware tested.
 # Smaller selections on wider continuous media are permitted; applications
@@ -185,20 +202,41 @@ fi
 # decoders. Query *after* validating the job and matching the cartridge,
 # on the same exclusive /dev/usb/lpN descriptor. Never treat unknown
 # status bytes as ready and never initiate automatic job replay.
-printf '\033A' >&3 || { echo 'ERROR: ESC A request failed' >&2; exit 4; }
-IFS= read -r -N 1 -t 5 status_byte <&3 || {
-  echo 'ERROR: No one-byte ESC A status reply; job not sent' >&2; exit 4;
-}
-printf -v status_code '%d' "'$status_byte"
-if (( status_code != 3 )); then
-  printf -v status_hex '0x%02X' "$status_code"
-  echo "ERROR: Printer not ready: ESC A status $status_hex; job not sent" >&2
-  exit 4
+# Original Linux ShouldSend_ESC_A is a selectable print-job option. YES
+# remains the safest default; NO bypasses only ESC A, never the strict SKU,
+# width, spool, or USB identity checks above.
+if [[ " $5 " != *"ShouldSend_ESC_A=NO"* ]]; then
+  printf '\033A' >&3 || { echo 'ERROR: ESC A request failed' >&2; exit 4; }
+  IFS= read -r -N 1 -t 5 status_byte <&3 || {
+    echo 'ERROR: No one-byte ESC A status reply; job not sent' >&2; exit 4;
+  }
+  printf -v status_code '%d' "'$status_byte"
+  if (( status_code != 3 )); then
+    printf -v status_hex '0x%02X' "$status_code"
+    echo "ERROR: Printer not ready: ESC A status $status_hex; job not sent" >&2
+    exit 4
+  fi
+else
+  echo 'WARNING: ESC A readiness check bypassed by explicit CUPS option' >&2
 fi
 # A successful write means that the kernel accepted bytes, not necessarily
 # that all labels finished printing. Cancellation terminates the writer;
 # the resulting partial delivery must NEVER be automatically replayed.
-cat -- "$tmp" >&3 &
+# Original Linux PrintThroughPRN=ON sends the staged .prn file to USB.
+# This validated replay-free route is intentionally opt-in, and its temporary
+# file is deleted with the regular backend spool on every exit.
+print_file=$tmp
+if [[ " $5 " == *"PrintThroughPRN=ON"* ]]; then
+  prn_file=$(mktemp "${TMPDIR:-/tmp}/leitzjob.XXXXXXXX.prn") || exit 4
+  cp -- "$tmp" "$prn_file" || exit 4
+  cmp -s -- "$tmp" "$prn_file" || { echo 'ERROR: PRN copy mismatch' >&2; exit 4; }
+  print_file=$prn_file
+  echo 'INFO: Sending validated print job through temporary .prn spool' >&2
+fi
+if [[ " $5 " == *"DebugMode=Debug"* ]]; then
+  echo "DEBUG: print size=$size, cartridge=$actual_sku, width=$job_width, device=$usb_device" >&2
+fi
+cat -- "$print_file" >&3 &
 writer_pid=$!
 if wait "$writer_pid"; then
   writer_pid=''

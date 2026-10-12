@@ -17,6 +17,24 @@
 *FileSystem: False
 *LanguageLevel: "3"
 *Throughput: "1"
+*LandscapeOrientation: Plus90
+*TTRasterizer: Type42
+*DeviceID: "Icon"
+*1284DeviceID: "MFG:Leitz;MDL:Icon"
+*cupsVersion: 2.4
+*cupsModelNumber: 0
+*cupsIPPReason com.leitz.out-of-paper-error/Out of labels.: ""
+*cupsIPPReason com.leitz.read-error/Cannot read data from printer.: ""
+*cupsIPPReason com.leitz.ready/Printer is ready.: ""
+*cupsIPPReason com.leitz.general-error/General print error.: ""
+*cupsIPPReason com.leitz.head-overheat-error/Print head overheated.: ""
+*cupsIPPReason com.leitz.slot-status-error/Label path is blocked.: ""
+*cupsIPPReason com.leitz.busy-error/The printer is currently in use.: ""
+*cupsIPPReason com.leitz.paper-size-error/Label being printed does not match label width currently in printer.: ""
+*cupsIPPReason com.leitz.paper-size-undefine-error/Insert a label cassette in the printer.: ""
+*cupsIPPReason com.leitz.door-open-error/The door is open.: ""
+*cupsIPPReason com.leitz.no-cartridge-error/No cartridge.: ""
+*cupsIPPReason com.leitz.incompatible-cartridge-error/Incompatible cartridge.: ""
 *cupsFilter: "application/vnd.cups-raster 0 leitz-rastertoicon"
 *cupsFilter: "application/vnd.cups-command 0 leitz-command"
 *cupsCommands: "ReportStatus"
@@ -25,7 +43,7 @@
 *cupsManualCopies: True
 *OpenUI *PageSize/Media Size: PickOne
 *OrderDependency: 10 AnySetup *PageSize
-*DefaultPageSize: Continuous70030001
+*DefaultPageSize: StandardAddressLabel
 *PageSize AppointmentCard/Appointment Card: "<</PageSize[258.0000 144.0000]>>setpagedevice"
 *PageSize Continuous112/Continuous - 1 1/2": "<</PageSize[110.6400 7653.6000]>>setpagedevice"
 *PageSize Continuous70030001/Continuous - 3 1/2": "<</PageSize[249.3600 7680.0000]>>setpagedevice"
@@ -115,7 +133,7 @@
 *CloseUI: *PageSize
 *OpenUI *PageRegion/Media Region: PickOne
 *OrderDependency: 10 AnySetup *PageRegion
-*DefaultPageRegion: Continuous70030001
+*DefaultPageRegion: StandardAddressLabel
 *PageRegion AppointmentCard: "<</PageSize[258.0000 144.0000]>>setpagedevice"
 *PageRegion Continuous112: "<</PageSize[110.6400 7653.6000]>>setpagedevice"
 *PageRegion Continuous70030001: "<</PageSize[249.3600 7680.0000]>>setpagedevice"
@@ -203,7 +221,7 @@
 *PageRegion LeitzWideLeverArchLabelShort: "<</PageSize[172.8000 544.3200]>>setpagedevice"
 *PageRegion LeitzWristband: "<</PageSize[80.6400 786.4800]>>setpagedevice"
 *CloseUI: *PageRegion
-*DefaultImageableArea: Continuous70030001
+*DefaultImageableArea: StandardAddressLabel
 *ImageableArea AppointmentCard: "13.9200 3.6000 244.3200 140.4000"
 *ImageableArea Continuous112: "3.6000 3.6000 107.0400 7650.0000"
 *ImageableArea Continuous70030001: "9.6000 0.0000 240.0000 7680.0000"
@@ -290,7 +308,7 @@
 *ImageableArea LeitzWideLeverArchLabelLong: "3.6000 3.6000 169.2000 807.8400"
 *ImageableArea LeitzWideLeverArchLabelShort: "3.6000 3.6000 169.2000 540.7200"
 *ImageableArea LeitzWristband: "3.6000 3.6000 77.0400 782.8800"
-*DefaultPaperDimension: Continuous70030001
+*DefaultPaperDimension: StandardAddressLabel
 *PaperDimension AppointmentCard: "258.0000 144.0000"
 *PaperDimension Continuous112: "110.6400 7653.6000"
 *PaperDimension Continuous70030001: "249.3600 7680.0000"
@@ -377,7 +395,7 @@
 *PaperDimension LeitzWideLeverArchLabelLong: "172.8000 807.8400"
 *PaperDimension LeitzWideLeverArchLabelShort: "172.8000 544.3200"
 *PaperDimension LeitzWristband: "80.6400 786.4800"
-*HWMargins: 9.600 3.600 9.600 3.600
+*HWMargins: 3.600 3.600 3.600 3.600
 *VariablePaperSize: True
 *MaxMediaWidth: "258.000"
 *MaxMediaHeight: "7680.000"
@@ -388,10 +406,10 @@
 *ParamCustomPageSize Height: 2 points 14.000 7680.000
 *ParamCustomPageSize WidthOffset: 3 points 0 0
 *ParamCustomPageSize HeightOffset: 4 points 0 0
-*ParamCustomPageSize Orientation: 5 int 0 0
+*ParamCustomPageSize Orientation: 5 int 0 3
 *OpenUI *LabelCutter/Cut Between Labels: PickOne
 *OrderDependency: 13 AnySetup *LabelCutter
-*DefaultLabelCutter: ON
+*DefaultLabelCutter: OFF
 *LabelCutter ON/Cut Each Label: ""
 *LabelCutter OFF/Cut At Job End (experimental): ""
 *CloseUI: *LabelCutter
@@ -411,7 +429,7 @@
 *CloseUI: *LeitzCutMode
 *OpenUI *Resolution/Resolution: PickOne
 *OrderDependency: 20 AnySetup *Resolution
-*DefaultResolution: 300x600dpi
+*DefaultResolution: 300x300dpi
 *Resolution 300x600dpi/300 x 600 dpi: "<</HWResolution[300 600]>>setpagedevice"
 *Resolution 300x300dpi/300 x 300 dpi: "<</HWResolution[300 300]>>setpagedevice"
 *CloseUI: *Resolution
@@ -431,6 +449,7 @@
 *OrderDependency: 23 AnySetup *DebugMode
 *DefaultDebugMode: Release
 *DebugMode Release/Debug Off: ""
+*DebugMode Debug/Debug On: ""
 *DebugMode Mesh/Add Bounds and Center Cross (diagnostic): ""
 *CloseUI: *DebugMode
 *OpenUI *LeitzCurrentRaster/Current Raster Encoding: PickOne
@@ -441,3 +460,74 @@
 *LeitzCurrentRaster TrimmedRaw/Trimmed raw rows (experimental, Current only): ""
 *LeitzCurrentRaster NoSkipRaw/Full-width raw including blank rows (vendor level 0, experimental): ""
 *CloseUI: *LeitzCurrentRaster
+*OpenUI *CutMedia/Cut Media: Boolean
+*OrderDependency: 14 AnySetup *CutMedia
+*DefaultCutMedia: False
+*CutMedia False/False: "<</CutMedia 0>>setpagedevice"
+*CutMedia True/True: "<</CutMedia 4>>setpagedevice"
+*CloseUI: *CutMedia
+*OpenUI *ContinuousMedia/Continuous Media: PickOne
+*OrderDependency: 15 AnySetup *ContinuousMedia
+*DefaultContinuousMedia: OFF
+*ContinuousMedia ON/Continuous Media On: ""
+*ContinuousMedia OFF/Continuous Media Off: ""
+*CloseUI: *ContinuousMedia
+*OpenUI *PrintThroughPRN/Send through .prn File: PickOne
+*OrderDependency: 16 AnySetup *PrintThroughPRN
+*DefaultPrintThroughPRN: OFF
+*PrintThroughPRN ON/Send through .prn File: ""
+*PrintThroughPRN OFF/Do not Send through .prn File: ""
+*CloseUI: *PrintThroughPRN
+*OpenUI *ShouldSend_ESC_A/Should Send ESC 'A': PickOne
+*OrderDependency: 17 AnySetup *ShouldSend_ESC_A
+*DefaultShouldSend_ESC_A: YES
+*ShouldSend_ESC_A YES/Should send ESC 'A': ""
+*ShouldSend_ESC_A NO/Should not send ESC 'A': ""
+*CloseUI: *ShouldSend_ESC_A
+*OpenUI *ShouldCorrectMargins/Should correct margins: PickOne
+*OrderDependency: 18 AnySetup *ShouldCorrectMargins
+*DefaultShouldCorrectMargins: NO
+*ShouldCorrectMargins YES/Yes: ""
+*ShouldCorrectMargins NO/No: ""
+*CloseUI: *ShouldCorrectMargins
+*OpenUI *IsCurrentInsertedCartridgeDieCut/Is current inserted cartridge die-cut: PickOne
+*OrderDependency: 19 AnySetup *IsCurrentInsertedCartridgeDieCut
+*DefaultIsCurrentInsertedCartridgeDieCut: YES
+*IsCurrentInsertedCartridgeDieCut YES/Cartridge is die-cut: ""
+*IsCurrentInsertedCartridgeDieCut NO/Cartridge is continuous: ""
+*CloseUI: *IsCurrentInsertedCartridgeDieCut
+*OpenUI *OptimizationLevel/Optimization Level: PickOne
+*OrderDependency: 24 AnySetup *OptimizationLevel
+*DefaultOptimizationLevel: 2
+*OptimizationLevel 0/0: ""
+*OptimizationLevel 1/1: ""
+*OptimizationLevel 2/2: ""
+*OptimizationLevel 3/3: ""
+*CloseUI: *OptimizationLevel
+*OpenUI *PrintQuality/PrintQuality: PickOne
+*OrderDependency: 35 AnySetup *PrintQuality
+*DefaultPrintQuality: Bayer8x8
+*PrintQuality Draft/Draft: "<</cupsColorSpace 3 /cupsBitsPerColor 1 /cupsBitsPerPixel 1>>setpagedevice"
+*PrintQuality SuperCell/SuperCell: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*PrintQuality Bayer4x4/Bayer4x4: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*PrintQuality Bayer8x8/Bayer8x8: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*PrintQuality Bayer8x8SuperCell1/Bayer8x8SuperCell1: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*PrintQuality Bayer8x8SuperCell2/Bayer8x8SuperCell2: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*PrintQuality CUPSThresold64x64/CUPSThresold64x64: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*PrintQuality SuperCell1/SuperCell1: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*PrintQuality SuperCell2/SuperCell2: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*PrintQuality SuperCell3/SuperCell3: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*PrintQuality Bayer14x14/Bayer14x14: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*PrintQuality Clustered8x8/Clustered8x8: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*PrintQuality Dispersed8x8/Dispersed8x8: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*PrintQuality Nasik4x4/Nasik4x4: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*PrintQuality Dithering3x3/Dithering3x3: "<</cupsColorSpace 3 /cupsBitsPerColor 8 /cupsBitsPerPixel 8>>setpagedevice"
+*CloseUI: *PrintQuality
+*OpenUI *Halftone/Halftone (Windows): PickOne
+*OrderDependency: 26 AnySetup *Halftone
+*DefaultHalftone: HT_PATSIZE_SUPERCELL_M
+*Halftone HT_PATSIZE_AUTO/Automatic: ""
+*Halftone HT_PATSIZE_SUPERCELL_M/Supercell: ""
+*Halftone HT_PATSIZE_6x6_M/6 x 6 Dither: ""
+*Halftone HT_PATSIZE_8x8_M/8 x 8 Dither: ""
+*CloseUI: *Halftone

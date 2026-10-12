@@ -30,6 +30,89 @@ static int option(const char *s,const char *key,const char *value){
  }
  return 0;
 }
+
+/* Vendor PPD names are preserved. The macOS raster implementation is not
+ * provided; non-Bayer quality functions below are explicit Current
+ * approximations, not byte-identical implementations of macOS algorithms. */
+static const char *const quality_names[]={
+ "Draft","SuperCell","Bayer4x4","Bayer8x8","Bayer8x8SuperCell1",
+ "Bayer8x8SuperCell2","CUPSThresold64x64","SuperCell1","SuperCell2",
+ "SuperCell3","Bayer14x14","Clustered8x8","Dispersed8x8",
+ "Nasik4x4","Dithering3x3"
+};
+static unsigned bayer_value(unsigned x,unsigned y,unsigned bits){
+ unsigned value=0;
+ for(unsigned i=0;i<bits;i++){
+   unsigned xi=(x>>i)&1u, yi=(y>>i)&1u;
+   unsigned part=yi?(xi?1u:3u):(xi?2u:0u);
+   value+=part << (2u*(bits-1u-i));
+ }
+ return value;
+}
+static unsigned ordered_threshold(unsigned kind,unsigned x,unsigned y){
+ unsigned v,den;
+ switch(kind){
+  case 0: return 127u; /* Draft: threshold, no synthetic gray pattern. */
+  case 2: v=bayer_value(x,y,2);den=16u;break;
+  case 3: case 12: v=bayer_value(x,y,3);den=64u;break;
+  case 4: v=(bayer_value(x,y,3)+((x+y)&1u)*16u)%64u;den=64u;break;
+  case 5: v=(bayer_value(x,y,3)+((x^y)&1u)*32u)%64u;den=64u;break;
+  case 6: v=bayer_value(x,y,6);den=4096u;break;
+  case 10: v=(bayer_value(x,y,4)*196u)/256u;den=196u;break;
+  case 14: v=(x%3u*3u+y%3u*5u)%9u;den=9u;break;
+  case 13: v=(bayer_value(x,y,2)+((x+y)%3u)*3u)%16u;den=16u;break;
+  default: {
+    /* Clustered and SuperCell modes use dot-center ranking. The original
+     * Apple/Leitz kernels are not available; sizes and variants remain
+     * separate adjustable strategies. */
+    const unsigned n=(kind==1||kind==11)?8u:(kind==7?4u:(kind==8?6u:8u));
+    unsigned a=x%n,b=y%n, cx=n/2u,cy=n/2u;
+    unsigned dx=a>cx?a-cx:cx-a,dy=b>cy?b-cy:cy-b;
+    v=dx*dx+dy*dy;
+    if(kind==9)v=(v*3u+a+b)% (n*n);
+    else v=(v*n+a+(b*3u))%(n*n);
+    den=n*n;
+    break;
+  }
+ }
+ return (2u*v+1u)*255u/(2u*den);
+}
+static int quality_mode(const char *options){
+ int chosen=3; /* Original macOS default Bayer8x8. */
+ for(unsigned j=0;j<4;j++){
+  static const char *const ht[]={
+   "HT_PATSIZE_AUTO","HT_PATSIZE_SUPERCELL_M",
+   "HT_PATSIZE_6x6_M","HT_PATSIZE_8x8_M"
+  };
+  if(option(options,"Halftone",ht[j]))
+    chosen=(int)(j==0?3:j==1?1:j==2?8:3);
+ }
+ if(strstr(options,"Halftone=")){
+  int valid=0;
+  for(unsigned j=0;j<4;j++){
+   static const char *const ht[]={
+    "HT_PATSIZE_AUTO","HT_PATSIZE_SUPERCELL_M",
+    "HT_PATSIZE_6x6_M","HT_PATSIZE_8x8_M"
+   };
+   valid|=option(options,"Halftone",ht[j]);
+  }
+  if(!valid)return -1;
+ }
+ int quality_specified=0;
+ for(unsigned j=0;j<sizeof(quality_names)/sizeof(quality_names[0]);j++){
+  if(option(options,"PrintQuality",quality_names[j])){
+   chosen=(int)j;quality_specified=1;break;
+  }
+ }
+ if(strstr(options,"PrintQuality=")&&!quality_specified)return -1;
+ if(quality_specified)return chosen;
+ if(strstr(options,"Halftone="))return chosen;
+ if(option(options,"LeitzDither","Bayer4"))return 2;
+ if(option(options,"LeitzDither","Threshold"))return 0;
+ if(strstr(options,"LeitzDither="))return -1;
+ return chosen;
+}
+
 /* A custom CUPS page can happen to have the same dimensions as a
  * vendor die-cut profile. Geometry alone must not turn that custom job
  * into a fixed-media job with a vendor length command. */
@@ -78,6 +161,11 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
  }
  int custom_page=explicitly_custom_page(options);
  const int debug_mesh=option(options,"DebugMode","Mesh");
+ const int debug_log=option(options,"DebugMode","Debug");
+ const int quality=quality_mode(options);
+ const int forced_continuous=option(options,"ContinuousMedia","ON");
+ const int correct_margins=option(options,"ShouldCorrectMargins","YES");
+ if(quality<0){fprintf(stderr,"ERROR: Unsupported PrintQuality/Halftone/Dither option\n");return -1;}
  const struct leitz_media *m=custom_page?NULL:lookup(h);
  /* If the print job explicitly selects a vendor media name, ensure that
   * its raster geometry matches. Do not reinterpret malformed vendor pages
@@ -105,6 +193,18 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
  }
  int fixed=m&&!m->continuous;
  int continuous=m&&m->continuous;
+ if(forced_continuous && fixed){
+   fprintf(stderr,"ERROR: ContinuousMedia ON conflicts with a fixed label profile\n");
+   return -1;
+ }
+ /* The original option describes the *installed* cartridge. Its physical
+  * identity is not available in this CUPS raster filter; never silently
+  * reinterpret die-cut stock as a continuous roll. The USB backend
+  * verifies the actual cartridge separately. */
+ if(debug_log)
+  fprintf(stderr,"DEBUG: media=%s pagesize=%gx%g raster=%ux%u dpi=300x%u quality=%s continuous=%d\n",
+    m?m->name:"Custom",h->cupsPageSize[0],h->cupsPageSize[1],
+    width,height,dpi,quality_names[quality],continuous||forced_continuous);
  int page_mode=option(options,"LeitzCutMode","Page");
  int force_content=option(options,"LeitzCutMode","Content");
  /* Content-length cutting is supported only for roll/custom media.
@@ -164,18 +264,19 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
       /* CUPS DeviceK is ink coverage, while DeviceGray/W is luminance.
        * Both paths must produce identical monochrome pixels from the same
        * photograph. Apply dithering before either protocol encoder. */
-      static const uint8_t bayer4[4][4]={
-        {0,8,2,10},{12,4,14,6},{3,11,1,9},{15,7,13,5}
-      };
       unsigned ink=h->cupsColorSpace==CUPS_CSPACE_K?row[x]:255u-row[x];
-      unsigned threshold=option(options,"LeitzDither","Threshold")
-        ?127u:((2u*bayer4[y&3u][x&3u]+1u)*255u/32u);
+      unsigned threshold=ordered_threshold((unsigned)quality,x,y);
       bits[x]=(uint8_t)(ink>threshold);
     }else{
       unsigned b=(row[x/8]>>(7-(x&7)))&1;
       bits[x]=(uint8_t)((h->cupsColorSpace==CUPS_CSPACE_K)?b:!b);
     }
     present|=bits[x];
+  }
+  /* Original Linux continuous margin correction discards the leading
+   * 30/60 raster rows. Preserve their physical advance as white rows. */
+  if(forced_continuous && correct_margins && y<=((dpi==600)?60u:30u)){
+    memset(bits,0,width);present=0;
   }
   /* Vendor DebugMode=Mesh, adapted after color-space normalization. */
   if(debug_mesh){
@@ -229,16 +330,35 @@ int main(int argc,char **argv){
   fprintf(stderr,"ERROR: Unknown LeitzProtocol selection\n");
   fclose(job);cupsRasterClose(r);if(argc==7)close(fd);return 1;
  }
- const int cut_each_page=!option(argv[5],"LabelCutter","OFF");
+ const int cut_each_page=option(argv[5],"CutMedia","True")||
+   !option(argv[5],"LabelCutter","OFF");
  unsigned current_mode=option(argv[5],"LeitzCurrentRaster","FullWidthRaw")?1u:
    option(argv[5],"LeitzCurrentRaster","TrimmedRaw")?2u:
-   option(argv[5],"LeitzCurrentRaster","NoSkipRaw")?3u:0u;
- if(strstr(argv[5],"LeitzCurrentRaster=") && !current_mode &&
-    !option(argv[5],"LeitzCurrentRaster","Optimized")){
+   option(argv[5],"LeitzCurrentRaster","NoSkipRaw")?3u:
+   option(argv[5],"LeitzCurrentRaster","Optimized")?0u:
+   option(argv[5],"OptimizationLevel","0")?3u:
+   option(argv[5],"OptimizationLevel","1")?1u:
+   option(argv[5],"OptimizationLevel","2")?2u:
+   option(argv[5],"OptimizationLevel","3")?1u:2u;
+ if((strstr(argv[5],"LeitzCurrentRaster=") &&
+      !option(argv[5],"LeitzCurrentRaster","Optimized") &&
+      !option(argv[5],"LeitzCurrentRaster","FullWidthRaw") &&
+      !option(argv[5],"LeitzCurrentRaster","TrimmedRaw") &&
+      !option(argv[5],"LeitzCurrentRaster","NoSkipRaw")) ||
+    (strstr(argv[5],"OptimizationLevel=") &&
+      !option(argv[5],"OptimizationLevel","0") &&
+      !option(argv[5],"OptimizationLevel","1") &&
+      !option(argv[5],"OptimizationLevel","2") &&
+      !option(argv[5],"OptimizationLevel","3"))){
   fprintf(stderr,"ERROR: Unknown LeitzCurrentRaster option\n");
   fclose(job);cupsRasterClose(r);if(argc==7)close(fd);return 1;
  }
  leitz_job *document=leitz_job_create(job,protocol,cut_each_page);
+ /* Original Linux optimization is a Current encoder control only.
+  * Never pass a nonzero Current raster selector to the unchanged Native
+  * protocol, even when the vendor OptimizationLevel default is 2. */
+ if(document && strcmp(leitz_job_protocol_name(document),"Current"))
+   current_mode=0;
  if(!document || leitz_job_set_current_raster_mode(document,current_mode)){
   fprintf(stderr,"ERROR: Current raw mode requires the Current protocol module\n");
   leitz_job_destroy(document);fclose(job);cupsRasterClose(r);
