@@ -191,7 +191,11 @@ selected_media=''
 if [[ " $5 " =~ [[:space:]]PageSize=([[:alnum:]_]+)[[:space:]] ]]; then
   selected_media=${BASH_REMATCH[1]}
   # A/B profile aliases share vendor geometry but not all vendor options.
-  if [[ "$selected_media" == Leitz* ]]; then selected_media=${selected_media#Leitz}; fi
+  # The original macOS ID LeitzLeverArchFile1005 already begins with
+  # Leitz; only strip our additional B-profile prefix from other names.
+  if [[ "$selected_media" == Leitz* && "$selected_media" != LeitzLeverArchFile1005 ]]; then
+    selected_media=${selected_media#Leitz}
+  fi
 fi
 allowed_skus=''
 # BEGIN GENERATED SOURCE: macOS PaperCatalog.plist CompatibleSKUs
