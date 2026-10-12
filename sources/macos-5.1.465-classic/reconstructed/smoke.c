@@ -91,6 +91,13 @@ int main(void) {
   assert(used==sizeof trimmed && memcmp(dst,trimmed,used)==0);
   assert(mac_classic_row_encode(&st,blank,dst,sizeof dst,&used)==0 && used==0);
   assert(mac_classic_pending_trailing_blank(&st)==1);
+  /* Classic mode 3 skips trailing trimming if the first byte has ink,
+   * unlike mode 2. This oddity is explicitly shown in disassembly. */
+  assert(mac_classic_row_init(&st,3,4)==0);
+  const uint8_t left_ink[4]={0xff,0,0,0};
+  assert(mac_classic_row_encode(&st,left_ink,dst,sizeof dst,&used)==0);
+  const uint8_t original_asymmetry[]={0x1b,'D',4,0x16,0xff,0,0,0};
+  assert(used==sizeof original_asymmetry && memcmp(dst,original_asymmetry,used)==0);
   assert(mac_classic_row_init(&st,2,121)<0);
   assert(mac_classic_row_init(&st,0,4)<0);
   assert(mac_classic_row_init(&st,2,4)==0);
