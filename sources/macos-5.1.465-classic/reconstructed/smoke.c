@@ -1,5 +1,6 @@
 #include "mac_classic_command_core.h"
 #include "mac_classic_raster_boundaries.h"
+#include "mac_classic_dither.h"
 #include <assert.h>
 #include <string.h>
 int main(void) {
@@ -31,5 +32,31 @@ int main(void) {
   assert(memcmp(b,"\033@\033Z",4)==0);
   assert(mac_classic_end_document(1,0,b)==4);
   assert(memcmp(b,"\033@\033Z",4)==0);
+  uint8_t header[11];
+  assert(mac_classic_start_page(960,300,0,header)==11);
+  const uint8_t expected300[11]={0x1b,'L',0x01,0x4a,0x1b,'w',0x03,0xc0,0x1b,'B',0};
+  assert(memcmp(header,expected300,11)==0);
+  assert(mac_classic_start_page(960,600,1,header)==11);
+  assert(memcmp(header,expected300,11)==0);
+  assert(mac_classic_start_page(960,601,1,header)==11);
+  assert(header[2]==0x01 && header[3]==0x4a);
+  mac_classic_quality info;
+  const unsigned widths[15]={8,10,12,18,12,6,64,0,8,4,14,8,8,4,3};
+  const double scales[15]={64,64,64,256,70,20,255,0,31,16,255,40,45,16,8};
+  for(unsigned mode=0;mode<15;++mode){
+    if(mode==7){assert(mac_classic_quality_info(mode,&info)<0);continue;}
+    assert(mac_classic_quality_info(mode,&info)==0);
+    assert(info.matrix_width==widths[mode]);
+    assert(info.matrix_divisor==scales[mode]);
+  }
+  uint8_t rgb[48]={0},onebit[2]={0};
+  assert(mac_classic_dither_rgb24(0,rgb,sizeof(rgb),2,24,onebit,sizeof(onebit))==0);
+  assert(onebit[0]==0xff && onebit[1]==0xff);
+  memset(rgb,255,sizeof(rgb));
+  assert(mac_classic_dither_rgb24(0,rgb,sizeof(rgb),2,24,onebit,sizeof(onebit))==0);
+  assert(onebit[0]==0 && onebit[1]==0);
+  assert(mac_classic_dither_rgb24(7,rgb,sizeof(rgb),2,24,onebit,sizeof(onebit))<0);
+  assert(mac_classic_dither_rgb24(0,rgb,sizeof(rgb),2,23,onebit,sizeof(onebit))<0);
+  assert(mac_classic_dither_rgb24(0,rgb,sizeof(rgb),3,24,onebit,sizeof(onebit))<0);
   return 0;
 }
