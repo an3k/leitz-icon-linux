@@ -99,15 +99,20 @@ if [[ -f "$driver_archive" ]]; then
   echo 'INFO: Installed standalone Leitz driver from verified mounted archive.'
 fi
 
-# The 'none' variant stays a pure CUPS image, without Leitz queues.
-# Preserve the historical automatic first-queue setup only for integrated
-# main/dev variants. On 'none' the driver is installed separately by the user.
-if [[ "${LEITZ_CUPS_DRIVER:-none}" != none ]] && ! lpstat -p LeitzIcon >/dev/null 2>&1; then
-  lpadmin -p LeitzIcon -E \
-    -v 'leitzusb:/dev/usb/lp0?sku=auto' \
-    -P /usr/share/ppd/LeitzIcon.ppd \
-    -o printer-is-shared=true
-  echo 'INFO: Created LeitzIcon queue for integrated driver.'
+# Only create an automatic queue when the USB backend discovers exactly one
+# matching Leitz device. Do not assume that the assigned node is lp0.
+# Driver-free CUPS never creates a Leitz queue.
+if [[ "${LEITZ_CUPS_DRIVER:-none}" != none ]] &&
+   ! lpstat -p LeitzIcon >/dev/null 2>&1; then
+  mapfile -t devices < <(/usr/lib/cups/backend/leitzusb 2>/dev/null |
+    sed -n -E 's/^direct (leitzusb:[^ ]+) .*/\1/p')
+  if (( ${#devices[@]} == 1 )); then
+    lpadmin -p LeitzIcon -E -v "${devices[0]}" \
+      -P /usr/share/ppd/LeitzIcon.ppd -o printer-is-shared=true
+    echo "INFO: Created LeitzIcon queue at ${devices[0]}."
+  else
+    echo "INFO: Found ${#devices[@]} Leitz USB endpoints; configure the queue explicitly."
+  fi
 fi
 
 echo 'INFO: CUPS initialized. Admin: authenticated; LAN web interface: port 631.'
