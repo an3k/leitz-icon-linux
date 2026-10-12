@@ -16,7 +16,7 @@ Source: uploaded `LeitzIconDriversForLinux1.0.3.zip`:
 | DebugMode=Mesh | Mark left/middle/right and first/middle/last line | DebugMode=Mesh adapted to normalized raster (new, diagnostic) |
 | DebugMode=Debug | Debug logging/file support | Enables optional per-page/debug USB diagnostics; no persistent files |
 | PrintThroughPRN=ON | Spools via debug PRN file then forwards | Validated temporary `.prn` USB staging; no job replay or persistent debug file |
-| ContinuousMedia=ON | Switches label-length processing; ContinuousPaperLength option supplies length | Exposed; requires roll/custom media, existing job-dependent Automatic/Page length remains; no 27 m default imposed |
+| ContinuousMedia=ON | Enables roll-material processing; ContinuousPaperLength optionally specifies its length in 300dpi units | Exposed; Custom/roll lengths stay job-dependent; explicitly supplied ContinuousPaperLength sets a validated device length and extends feed as necessary |
 | ShouldCorrectMargins=YES | Alters start of raster region only with ContinuousMedia ON | For explicit ContinuousMedia=ON, masks the first 30/60 dots as white while retaining physical media feed; adaptation, not original crop semantics |
 | LabelCutter=ON/OFF | Changes between-page feed/cutter behavior | Existing shared LabelCutter option |
 | CutMedia=True/False | Emits setpagedevice /CutMedia; original Linux raster filter does not read the option | Exposed; explicit True forces a per-page cut in the shared job controller; existing LabelCutter retained |

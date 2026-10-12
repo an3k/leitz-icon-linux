@@ -41,6 +41,7 @@
 *% The printer has no verified hardware copy-generation command.
 *% The upstream CUPS RIP must produce complete raster pages for each copy.
 *cupsManualCopies: True
+*ContinuousPaperLength: "0"
 *OpenUI *PageSize/Media Size: PickOne
 *OrderDependency: 10 AnySetup *PageSize
 *DefaultPageSize: StandardAddressLabel

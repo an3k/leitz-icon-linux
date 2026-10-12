@@ -161,7 +161,7 @@ fi
 # macOS vendor control: explicit cassette material kind check. This is not
 # inferred merely from the selected PPD page's dimensions.
 case "$actual_sku" in
-  70030001|70040001|70050001|70060001|70070001|70080001|70090001|70100001|70110001|70190001)
+  70030001|70040001|70050001|70060001|70070001|70080001|70090001|70100001|70110001)
     media_kind=continuous ;;
   70130001|70180001)
     media_kind=diecut ;;

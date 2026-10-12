@@ -116,6 +116,24 @@ static int quality_mode(const char *options){
 /* A custom CUPS page can happen to have the same dimensions as a
  * vendor die-cut profile. Geometry alone must not turn that custom job
  * into a fixed-media job with a vendor length command. */
+/* The Linux vendor filter accepts ContinuousPaperLength in 300dpi units.
+ * Parse only an explicitly supplied value; zero means automatic length. */
+static int continuous_length_option(const char *options,unsigned *length){
+ const char *needle="ContinuousPaperLength=";
+ const size_t n=strlen(needle);
+ for(const char *p=options;p&&*p;){
+  while(*p==' ')p++;
+  if(!strncmp(p,needle,n)){
+   const char *v=p+n;char *end=NULL;
+   if(!isdigit((unsigned char)*v))return -1;
+   unsigned long value=strtoul(v,&end,10);
+   if((*end!=' '&&*end!='\0')||value>65535u)return -1;
+   *length=(unsigned)value;return 0;
+  }
+  while(*p&&*p!=' ')p++;
+ }
+ *length=0;return 0;
+}
 static int explicitly_custom_page(const char *options){
  const char *keys[]={"PageSize=Custom","media=Custom"};
  for(const char *p=options;p&&*p;){
@@ -165,6 +183,14 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
  const int quality=quality_mode(options);
  const int forced_continuous=option(options,"ContinuousMedia","ON");
  const int correct_margins=option(options,"ShouldCorrectMargins","YES");
+ unsigned requested_roll_length=0;
+ if(continuous_length_option(options,&requested_roll_length)){
+   fprintf(stderr,"ERROR: Invalid ContinuousPaperLength\n");return -1;
+ }
+ if(requested_roll_length && !forced_continuous){
+   fprintf(stderr,"ERROR: ContinuousPaperLength requires ContinuousMedia ON\n");
+   return -1;
+ }
  if(quality<0){fprintf(stderr,"ERROR: Unsupported PrintQuality/Halftone/Dither option\n");return -1;}
  const struct leitz_media *m=custom_page?NULL:lookup(h);
  /* If the print job explicitly selects a vendor media name, ensure that
@@ -295,6 +321,17 @@ static int process(cups_raster_t *r,const cups_page_header2_t *h,leitz_job *job,
  if(!has_ink){fprintf(stderr,"ERROR: Empty label; no material consumed\n");goto done;}
  unsigned used= (fixed || page_mode)?height:last_ink;
  unsigned total=head+used+tail;
+ if(requested_roll_length){
+   /* Unlike the original unchecked atoi, refuse a physically impossible
+    * configured length. Preserve the already calculated content and lead. */
+   unsigned desired=requested_roll_length*(dpi/300u);
+   if(desired<head+used || desired>LEITZ_MAX_ROWS){
+     fprintf(stderr,"ERROR: ContinuousPaperLength cannot hold print content\n");
+     goto done;
+   }
+   total=desired;tail=desired-head-used;
+   device_length=requested_roll_length;
+ }
  if(total>LEITZ_MAX_ROWS){fprintf(stderr,"ERROR: Label length exceeds allowed maximum\n");goto done;}
  /* For 300x600, ESC L is in 300dpi units according to the Windows GPD.
     For custom size use 0xffff, as with the vendor's CUSTOMSIZE mode. */
