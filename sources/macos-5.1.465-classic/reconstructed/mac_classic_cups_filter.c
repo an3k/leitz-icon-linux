@@ -12,6 +12,7 @@
 #include "mac_classic_job.h"
 #include "mac_classic_dither.h"
 #include "mac_classic_output.h"
+#include "mac_classic_prn.h"
 #include <cups/cups.h>
 #include <cups/ppd.h>
 #include <cups/raster.h>
@@ -84,7 +85,7 @@ int main(int argc,char **argv) {
   cfg.cut_each_label=truth(choice(ppd,"LabelCutter","OFF"));
   const char *debug=choice(ppd,"DebugMode","Release");
   if(strcmp(debug,"Release") && strcmp(debug,"OFF"))bad=1;
-  if(truth(choice(ppd,"PrintThroughPRN","OFF")))bad=1;
+  int through_prn=truth(choice(ppd,"PrintThroughPRN","OFF"));
   if(bad){
     fputs("ERROR: Unsupported or invalid classic macOS filter option\n",stderr);
     cupsFreeOptions(count,options);ppdClose(ppd);return 1;
@@ -105,9 +106,20 @@ int main(int argc,char **argv) {
   }
   raster_context ctx={0};ctx.raster=r;
   mac_classic_page_source src={raster_header,raster_pixels};
-  mac_classic_job_io io={&src,&ctx,stdout_write,stdout};
+  mac_classic_prn prn={0};
+  if (through_prn && mac_classic_prn_open(&prn, stdout)) {
+    fputs("ERROR: Cannot create deferred PRN spool\n",stderr);
+    cupsRasterClose(r);
+    if(own_fd)close(fd);
+    return 1;
+  }
+  mac_classic_job_io io={&src,&ctx,
+    through_prn ? mac_classic_prn_write : stdout_write,
+    through_prn ? (void *)&prn : (void *)stdout};
   unsigned pages=0;
   int result=mac_classic_job_run(&io,&cfg,&pages);
+  if(result == 0 && through_prn) result=mac_classic_prn_replay(&prn);
+  mac_classic_prn_close(&prn);
   if(fflush(stdout)!=0)result=-1;
   cupsRasterClose(r);
   if(own_fd)close(fd);

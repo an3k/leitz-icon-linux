@@ -162,3 +162,20 @@ The CUPS command adapter does not yet reproduce original PPD-marking internals, 
 ### Remaining overall classic driver work
 
 `raster2printer` still lacks complete macOS-specific page/media option handling, original PRN/socket setup, native CUPS SDK compilation, and byte-level equivalence testing with an executing Mach-O original. `command2leitz` still requires verification of U/V notification formatting and final platform-specific behavior. Do not distribute these experiments as production drivers.
+
+## Deferred PrintThroughPRN output path — 13 October 2026
+
+The original classic macOS `raster2printer` executable implements a **separate deferred PRN transfer path**:
+
+1. `_OpenDebugFile` at `0x100001660` creates `/Library/Caches/DEBUG/dbg.prn` using `fopen("wb")`, plus `mkdir`/`chmod` calls, including potential overwriting of an existing PRN.
+2. `_WriteData` at `0x1000014cb..0x10000150d` writes bytes to a debug file if present, and returns early if the normal stdout stream is unset.
+3. The `PrintThroughPRN` option sets stdout output to NULL at `0x10000541d..0x100005460`.
+4. At the end, `_CloseDebugFile` precedes `_SendDebugFileToPrinter` (`0x100006350..0x100006367`). `_SendDebugFileToPrinter` (`0x100001b40`) reopens `dbg.prn` and copies it to stdout one byte at a time using `fgetc`/`fputc`.
+
+Added `reconstructed/mac_classic_prn.c/.h` to implement **deferred PRN buffering and replay** without creating the manufacturer's global, destructive directory or overwriting `dbg.prn`. Unlike the original, `tmpfile()` stores the encoded bytes anonymously; on successful job encoding, replay copies blocks through the existing checked writer to stdout. A failed encoding operation never replays an incomplete document. This is an intentional safer deviation, *not* byte-identical restored original C.
+
+`mac_classic_cups_filter.c` now supports `PrintThroughPRN=ON` via this module; `PrintThroughPRN=OFF` uses the existing streaming stdout writer. The default and other unsupported options are unchanged. `Makefile` includes the new module, and existing `io_smoke.c` validates that output does not appear before replay.
+
+**Local verification:** `make clean all check` succeeded with GCC C11 `-Wall -Wextra -Werror`, CUPS adapter syntax checked against local *mock headers* (not the SDK), and PRN writer smoke passed with ASan/UBSan. No printer, macOS/CUPS SDK build, or original Mach-O runtime equivalence confirmed.
+
+**Still missing for full classic driver reconstruction:** exact PRN/debug file behavior, `ResolveDeviceURI` and socket creation, page-reprint/resume path, platform-specific status side effects, complete option/layout semantics, and manufacturer-runtime output comparisons.

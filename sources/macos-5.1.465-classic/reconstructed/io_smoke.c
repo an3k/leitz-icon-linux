@@ -1,4 +1,5 @@
 #include "mac_classic_output.h"
+#include "mac_classic_prn.h"
 #include "mac_classic_status_exchange.h"
 #include "mac_classic_command_dispatch.h"
 #include <assert.h>
@@ -54,6 +55,25 @@ int main(void) {
   res.count=1;res.buf[0]=0x99;memset(&out,0,sizeof out);out.chunk=4;
   assert(mac_classic_status_query(&io,'A',2.0,&result)==1);
   assert(result.status_a==MAC_CLASSIC_UNKNOWN && !mac_classic_state_add_a(result.status_a));
+  /* Original PrintThroughPRN defers the final stdout transfer.
+   * Our unnamed temporary file preserves that order without touching
+   * /Library/Caches/DEBUG/dbg.prn. */
+  FILE *saved=tmpfile();
+  assert(saved);
+  mac_classic_prn prn={0};
+  assert(mac_classic_prn_open(&prn,saved)==0);
+  assert(mac_classic_prn_write(&prn,msg,sizeof msg)==0);
+  assert(ftell(saved)==0);
+  assert(mac_classic_prn_replay(&prn)==0);
+  assert(ftell(saved)==3);
+  assert(fseek(saved,0,SEEK_SET)==0);
+  uint8_t check[3]={0};
+  assert(fread(check,1,sizeof check,saved)==sizeof check);
+  assert(memcmp(msg,check,sizeof msg)==0);
+  mac_classic_prn_close(&prn);
+  assert(mac_classic_prn_write(&prn,msg,sizeof msg)<0);
+  fclose(saved);
+
   uint8_t cmd=0;
   assert(mac_classic_command_select("reportSTATUS",&cmd)==1 && cmd=='A');
   assert(mac_classic_command_select("GetUNITEDStatus",&cmd)==1 && cmd=='U');
