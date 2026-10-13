@@ -80,6 +80,10 @@ static int process(const mac_classic_job_io *io,
       goto finish;
     if (emit(io, encoded, length) != 0) goto finish;
   }
+  /* Original _ProcessPage checks terminate_flag after submitting every
+   * row (0x100008945), including the last one. If SIGTERM arrives during
+   * the final write, a pre-row-only check incorrectly sends ESC G/E. */
+  if (io->cancelled && io->cancelled(io->cancel_ctx)) goto finish;
   n = mac_classic_end_page(cfg->cut_each_label, cmd);
   if (!n || emit(io, cmd, n) != 0) goto finish;
   if (cfg->optimization_level >= 2) *previous_optimized_width=state.previous_width;

@@ -270,3 +270,18 @@ A direct reread of the **original macOS classic** Mach-O established that `_Dith
 Build evidence: `make clean all check` passed using GCC and Clang C11 `-Wall -Wextra -Werror`; the job checks also passed Clang `-fsanitize=address,undefined`. New cases check accepted RGB24, rejected CMY24, and rejected incorrectly RGB-tagged 1-bit input. **Real CUPS SDK linkage for the raster adapter, execution of original Mach-O, and physical printing have not been verified.**
 
 This corrects an **active manufacturer raster selection branch** without changing other repository branches.
+
+## ProcessPage isolated reprint flag and last-row cancellation check — 2026-10-13
+
+Fresh direct comparison of the manufacturer classic macOS Mach-O `_ProcessPage`, addresses `0x10000815f..0x10000824d`, confirms **both sides** of the mode-2 width-command condition:
+
+1. Emit `ESC D <width>` whenever the encoded row width differs from the static cached width.
+2. Even if the width is unchanged, force the command on the **first nonblank row of an explicit reprint invocation**, where the original fourth argument is true and its local first-line marker is true (`0x100008171..0x10000818b`). The first-line marker is cleared **only when the width command is emitted** (`0x100008234..0x100008248`).
+
+The existing C reconstruction had the normal condition (1) but lacked (2), even though it tracked the first-line flag. An explicit `mac_classic_row_set_reprint()` function and state flag now reconstruct (2) **in the isolated `mac_classic_process_page.[ch]` module**. The normal `mac_classic_job_run()` never enables reprint, consistent with the original normal caller; the path does not cause duplicate printing.
+
+The original row loop tests `_terminate_flag` at `0x100008945` after each row, including the **last row**. The C coordinator previously only checked before each row. Therefore a SIGTERM occurring in the last-row writer could have allowed an undesired `ESC G` / `ESC E` page completion and an incorrect successful page count. `mac_classic_job.c` now checks immediately after all rows, before calling the page-completion encoder.
+
+`job_smoke.c` additionally verifies (a) unchanged normal mode-2 output with cached width, (b) forced width on the first reprint row only, (c) mode 3 has no reprint width override, (d) failure leaves mode-2 encoder state unchanged, and (e) SIGTERM delivered within the final output write blocks page-end commands and page completion.
+
+**Verification:** local GCC `make all check` successful; Clang `make CC=clang clean all check` successful; Clang `-fsanitize=address,undefined` job smoke successful. Manufacturer binary was **disassembled**, not executed: this remains a **partial C reconstruction**, not proof of runtime-equivalent full classic macOS filter; the CUPS raster adapter has not yet been built against actual CUPS development headers or operated on hardware.

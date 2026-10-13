@@ -14,9 +14,17 @@ typedef struct {
   unsigned previous_offset;
   unsigned pending_blank;
   unsigned first_nonblank;
+  unsigned reprint; /* original fourth ProcessPage argument; normal jobs use 0 */
 } mac_classic_raster_row;
 
 int mac_classic_row_init(mac_classic_raster_row *s, unsigned mode, unsigned stride);
+
+/* Recover original _ProcessPage fourth-argument behavior for mode 2.
+ * Reprint mode can force ESC D on the first printed row even when its width
+ * matches the cached width; never enabled by the normal CUPS job coordinator.
+ * Addresses 0x100008165..0x10000818b and 0x100008234..0x100008248.
+ */
+void mac_classic_row_set_reprint(mac_classic_raster_row *s, int enabled);
 
 /* In original modes 0 and 1, ProcessPage emits a single ESC D width SYN
  * before the first raster row. Modes 2 and 3 have no initial row command.

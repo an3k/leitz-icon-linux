@@ -40,6 +40,10 @@ int mac_classic_row_init(mac_classic_raster_row *s, unsigned mode,
   return 0;
 }
 
+void mac_classic_row_set_reprint(mac_classic_raster_row *s, int enabled) {
+  if (s) s->reprint = enabled != 0;
+}
+
 size_t mac_classic_row_preamble(const mac_classic_raster_row *s,
                                 uint8_t out[4]) {
   if (!s || s->stride == 0 || s->stride > 120 || s->optimization > 3)
@@ -133,7 +137,12 @@ int mac_classic_row_encode(mac_classic_raster_row *s, const uint8_t *row,
    * 0x10000815f..0x10000818b. Its first-row exception requires the
    * inactive reprint argument. Mode 3 compares descriptor +0x24:
    * 0x100007c71..0x100007c87. Both widths survive page boundaries. */
-  if (n != s->previous_width) {
+  /* Original mode-2 _ProcessPage emits ESC D when the packed width
+   * changes, or on the first nonblank row of an explicit reprint call.
+   * The reprint flag remains off in the normal CUPS job path. */
+  int send_width = n != s->previous_width ||
+    (s->optimization == 2 && s->first_nonblank && s->reprint);
+  if (send_width) {
     const uint8_t width[] = {ESC, 'D', (uint8_t)n};
     if (append(out, capacity, &at, width, sizeof width)) return -1;
   }
@@ -154,7 +163,9 @@ int mac_classic_row_encode(mac_classic_raster_row *s, const uint8_t *row,
   s->pending_blank = 0;
   s->previous_width = n;
   s->previous_offset = left;
-  s->first_nonblank = 0;
+  /* The original only clears the mode-2 first-line flag on ESC D output.
+   * This distinction matters for explicit reprint calls with cached width. */
+  if (s->optimization != 2 || send_width) s->first_nonblank = 0;
   *used = at;
   return 0;
 }

@@ -1,6 +1,7 @@
 #include "mac_classic_job.h"
 #include "mac_classic_progress.h"
 #include "mac_classic_geometry.h"
+#include "mac_classic_process_page.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -28,6 +29,8 @@ typedef struct {
  uint8_t data[2048];
  size_t n;
  size_t reject_after;
+ test_cancel *cancel_at_final_row;
+ uint8_t final_row_value;
 } test_sink;
 
 static int get_header(void *context,mac_classic_page_info *p) {
@@ -46,7 +49,12 @@ static size_t get_pixels(void *context,uint8_t *b,size_t n) {
 static int put_bytes(void *context,const uint8_t *b,size_t n) {
  test_sink *s=context;
  if(s->n+n>sizeof s->data || s->n+n>s->reject_after)return -1;
- memcpy(s->data+s->n,b,n);s->n+=n;return 0;
+ memcpy(s->data+s->n,b,n);s->n+=n;
+ if(s->cancel_at_final_row && n==1 && b[0]==s->final_row_value) {
+   /* SIGTERM delivered during the last pixel write, not before it. */
+   s->cancel_at_final_row->reject_on=s->cancel_at_final_row->checks+1;
+ }
+ return 0;
 }
 static int has(const test_sink *s,const uint8_t *needle,size_t n) {
  for(size_t i=0;i+n<=s->n;i++)if(memcmp(s->data+i,needle,n)==0)return 1;
@@ -147,6 +155,54 @@ int main(void){
  const uint8_t page_end[]={0x1b,'G'};
  assert(!has(&os,page_end,sizeof page_end));
  io.cancelled=NULL;io.cancel_ctx=NULL;
+
+ /* SIGTERM after final raw row must stop before ESC G/E, as the original
+  * checks _terminate_flag at 0x100008945 after each ProcessPage row. */
+ memset(&ps,0,sizeof ps);init_sink(&os);
+ ps.count=1;ps.pages[0]=(mac_classic_page_info){.width=8,.height=1,.bytes_per_line=1,.bits_per_pixel=1};
+ ps.data[0][0]=0xa5;
+ test_cancel after_last={.checks=0,.reject_on=999};
+ os.cancel_at_final_row=&after_last;os.final_row_value=0xa5;
+ io.cancelled=cancel_after_n_checks;io.cancel_ctx=&after_last;
+ assert(mac_classic_job_run(&io,&cfg,&pages)<0 && pages==0);
+ assert(!has(&os,page_end,sizeof page_end));
+ io.cancelled=NULL;io.cancel_ctx=NULL;
+
+ /* _ProcessPage fourth argument: explicit reprint forces first ESC D for
+  * mode 2 when cached width is unchanged (0x100008171..0x10000818b).
+  * Normal jobs never enable this branch. */
+ {
+   uint8_t row[]={0xff}; uint8_t out[32];size_t n=0;
+   mac_classic_raster_row st;
+   const uint8_t without_force[]={0x1b,'B',0,0x16,0xff};
+   const uint8_t with_force[]={0x1b,'B',0,0x1b,'D',1,0x16,0xff};
+   assert(mac_classic_row_init(&st,2,1)==0);
+   st.previous_width=1;
+   assert(mac_classic_row_encode(&st,row,out,sizeof out,&n)==0 &&
+          n==sizeof without_force && memcmp(out,without_force,n)==0);
+   assert(st.first_nonblank==1);
+   assert(mac_classic_row_init(&st,2,1)==0);
+   st.previous_width=1;
+   mac_classic_row_set_reprint(&st,1);
+   assert(mac_classic_row_encode(&st,row,out,sizeof out,&n)==0 &&
+          n==sizeof with_force && memcmp(out,with_force,n)==0);
+   assert(st.first_nonblank==0);
+   assert(mac_classic_row_encode(&st,row,out,sizeof out,&n)==0 &&
+          n==sizeof without_force && memcmp(out,without_force,n)==0);
+   assert(mac_classic_row_init(&st,2,1)==0);
+   st.previous_width=1;
+   mac_classic_row_set_reprint(&st,1);
+   assert(mac_classic_row_encode(&st,row,out,2,&n)<0 && n==0 &&
+          st.first_nonblank==1 && st.previous_width==1);
+   assert(mac_classic_row_init(&st,3,1)==0);
+   st.previous_width=1;
+   mac_classic_row_set_reprint(&st,1);
+   const uint8_t mode3_without_force[]={0x16,0xff};
+   assert(mac_classic_row_encode(&st,row,out,sizeof out,&n)==0 &&
+          n==sizeof mode3_without_force &&
+          memcmp(out,mode3_without_force,n)==0);
+ }
+
  /* Original _ReadPage bases the printed row stride on CUPS row bytes,
   * not just page width. Padded 1-bit and complete RGB triple rows must
   * preserve that extra source data rather than be rejected or truncated. */
