@@ -82,5 +82,16 @@ if (work / "original-ipp-stderr.txt").exists():
     trace = (work / "original-ipp-stderr.txt").read_text(
         encoding="utf-8", errors="replace")
     print("OEM_IPP_STDERR_TAIL=", trace[-4000:])
-if code == -999 or not bytes_read:
+if code == -999 or code != 0:
+    sys.exit(1)
+# This test is observational. The authentic manufacturer executable may
+# choose its stdout route even with DEVICE_URI=ipp://127.0.0.1.
+# Do not turn that observed branch into an invented TCP connection.
+stdout_bytes = (work / "original-ipp-stdout.bin").read_bytes()
+if not bytes_read and stdout_bytes:
+    print("OEM_ROUTE=STDOUT_NOT_TCP_FOR_THIS_INPUT")
+elif bytes_read:
+    print("OEM_ROUTE=LOOPBACK_TCP_FOR_THIS_INPUT")
+else:
+    print("OEM_ROUTE=NO_OUTPUT")
     sys.exit(1)
