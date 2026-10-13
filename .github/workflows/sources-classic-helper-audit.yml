@@ -1,0 +1,40 @@
+name: Sources - Classic Helper Audit
+
+on:
+  push:
+    branches: [sources]
+    paths:
+      - '.github/workflows/sources-classic-helper-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  manufacturer-helper-disassembly:
+    runs-on: macos-15-intel
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract original verified macOS binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/leitz-helper-audit"
+          mkdir -p "$work/mounted"
+          curl --fail --location --retry 2 --connect-timeout 30 --max-time 240 \
+            --output "$work/vendor.dmg" \
+            "https://www.leitz.com/firmware/install/LeitzIconInstaller__1002__05010465__LeitzIconSoftware-Installer_5.1.465/dmg"
+          hdiutil attach -readonly -nobrowse -mountpoint "$work/mounted" "$work/vendor.dmg"
+          pkgutil --expand-full "$work/mounted/LeitzIconSoftware-Installer.mpkg" "$work/expanded"
+          bin="$work/expanded/leitzprint.pkg/Payload/LeitzPrint.bundle/Contents/MacOS/raster2printer"
+          test -f "$bin"
+          test "$(shasum -a 256 "$bin" | awk '{print $1}')" = "72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13"
+          echo "Original raster2printer helper instructions: OpenDebugFile, SendDebugFileToPrinter"
+          otool -tvV "$bin" | awk '
+            /^0000000100001660/ {show=1;print "BEGIN_OPEN_DEBUG_FILE"}
+            /^0000000100001910/ {show=0;print "END_OPEN_DEBUG_FILE"}
+            /^0000000100001b40/ {show=1;print "BEGIN_SEND_DEBUG_FILE_TO_PRINTER"}
+            /^0000000100001e10/ {show=0;print "END_SEND_DEBUG_FILE_TO_PRINTER"}
+            show {print}
+          '
