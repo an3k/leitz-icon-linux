@@ -244,3 +244,15 @@ socket-short-send and full 64-byte uninitialized memory cases, exact network
 activation through the caller, ancillary diagnostics and native whole-program
 parity. The new function is a standalone reconstruction and is not connected
 to the production print path.
+
+## Verified original-source CI for status exchange
+
+The new `original_status_exchange` branch simulation at commit
+`e015b441ac7eed887005318b30503a1de0e7fc36` passed all three jobs
+in [Sources - Reconstruction Compile 38483579695](https://github.com/an3k/leitz-icon-linux/actions/runs/38483579695):
+Linux GCC and Clang compilation plus the isolated I/O state tests,
+native macOS C tests and SDK CUPS builds, and the existing authenticated
+original Mac executable printing/command comparisons. The native original
+`_CheckPrinterStatus` function itself has **not** been directly called
+against the new simulated I/O scenarios; there is no claim of complete
+byte-for-byte status-function or whole-executable equivalence.
