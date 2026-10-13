@@ -1,7 +1,9 @@
-leitz-cli
-leitz-rastertoicon
-leitz-rastertoicon-mock
-dist/
+# Isolated original-source and reconstructed C builds
 *.o
 *.so
 __pycache__/
+.DS_Store
+tooling/linux-1.0.3/raster2printer
+reconstructions/**/*_test
+reconstructions/**/command2leitz_recovered_cups
+reconstructions/**/classic_raster_cups_adapter

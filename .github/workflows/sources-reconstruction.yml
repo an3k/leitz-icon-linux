@@ -4,7 +4,9 @@ on:
   push:
     branches: [sources]
     paths:
-      - 'sources/macos-5.1.465-classic/recovery/**'
+      - 'reconstructions/macos-5.1.465-classic/**'
+      - 'verification/macos-5.1.465-classic/**'
+      - 'originals/macos-5.1.465-classic/LeitzIcon.ppd'
       - '.github/workflows/sources-reconstruction.yml'
   workflow_dispatch:
 
@@ -18,19 +20,19 @@ jobs:
       - uses: actions/checkout@v4
       - name: GCC - compile and run isolated recovered C
         run: |
-          make -C sources/macos-5.1.465-classic/recovery clean all check CC=gcc
-          make -C sources/macos-5.1.465-classic/recovery/raster clean all check CC=gcc
-          make -C sources/macos-5.1.465-classic/recovery/diagnostics clean all check CC=gcc
+          make -C reconstructions/macos-5.1.465-classic/command2leitz clean all check CC=gcc
+          make -C reconstructions/macos-5.1.465-classic/raster2printer clean all check CC=gcc
+          make -C reconstructions/macos-5.1.465-classic/shared/diagnostics clean all check CC=gcc
       - name: Clang - compile and run isolated recovered C
         run: |
-          make -C sources/macos-5.1.465-classic/recovery clean all check CC=clang
-          make -C sources/macos-5.1.465-classic/recovery/raster clean all check CC=clang
-          make -C sources/macos-5.1.465-classic/recovery/diagnostics clean all check CC=clang
+          make -C reconstructions/macos-5.1.465-classic/command2leitz clean all check CC=clang
+          make -C reconstructions/macos-5.1.465-classic/raster2printer clean all check CC=clang
+          make -C reconstructions/macos-5.1.465-classic/shared/diagnostics clean all check CC=clang
       - name: Clean executable outputs
         run: |
-          make -C sources/macos-5.1.465-classic/recovery clean
-          make -C sources/macos-5.1.465-classic/recovery/raster clean
-          make -C sources/macos-5.1.465-classic/recovery/diagnostics clean
+          make -C reconstructions/macos-5.1.465-classic/command2leitz clean
+          make -C reconstructions/macos-5.1.465-classic/raster2printer clean
+          make -C reconstructions/macos-5.1.465-classic/shared/diagnostics clean
 
   native-macos-classic:
     runs-on: macos-15-intel
@@ -38,26 +40,26 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build and run original-derived isolated C on macOS
         run: |
-          make -C sources/macos-5.1.465-classic/recovery clean all check CC=clang
-          make -C sources/macos-5.1.465-classic/recovery/raster clean all check CC=clang
+          make -C reconstructions/macos-5.1.465-classic/command2leitz clean all check CC=clang
+          make -C reconstructions/macos-5.1.465-classic/raster2printer clean all check CC=clang
       - name: Compile recovered dormant test-raster function with actual macOS CUPS SDK
         run: |
-          clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations -c sources/macos-5.1.465-classic/recovery/diagnostics/original_test_raster.c -o "$RUNNER_TEMP/classic_test_raster.o"
-          clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations -c sources/macos-5.1.465-classic/recovery/diagnostics/original_page_debug.c -o "$RUNNER_TEMP/classic_page_debug.o"
+          clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations -c reconstructions/macos-5.1.465-classic/shared/diagnostics/original_test_raster.c -o "$RUNNER_TEMP/classic_test_raster.o"
+          clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations -c reconstructions/macos-5.1.465-classic/shared/diagnostics/original_page_debug.c -o "$RUNNER_TEMP/classic_page_debug.o"
       - name: Compile classic command CUPS entry using Apple's SDK
         run: |
-          make -C sources/macos-5.1.465-classic/recovery command2leitz_recovered_cups CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+          make -C reconstructions/macos-5.1.465-classic/command2leitz command2leitz_recovered_cups CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
       - name: Compile ordinary classic raster CUPS entry using Apple SDK
         run: |
-          make -C sources/macos-5.1.465-classic/recovery/raster classic_raster_cups_adapter CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+          make -C reconstructions/macos-5.1.465-classic/raster2printer classic_raster_cups_adapter CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
       - name: Build and execute OEM-derived URI resolver without a network connection
         run: |
-          make -C sources/macos-5.1.465-classic/recovery/raster original_device_uri_test CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
-          sources/macos-5.1.465-classic/recovery/raster/original_device_uri_test
+          make -C reconstructions/macos-5.1.465-classic/raster2printer original_device_uri_test CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+          reconstructions/macos-5.1.465-classic/raster2printer/original_device_uri_test
       - name: Clean executable outputs
         run: |
-          make -C sources/macos-5.1.465-classic/recovery clean
-          make -C sources/macos-5.1.465-classic/recovery/raster clean
+          make -C reconstructions/macos-5.1.465-classic/command2leitz clean
+          make -C reconstructions/macos-5.1.465-classic/raster2printer clean
 
   vendor-macos-reference:
     name: Inspect original 5.1.465 Mach-O on macOS
@@ -117,33 +119,33 @@ jobs:
             show && count++ < 480 {print}
           '
           echo "Compare OEM stdout with reconstructed raster output:"
-          ppd="$GITHUB_WORKSPACE/sources/macos-5.1.465-classic/LeitzIcon.ppd"
+          ppd="$GITHUB_WORKSPACE/originals/macos-5.1.465-classic/LeitzIcon.ppd"
           test -f "$ppd"
-          make -C sources/macos-5.1.465-classic/recovery/raster \
+          make -C reconstructions/macos-5.1.465-classic/raster2printer \
             classic_raster_cups_adapter CC=clang \
             CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
           clang -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
             -o "$work/cups-fixture" \
-            sources/macos-5.1.465-classic/recovery/validation/cups_fixture.c -lcups
+            verification/macos-5.1.465-classic/cups_fixture.c -lcups
           "$work/cups-fixture" "$work/input.ras"
-          bash sources/macos-5.1.465-classic/recovery/validation/compare_with_vendor.sh \
+          bash verification/macos-5.1.465-classic/compare_with_vendor.sh \
             "$work" "$raster" "$ppd"
           echo "Compare classic OEM command filter against recovered C:"
-          bash sources/macos-5.1.465-classic/recovery/validation/compare_command_with_vendor.sh \
+          bash verification/macos-5.1.465-classic/compare_command_with_vendor.sh \
             "$work" "$command" "$ppd"
           echo "Compare original RGB24 dithering against recovered raster output:"
           "$work/cups-fixture" "$work/rgb.ras" rgb
-          bash sources/macos-5.1.465-classic/recovery/validation/compare_rgb_with_vendor.sh \
+          bash verification/macos-5.1.465-classic/compare_rgb_with_vendor.sh \
             "$work" "$raster" "$ppd" \
             "Bayer8x8SuperCell1 Bayer8x8SuperCell2 SuperCell1 SuperCell3 CUPSThresold64x64 SuperCell Bayer14x14 Clustered8x8 Dispersed8x8 Nasik4x4"
           echo "Check original variable-length and no-cut print paths:"
           "$work/cups-fixture" "$work/mono-33.ras" mono 33
           "$work/cups-fixture" "$work/mono-127.ras" mono 127
-          bash sources/macos-5.1.465-classic/recovery/validation/compare_variable_length.sh \
+          bash verification/macos-5.1.465-classic/compare_variable_length.sh \
             "$work" "$raster" "$ppd"
           echo "Check genuine classic PrintThroughPRN transfer:"
-          bash sources/macos-5.1.465-classic/recovery/validation/compare_prn_with_vendor.sh \
+          bash verification/macos-5.1.465-classic/compare_prn_with_vendor.sh \
             "$work" "$raster" "$ppd"
           echo "Probe original macOS network channel on 127.0.0.1 only:"
-          python3 sources/macos-5.1.465-classic/recovery/validation/loopback_original_ipp.py \
+          python3 verification/macos-5.1.465-classic/loopback_original_ipp.py \
             "$work" "$raster" "$ppd"
