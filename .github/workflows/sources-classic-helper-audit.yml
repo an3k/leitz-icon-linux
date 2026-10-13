@@ -38,3 +38,27 @@ jobs:
             /^0000000100001e10/ {show=0;print "END_SEND_DEBUG_FILE_TO_PRINTER"}
             show {print}
           '
+
+      - name: Capture missing original test-raster function bodies
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/leitz-helper-audit"
+          raster="$work/expanded/leitzprint.pkg/Payload/LeitzPrint.bundle/Contents/MacOS/raster2printer"
+          command="$work/expanded/leitzprint.pkg/Payload/LeitzPrint.bundle/Contents/MacOS/command2leitz"
+          test "$(shasum -a 256 "$raster" | awk '{print $1}')" = "72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13"
+          test "$(shasum -a 256 "$command" | awk '{print $1}')" = "6e43cae5e152d5e2d8e9e975d026375563afdffdadca08f835cb4c3a58d3f3ee"
+          echo BEGIN_RASTER_TEST_RASTER
+          otool -tvV "$raster" | awk '
+            /^0000000100003c60/ {show=1; count=0}
+            /^0000000100003e50/ {show=0}
+            show && count++ < 350 {print}
+          '
+          echo END_RASTER_TEST_RASTER
+          echo BEGIN_COMMAND_TEST_RASTER
+          otool -tvV "$command" | awk '
+            /^0000000100004290/ {show=1;count=0}
+            /^0000000100004480/ {show=0}
+            show && count++ < 350 {print}
+          '
+          echo END_COMMAND_TEST_RASTER
