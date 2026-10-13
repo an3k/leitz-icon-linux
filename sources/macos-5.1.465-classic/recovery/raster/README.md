@@ -116,3 +116,33 @@ these paths rather than claiming functional equivalence. This adapter is not
 OEM C, is not a complete replacement for the classic original, and must
 not be installed as a production filter. Full native SDK compilation and
 execution results must be recorded separately.
+
+
+## Additional manufacturer PRN helper recovery
+
+`original_prn_helpers.[ch]` reconstructs the original classic macOS
+`_OpenDebugFile` and `_SendDebugFileToPrinter` operations using actual
+SHA-256-verified manufacturer x86_64 disassembly, rather than copying the
+different (improved) portable code under `enhancements/`.
+
+The OEM builds `/Library/Caches/DEBUG/dbg.prn`, calls
+`mkdir(...,0755)`, calls `chmod(...,0755)` **only** if mkdir succeeds,
+opens the file with `fopen(...,"wb")`, then calls `chmod(...,0644)`
+regardless of the open result. The later send helper reopens the same
+file with `fopen(...,"r")`, copies characters through individual
+`fgetc`/`fputc` operations, stops on EOF or a failed `fputc`,
+prints the original diagnostics and returns zero even on a failure.
+
+Source: original raster2printer at `0x100001660..0x100001900` and
+`0x100001b40..0x100001e0c`. The original command executable also
+contains related helper functions at *different addresses*, which are
+not silently treated as equivalent.
+
+**Important:** `classic_original_prn_open` deliberately reproduces an
+unsafe manufacturer-wide file path. It MUST NOT be called in a production
+container or on an ordinary workstation. The isolated unit test sets
+only a disposable temporary filename for replay; it does not invoke
+the OEM hardcoded-path open routine. The state structure and injectable
+output FILE argument are newly authored test interfaces; the separate
+close routine remains unverified against its exact assembly.
+This is not yet the integrated `PrintThroughPRN=ON` option.
