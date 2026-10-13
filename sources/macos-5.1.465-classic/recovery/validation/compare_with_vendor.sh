@@ -28,6 +28,19 @@ for mode in 0 1 2 3; do
     od -An -tx1 -N48 "$work/r-$mode.bin"
     echo "First differing bytes, if present:"
     cmp -l "$work/o-$mode.bin" "$work/r-$mode.bin" | head -n 12 || true
+    if [[ "$mode" == 0 ]]; then
+      python3 - "$work/o-0.bin" "$work/r-0.bin" <<'PY'
+import pathlib,sys
+a,b=(pathlib.Path(x).read_bytes() for x in sys.argv[1:3])
+# 122-byte document start, 11-byte page start and 4-byte preamble.
+for y in (0,1,2,3,4,7,79):
+    old=137+92*y
+    current=137+88*y
+    print("RAW_ROW",y,"OEM88_EQUALS_RECON88",a[old:old+88]==b[current:current+88],
+          "OEM_FOUR_TRAILING",a[old+88:old+92].hex(" "),
+          "RECON_NEXT_FOUR",b[current+88:current+92].hex(" "))
+PY
+    fi
     all_ok=0
   fi
 done
