@@ -92,3 +92,6 @@ jobs:
           "$work/cups-fixture" "$work/input.ras"
           bash sources/macos-5.1.465-classic/recovery/validation/compare_with_vendor.sh \
             "$work" "$raster" "$ppd"
+          echo "Compare classic OEM command filter against recovered C:"
+          bash sources/macos-5.1.465-classic/recovery/validation/compare_command_with_vendor.sh \
+            "$work" "$command" "$ppd"
