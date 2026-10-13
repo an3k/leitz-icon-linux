@@ -23,3 +23,9 @@ The fragment library, command filter and test executables were built using GCC o
 Further differences may exist. Neither the successful builds nor local smoke tests establish equivalent printing or cutting behavior.
 
 **Before a 1:1 claim:** reconstruct every active code path for both executables; compile for macOS using compatible system APIs; compare identical inputs/options, device-output bytes, status exchanges, errors and edge conditions against the original executable. No such final comparison is available.
+
+## Additional recovery committed on 2026-10-13
+
+- `recovery/command2leitz_recovered.c` plus `command2leitz_cups.c`: independently recovered active command-dispatch and CUPS entry path, built and exercised offline. Original execution and full macOS equivalence remain outstanding.
+- `recovery/raster/`: five raster lifecycle/output boundary functions reconstructed separately from assembly; built and checked offline. The raster filter as a whole remains incomplete.
+- Existing experimental C stays isolated under `enhancements/`, and the manufacturer originals remain unmodified.
