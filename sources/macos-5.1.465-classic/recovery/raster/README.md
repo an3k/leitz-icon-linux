@@ -51,3 +51,14 @@ This revision adds two newly authored, isolated C interfaces corresponding to **
 - The offline interface is explicitly passed a previously selected sink: **the OEM's full URI/global-file selection is not yet recovered**, and its original return-value ABI and diagnostic side effects have not been verified.
 
 Source-only checks `classic_read_page_test.c` and `classic_write_data_test.c` cover these recovered decisions and are included in `make check`. The original programs have **not** been executed for comparison and there is **no 1:1 equivalence claim**.
+
+## _ProcessPage modes 0/1 — extracted raster output framing
+
+`classic_process_page_modes_01.[ch]` reconstructs the previously audited **mode 0** and **mode 1** row-submission path of the original `_ProcessPage`, observed at `0x100007633..0x100007739`, `0x100007939..0x100007a74`, `0x100007e6e..0x100007f32` and `0x10000889b..0x100008945`.
+
+- Both modes emit one four-byte `ESC D <packed_stride> SYN` introduction, separately from the page setup.
+- Mode 0 sends every complete packed row unchanged.
+- Mode 1 accumulates all-zero rows and emits `ESC f <two-byte count>` before the next nonempty row; trailing empty rows remain deferred.
+- The OEM length is based on each job's raster row, without any general fixed paper length. The source's 16-bit blank-row counter is based on the disassembly; what happens on extremely long overflows still needs execution against the original.
+
+These are standalone fragments, **not** complete `_ProcessPage`: mode 2/3 branches, state carried between pages, cancellation, complete page positioning and error paths remain missing in this module. The previous enhanced full-row approximation is still under `enhancements/`. A separate test checks framing and deferred blank rows. The original Mach-O has not been run.
