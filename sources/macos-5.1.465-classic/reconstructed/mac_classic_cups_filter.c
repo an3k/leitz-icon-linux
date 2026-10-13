@@ -101,8 +101,14 @@ int main(int argc,char **argv) {
   int bad= q<0 || parse_optimization(choice(ppd,"OptimizationLevel","2"),&cfg.optimization_level);
   cfg.quality_selector= q<0 ? 0u : (unsigned)q;
   cfg.cut_each_label=truth(choice(ppd,"LabelCutter","OFF"));
+  /* Classic macOS _raster2printer 0x1000050e3..0x1000051ab parses
+   * Release, Debug and Mesh, but the resulting local mode is subsequently
+   * used only by its informational options log (0x100005374). There is
+   * no raster modification from this value in the examined classic binary.
+   * In particular, do NOT transplant Linux 1.0.3's separate Mesh drawing. */
   const char *debug=choice(ppd,"DebugMode","Release");
-  if(strcmp(debug,"Release") && strcmp(debug,"OFF"))bad=1;
+  if(strcmp(debug,"Release") && strcmp(debug,"Debug") &&
+     strcmp(debug,"Mesh")) bad=1;
   int through_prn=truth(choice(ppd,"PrintThroughPRN","OFF"));
   if(bad){
     fputs("ERROR: Unsupported or invalid classic macOS filter option\n",stderr);

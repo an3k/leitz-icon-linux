@@ -230,3 +230,11 @@ The reconstructed row encoder now omits redundant `ESC D` when the next row has 
 - These are **offline reconstruction checks** of derived code, not an execution comparison with the original Mach-O executable or a real CUPS SDK/USB print test.
 
 Still open: complete original `_ProcessPage` control branches, all macOS raster/PPD options (including `DebugMode=Mesh` semantics), exact status and platform-specific output behavior, and manufacturer-binary equivalence. No production printer deployment is claimed.
+
+### DebugMode=Mesh: original classic implementation has no discovered drawing action
+
+The original classic PPD defines `DebugMode` as `Release`, `Debug`, and `Mesh` (display label "Add Bound Rect & a Cross"). In the original classic `_raster2printer` binary, the choice `Mesh` is recognized at `0x100005116..0x100005138` and stored as local integer 2. Cross-references for this variable show only the assignments for the recognized choices and its read for the option-log message at `0x100005374`; the local mode is **not passed to `_ProcessPage`**.
+
+The classic reconstruction now accepts these three original choices without modifying raster bits. The Linux 1.0.3 manufacturer source has a **separate active** Mesh drawing branch: it must not be incorrectly imputed to the macOS classic binary. A lack of code references is evidence of absent **local raster modification**, not a claim about unexamined firmware behavior.
+
+This change is in the optional `mac_classic_cups_filter.c` adapter; compilation of that adapter against the actual macOS/CUPS SDK is still pending. Portable reconstruction modules' GCC and Clang checks were successful.
