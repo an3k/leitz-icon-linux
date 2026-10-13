@@ -20,7 +20,7 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 | `_CloseLogFile` | 0x100001e50 | Isolated helper |
 | `_WriteDebugBuffer` | 0x100001e90 | Isolated helper |
 | `_output_cups_info` | 0x100001ef0 | **Not fully reconstructed** |
-| `_test_raster` | 0x100003c60 | **Not reconstructed** |
+| `_test_raster` | 0x100003c60 | Reconstructed from original assembly in `recovery/diagnostics/original_test_raster.c`; dormant function, not called by normal printing |
 | `_PrintPageDebugInfo` | 0x100003e50 | **Not fully reconstructed** |
 | `__Z14signal_handleri` | 0x100004420 | Partly reflected in adapter |
 | `_main` | 0x100004460 | Newly authored adapter, not OEM-equivalent |
@@ -58,7 +58,7 @@ Other symbol entries: `__mh_execute_header` at 0, `__ZL7strrchrUa9enable_ifIXLb1
 | `_CloseLogFile` | 0x100002480 | Original-specific effects incomplete |
 | `_WriteDebugBuffer` | 0x1000024c0 | Original-specific effects incomplete |
 | `_output_cups_info` | 0x100002520 | Not fully reconstructed |
-| `_test_raster` | 0x100004290 | Not reconstructed |
+| `_test_raster` | 0x100004290 | Same C behavior independently verified against original command binary disassembly; shared reconstructed source under `recovery/diagnostics/` |
 | `_PrintPageDebugInfo` | 0x100004480 | Not fully reconstructed |
 
 Other entry: `__mh_execute_header` at zero.

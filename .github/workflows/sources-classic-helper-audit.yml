@@ -38,35 +38,3 @@ jobs:
             /^0000000100001e10/ {show=0;print "END_SEND_DEBUG_FILE_TO_PRINTER"}
             show {print}
           '
-
-      - name: Capture missing original test-raster function bodies
-        shell: bash
-        run: |
-          set -euo pipefail
-          work="$RUNNER_TEMP/leitz-helper-audit"
-          raster="$work/expanded/leitzprint.pkg/Payload/LeitzPrint.bundle/Contents/MacOS/raster2printer"
-          command="$work/expanded/leitzprint.pkg/Payload/LeitzPrint.bundle/Contents/MacOS/command2leitz"
-          test "$(shasum -a 256 "$raster" | awk '{print $1}')" = "72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13"
-          test "$(shasum -a 256 "$command" | awk '{print $1}')" = "6e43cae5e152d5e2d8e9e975d026375563afdffdadca08f835cb4c3a58d3f3ee"
-          echo "Raster otool preview:"
-          otool -tvV "$raster" | sed -n '1,16p'
-          echo "Command otool preview:"
-          otool -tvV "$command" | sed -n '1,16p'
-          echo "Raster function label check:"
-          otool -tvV "$raster" | grep -im 3 -E 'test_raster|0000000100003c60|0000000100003e50' || true
-          echo "Command function label check:"
-          otool -tvV "$command" | grep -im 3 -E 'test_raster|0000000100004290|0000000100004480' || true
-          echo BEGIN_RASTER_TEST_RASTER
-          otool -tvV "$raster" | awk '
-            /^_test_raster:$/ || /^0000000100003c60/ {show=1; count=0}
-            /^_PrintPageDebugInfo:$/ || /^0000000100003e50/ {show=0}
-            show && count++ < 350 {print}
-          '
-          echo END_RASTER_TEST_RASTER
-          echo BEGIN_COMMAND_TEST_RASTER
-          otool -tvV "$command" | awk '
-            /^_test_raster:$/ || /^0000000100004290/ {show=1;count=0}
-            /^_PrintPageDebugInfo:$/ || /^0000000100004480/ {show=0}
-            show && count++ < 350 {print}
-          '
-          echo END_COMMAND_TEST_RASTER

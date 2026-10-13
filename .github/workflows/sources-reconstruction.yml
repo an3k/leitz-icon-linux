@@ -20,14 +20,17 @@ jobs:
         run: |
           make -C sources/macos-5.1.465-classic/recovery clean all check CC=gcc
           make -C sources/macos-5.1.465-classic/recovery/raster clean all check CC=gcc
+          make -C sources/macos-5.1.465-classic/recovery/diagnostics clean all check CC=gcc
       - name: Clang - compile and run isolated recovered C
         run: |
           make -C sources/macos-5.1.465-classic/recovery clean all check CC=clang
           make -C sources/macos-5.1.465-classic/recovery/raster clean all check CC=clang
+          make -C sources/macos-5.1.465-classic/recovery/diagnostics clean all check CC=clang
       - name: Clean executable outputs
         run: |
           make -C sources/macos-5.1.465-classic/recovery clean
           make -C sources/macos-5.1.465-classic/recovery/raster clean
+          make -C sources/macos-5.1.465-classic/recovery/diagnostics clean
 
   native-macos-classic:
     runs-on: macos-15-intel
@@ -37,6 +40,9 @@ jobs:
         run: |
           make -C sources/macos-5.1.465-classic/recovery clean all check CC=clang
           make -C sources/macos-5.1.465-classic/recovery/raster clean all check CC=clang
+      - name: Compile recovered dormant test-raster function with actual macOS CUPS SDK
+        run: |
+          clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations -c sources/macos-5.1.465-classic/recovery/diagnostics/original_test_raster.c -o "$RUNNER_TEMP/classic_test_raster.o"
       - name: Compile classic command CUPS entry using Apple's SDK
         run: |
           make -C sources/macos-5.1.465-classic/recovery command2leitz_recovered_cups CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
