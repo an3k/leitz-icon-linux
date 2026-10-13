@@ -29,3 +29,9 @@ Further differences may exist. Neither the successful builds nor local smoke tes
 - `recovery/command2leitz_recovered.c` plus `command2leitz_cups.c`: independently recovered active command-dispatch and CUPS entry path, built and exercised offline. Original execution and full macOS equivalence remain outstanding.
 - `recovery/raster/`: five raster lifecycle/output boundary functions reconstructed separately from assembly; built and checked offline. The raster filter as a whole remains incomplete.
 - Existing experimental C stays isolated under `enhancements/`, and the manufacturer originals remain unmodified.
+
+## 2026-10-13 — recovered manufacturer halftone values
+
+- All 13 matrix tables and all 5237 integer elements previously extracted from the classic Mach-O are now present in standalone C under `recovery/raster/`. C declarations expose these arrays without changing their numeric values.
+- All 15 original `PrintQuality` labels were matched against the byte-identical original PPD, and their previously reverse-engineered selector indices, matrix sizes and scaling constants are in separate C.
+- Full `_DitherPage` and full raster filter remain incomplete; no 1:1 equivalence claim. This revision has **not** been newly compiled because the container runtime was unavailable.
