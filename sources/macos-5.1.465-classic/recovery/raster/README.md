@@ -156,3 +156,25 @@ macOS manufacturer and reconstructed runs each produced an identical
 3,620-byte PRN file and an identical 3,620-byte stdout stream in the
 tested case ([reference run](https://github.com/an3k/leitz-icon-linux/actions/runs/38434844921)).
 This does not prove other PRN error branches or production safety.
+
+
+## Additional original log / bit helpers (direct Mach-O recovery)
+
+`original_log_helpers.[ch]` recovers `_OpenLogFile`
+(0x100001910..0x100001b38), `_CloseLogFile`
+(0x100001e50..0x100001e85), and `_is_bit_set`
+(0x100001630..0x100001656) from direct original machine-code inspection.
+
+The OEM log path is `/Library/Caches/DEBUG/LeitzDriverLog.log`,
+constructed by `snprintf` for the directory followed by `sprintf`.
+It calls `mkdir(0755)`, `chmod(0755)` only for a newly created
+directory, `fopen("w")`, and `chmod(0644)` for the log even if the
+open failed. The close helper calls `fclose` if non-null and clears the
+global pointer; the bit helper returns an integer test result with the
+x86 32-bit shift-count behavior.
+
+The test only exercises the no-side-effect already-open and close
+branches and all 32 bit positions. It deliberately does **not** write
+the OEM's hardcoded global log path. The explicit C state structures
+are analysis interfaces and are not proof that the entire original
+Mac process has been recovered.
