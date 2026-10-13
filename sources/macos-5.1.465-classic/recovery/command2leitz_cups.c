@@ -16,6 +16,10 @@
 #include <cups/ppd.h>
 #include <cups/backend.h>
 #include <notify.h>
+/* cupsBackChannelRead is referenced by the classic Mach-O executable, but
+ * recent Apple SDK headers no longer declare this legacy CUPS function.
+ * Preserve the original external ABI; do not substitute another API. */
+ssize_t cupsBackChannelRead(char *, int, double);
 #else
 /* The ABI types are opaque except for the first 'marked' byte and 'choice'
  * array in ppd_choice_t. These offsets are observed in the original Mach-O.
