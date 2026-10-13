@@ -253,3 +253,20 @@ The original `_ProcessPage` mode-2 compressed/uncompressed selection was separat
 Validation: `make clean all check` GCC C11 successful with `-Wall -Wextra -Werror`, Clang C11 compilation successful, and the new auxiliary helpers passed a Clang ASan/UBSan check. No real CUPS 2.x SDK/macOS execution or hardware printing is implied.
 
 The remaining active raster limitations are still the full manufacturer-specific `_ProcessPage` branches, device/driver integration, and original-binary output verification. No other project branch was modified.
+
+## Active raster dispatch correction: CUPS color space vs pixel depth (13 October 2026)
+
+A direct reread of the **original macOS classic** Mach-O established that `_DitherPage` is selected by `cupsColorSpace == 1` rather than by `cupsBitsPerPixel == 24` alone:
+
+- `_ReadPage` reads the CUPS header's `cupsColorSpace` from offset **0x190** (`0x100008eb3..0x100008ec1`).
+- `_raster2printer` copies this into its descriptor/stack local at `0x100005831..0x100005837`.
+- The active printing path compares that value against **1** at `0x100005f84`, then calls `_DitherPage` at `0x100005fb9` only on the matching non-reprint path. `CUPS_CSPACE_RGB == 1` is the original CUPS enumerated value (upstream `cups/raster.h`).
+- On the other path `_ProcessPage` receives the raster data without RGB dithering, as shown by `0x100005fc5..0x100006011`.
+
+**Previous reconstruction defect:** `mac_classic_job.c` dithered *any* 24-bit input without checking the CUPS color space, so a CMY or other three-channel page could have been misinterpreted as RGB.
+
+**Correction:** `mac_classic_page_info` now retains `cupsColorSpace`, and the CUPS adapter copies this field from the actual page header. The portable job coordinator only runs RGB dithering for `CUPS_CSPACE_RGB` / 24 bpp. Other 24-bpp spaces and inconsistent RGB-tagged 1-bpp pages are rejected explicitly rather than silently generating wrong printer bytes. For 1-bpp, existing non-RGB pass-through remains unchanged. These format validation guards are **intentional safety improvements** and do not claim to reproduce every unsafe OEM corner case.
+
+Build evidence: `make clean all check` passed using GCC and Clang C11 `-Wall -Wextra -Werror`; the job checks also passed Clang `-fsanitize=address,undefined`. New cases check accepted RGB24, rejected CMY24, and rejected incorrectly RGB-tagged 1-bit input. **Real CUPS SDK linkage for the raster adapter, execution of original Mach-O, and physical printing have not been verified.**
+
+This corrects an **active manufacturer raster selection branch** without changing other repository branches.

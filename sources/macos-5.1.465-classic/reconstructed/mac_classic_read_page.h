@@ -12,6 +12,7 @@ typedef struct {
   unsigned bytes_per_line; /* Original uses CUPS bytes per line for allocation */
   unsigned width;          /* CUPS cupsWidth, populated by the adapter */
   unsigned bits_per_pixel; /* 1 for packed mono, 24 for RGB */
+  unsigned color_space;    /* CUPS cupsColorSpace; OEM dispatches on RGB == 1 */
 } mac_classic_page_info;
 
 typedef int (*mac_classic_read_header_fn)(void *ctx, mac_classic_page_info *out);

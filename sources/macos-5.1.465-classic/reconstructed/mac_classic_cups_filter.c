@@ -38,6 +38,7 @@ static int raster_header(void *v, mac_classic_page_info *info) {
   info->height=c->h.cupsHeight;
   info->bytes_per_line=c->h.cupsBytesPerLine;
   info->bits_per_pixel=c->h.cupsBitsPerPixel;
+  info->color_space=c->h.cupsColorSpace;
   return 1;
 }
 static size_t raster_pixels(void *v,uint8_t *dst,size_t size) {

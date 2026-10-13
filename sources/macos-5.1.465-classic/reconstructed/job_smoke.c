@@ -87,10 +87,24 @@ int main(void){
 
  /* One black RGB24 row goes through the actual recovered DitherPage. */
  memset(&ps,0,sizeof ps);init_sink(&os);
- ps.count=1;ps.pages[0]=(mac_classic_page_info){.width=8,.height=1,.bytes_per_line=24,.bits_per_pixel=24};
+ ps.count=1;ps.pages[0]=(mac_classic_page_info){.width=8,.height=1,.bytes_per_line=24,.bits_per_pixel=24,.color_space=1};
  assert(mac_classic_job_run(&io,&cfg,&pages)==0 && pages==1);
  assert(has(&os,raw,sizeof raw));
- /* Original Draft selects 1-bit CUPS input; RGB24 with Draft is rejected. */
+ /* The original selects DitherPage by cupsColorSpace == RGB (1), not
+  * merely by 24 bits/pixel. Reject a CMY page instead of printing a
+  * wrongly interpreted three-channel raster. */
+ ps.index=0; ps.pages[0].color_space=4; /* CUPS_CSPACE_CMY */
+ init_sink(&os);
+ assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==0);
+ ps.index=0; ps.pages[0].color_space=1;
+ init_sink(&os);
+ assert(mac_classic_job_run(&io,&cfg,&pages)==0 && pages==1);
+ /* Equally reject a malformed RGB-tagged one-bit source. */
+ ps.index=0; ps.pages[0].bits_per_pixel=1;
+ init_sink(&os);
+ assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==0);
+ ps.pages[0].bits_per_pixel=24;
+  /* Original Draft selects 1-bit CUPS input; RGB24 with Draft is rejected. */
  init_sink(&os);cfg.quality_selector=7;
  assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==0);
  cfg.quality_selector=0;
@@ -157,7 +171,7 @@ int main(void){
  const uint8_t mono_padded[]={0x1b,'D',2,0x16,0xff,0x55};
  assert(has(&os,mono_padded,sizeof mono_padded));
  memset(&ps,0,sizeof ps);init_sink(&os);
- ps.count=1;ps.pages[0]=(mac_classic_page_info){.width=8,.height=1,.bytes_per_line=30,.bits_per_pixel=24};
+ ps.count=1;ps.pages[0]=(mac_classic_page_info){.width=8,.height=1,.bytes_per_line=30,.bits_per_pixel=24,.color_space=1};
  assert(mac_classic_job_run(&io,&cfg,&pages)==0 && pages==1);
  const uint8_t rgb_padded[]={0x1b,'D',2,0x16,0xff,0xc0};
  assert(has(&os,rgb_padded,sizeof rgb_padded));

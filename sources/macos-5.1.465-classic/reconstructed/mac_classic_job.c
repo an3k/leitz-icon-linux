@@ -28,10 +28,17 @@ static int process(const mac_classic_job_io *io,
                    unsigned *previous_optimized_width) {
   unsigned packed_stride = 0;
   if (mac_classic_packed_stride(p, &packed_stride) != 0) return -1;
-  if (p->bits_per_pixel == 24 && cfg->quality_selector == 7) return -1;
+  /* Original _raster2printer chooses _DitherPage by cupsColorSpace == 1,
+   * copied from cups_page_header2_t +0x190 at 0x100005831..0x100005837
+   * and compared at 0x100005f84. BitsPerPixel alone is NOT the switch.
+   * Unsupported combinations must not be silently treated as RGB/K. */
+  const int rgb = p->color_space == 1u; /* CUPS_CSPACE_RGB */
+  if ((rgb && p->bits_per_pixel != 24) ||
+      (!rgb && p->bits_per_pixel != 1) ||
+      (rgb && cfg->quality_selector == 7)) return -1;
 
   uint8_t *mono = NULL;
-  if (p->bits_per_pixel == 24) {
+  if (rgb) {
     if (p->height > SIZE_MAX / packed_stride) return -1;
     mono = calloc(p->height, packed_stride);
     if (!mono) return -1;
