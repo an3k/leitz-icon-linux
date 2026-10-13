@@ -58,6 +58,9 @@ static int process(const mac_classic_job_io *io,
   if (emit(io, header, n) != 0) goto finish;
 
   for (unsigned y=0; y<p->height; ++y) {
+    /* Classic _ProcessPage inspects _terminate_flag at the row boundary;
+     * on cancellation stop without claiming a completed/cut page. */
+    if (io->cancelled && io->cancelled(io->cancel_ctx)) goto finish;
     unsigned percent = 0;
     int report = mac_classic_raster_progress(y,p->height,&percent);
     if (report < 0) goto finish;
@@ -84,12 +87,14 @@ int mac_classic_job_run(const mac_classic_job_io *io,
       (cfg->vertical_dpi != 300 && cfg->vertical_dpi != 600) ||
       cfg->optimization_level > 3 || cfg->quality_selector >= 15) return -1;
   *pages_done = 0;
+  if (io->cancelled && io->cancelled(io->cancel_ctx)) return -1;
   uint8_t start[124];
   size_t len = mac_classic_start_document(cfg->vertical_dpi == 600, start);
   if (!len || emit(io,start,len)) return -1;
 
   unsigned read_pages = 0;
   for (;;) {
+    if (io->cancelled && io->cancelled(io->cancel_ctx)) return -1;
     mac_classic_page_info p = {0};
     uint8_t *pixels = NULL;
     size_t bytes = 0;
@@ -106,7 +111,7 @@ int mac_classic_job_run(const mac_classic_job_io *io,
     if (ok != 0) return -1;
     ++*pages_done;
   }
-  if (*pages_done == 0) return -1;
+  if (*pages_done == 0 || (io->cancelled && io->cancelled(io->cancel_ctx))) return -1;
   uint8_t end[6];
   len = mac_classic_end_document(cfg->cut_each_label,cfg->terminate_flag,end);
   return len && !emit(io,end,len) ? 0 : -1;

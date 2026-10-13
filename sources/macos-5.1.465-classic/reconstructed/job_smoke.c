@@ -12,6 +12,11 @@ typedef struct {
  unsigned truncated;
 } test_source;
 typedef struct { unsigned n, page[16], row[16], percent[16]; } test_progress;
+typedef struct { unsigned checks, reject_on; } test_cancel;
+static int cancel_after_n_checks(void *v) {
+  test_cancel *c=v;
+  return ++c->checks >= c->reject_on;
+}
 static void progress_seen(void *context,unsigned page,unsigned row,unsigned percent) {
   test_progress *p=context;
   assert(p->n<16);
@@ -59,7 +64,7 @@ int main(void){
  mac_classic_job_config cfg={.optimization_level=0,.quality_selector=0,.vertical_dpi=300,.cut_each_label=0};
  test_source ps={0};test_sink os;init_sink(&os);
  test_progress progress={0};
- mac_classic_job_io io={&source,&ps,put_bytes,&os,progress_seen,&progress};
+ mac_classic_job_io io={&source,&ps,put_bytes,&os,progress_seen,&progress,NULL,NULL};
  unsigned pages=99;
  ps.count=2;
  for(int j=0;j<2;j++) {ps.pages[j].height=1;ps.pages[j].width=8;ps.pages[j].bytes_per_line=1;ps.pages[j].bits_per_pixel=1;ps.data[j][0]=(uint8_t)(0xff-j);}
@@ -111,6 +116,17 @@ int main(void){
  assert(mac_classic_job_run(&io,&cfg,&pages)==0 && pages==1);
  assert(progress.n==3 && progress.row[0]==0 && progress.row[1]==32 && progress.row[2]==64);
  assert(progress.percent[0]==0 && progress.percent[1]==49 && progress.percent[2]==98);
+ /* SIGTERM/cancel check interrupts the row stream and blocks end-of-page.
+  * No automatic resend of partial printer output is allowed. */
+ memset(&ps,0,sizeof ps);init_sink(&os);
+ ps.count=1;ps.pages[0]=(mac_classic_page_info){.width=8,.height=4,.bytes_per_line=1,.bits_per_pixel=1};
+ ps.data[0][0]=0xff;ps.data[0][1]=0xff;
+ test_cancel cancel={.checks=0,.reject_on=4};
+ io.cancelled=cancel_after_n_checks;io.cancel_ctx=&cancel;
+ assert(mac_classic_job_run(&io,&cfg,&pages)<0 && pages==0);
+ const uint8_t page_end[]={0x1b,'G'};
+ assert(!has(&os,page_end,sizeof page_end));
+ io.cancelled=NULL;io.cancel_ctx=NULL;
  /* No empty 'successful' print job. */
  memset(&ps,0,sizeof ps);init_sink(&os);
  assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==0);

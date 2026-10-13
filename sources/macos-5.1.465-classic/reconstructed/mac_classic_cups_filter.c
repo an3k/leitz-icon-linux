@@ -17,12 +17,18 @@
 #include <cups/ppd.h>
 #include <cups/raster.h>
 #include <limits.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
 
+/* _main in classic Mach-O registers SIGTERM (15) and ignores SIGPIPE (13).
+ * Do not signal mechanical completion or cut after cancellation. */
+static volatile sig_atomic_t mac_classic_cancelled = 0;
+static void mac_classic_sigterm(int sig) { (void)sig; mac_classic_cancelled=1; }
+static int cups_cancelled(void *unused) { (void)unused; return mac_classic_cancelled!=0; }
 typedef struct { cups_raster_t *raster; cups_page_header2_t h; } raster_context;
 
 static int raster_header(void *v, mac_classic_page_info *info) {
@@ -63,6 +69,11 @@ static int parse_optimization(const char *s,unsigned *value) {
   *value=(unsigned)(s[0]-'0');return 0;
 }
 int main(int argc,char **argv) {
+  if (signal(SIGTERM,mac_classic_sigterm)==SIG_ERR ||
+      signal(SIGPIPE,SIG_IGN)==SIG_ERR) {
+    fputs("ERROR: Cannot configure CUPS filter signal handlers\n",stderr);
+    return 1;
+  }
   if (argc!=6 && argc!=7) {
     fputs("ERROR: CUPS filter expects 5 or 6 arguments\n",stderr);
     return 1;
@@ -123,7 +134,7 @@ int main(int argc,char **argv) {
   mac_classic_job_io io={&src,&ctx,
     through_prn ? mac_classic_prn_write : stdout_write,
     through_prn ? (void *)&prn : (void *)stdout,
-    cups_progress,NULL};
+    cups_progress,NULL,cups_cancelled,NULL};
   unsigned pages=0;
   int result=mac_classic_job_run(&io,&cfg,&pages);
   if(result == 0 && through_prn) result=mac_classic_prn_replay(&prn);

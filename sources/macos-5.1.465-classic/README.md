@@ -192,3 +192,11 @@ Further direct analysis of the **original macOS classic** Mach-O (not inferred f
 Tests: `make all check` with GCC C11, direct progress boundary checks (0, 32, 64), multi-page callback indexing, short input/output failures, Clang compile of progress code, and GCC AddressSanitizer/UndefinedBehaviorSanitizer checks all passed locally. A complete original macOS execution comparison and a CUPS SDK compilation are still outstanding.
 
 **Scope:** This reconstruction adds an independently evidenced raster progress function and resolves one misleading assumption about the reprint branch. It does not establish full equivalence of `_ProcessPage`, original job controls, or the printer's mechanical completion.
+
+### SIGTERM cancellation in reconstructed raster coordinator
+
+The manufacturer `_main` installs signal 15 at `0x100004515` and the signal handler sets `_terminate_flag=1` at `0x100004443`. `_ProcessPage` explicitly tests the flag at `0x100008945` after emitting a raster row; the normal `_raster2printer` loop also tests it at `0x10000562d` and `0x100005f3b`. Signal 13 (SIGPIPE) is ignored by the original `_main` at `0x100004526..0x100004536`.
+
+The portable `mac_classic_job_io` therefore now supports an **optional cancellation callback** at the beginning of a job, before reading each page, and before emitting each raster row. `mac_classic_cups_filter.c` installs SIGTERM and SIGPIPE handlers, stores only a `volatile sig_atomic_t` flag from the signal handler, and makes no unsafe CUPS calls from the handler. On cancellation, the reconstructed coordinator exits with failure, does **not** emit a success/cut page trailer for the unfinished page, and does **not** retry unknown output. This is a safer termination policy than a verbatim reproduction of every original `EndPage` exit path; it is explicitly not a claim of byte-identical behavior under cancellation.
+
+The local GCC C11 `make all check` and ASan/UBSan job check passed, including a cancellation during a four-row label and the assertion that no `ESC G` page completion follows. The actual CUPS 2.x SDK adapter compilation and printer operation have **not** been verified.

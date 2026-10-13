@@ -23,6 +23,8 @@ typedef struct {
 /* Progress describes rows submitted to the encoder, not printer feedback. */
 typedef void (*mac_classic_progress_fn)(void *ctx, unsigned page,
                                         unsigned row, unsigned percent);
+/* Mirrors the original global SIGTERM cancellation check as a callback. */
+typedef int (*mac_classic_cancel_fn)(void *ctx);
 typedef struct {
   const mac_classic_page_source *source;
   void *read_ctx;
@@ -30,6 +32,8 @@ typedef struct {
   void *write_ctx;
   mac_classic_progress_fn progress; /* optional, CUPS ATTR on every 32nd row */
   void *progress_ctx;
+  mac_classic_cancel_fn cancelled; /* optional: stop before transmitting another row */
+  void *cancel_ctx;
 } mac_classic_job_io;
 
 /* No USB, no retries. Returns -1 on bad input, short read, write failure or
