@@ -113,3 +113,49 @@ are newly authored, and actual manufacturer C source was absent from
 the installer. Neither the OEM's source code nor whole-executable
 behavior has been reproduced in full. The safer alternative modules
 under `enhancements/` remain separate.
+
+## Continued primary-source recovery on 2026-10-13 (current)
+
+The branch was inspected before this continuation: prior work was already
+present through `08b468f4` and was **not** rewritten or repeated.
+
+New direct manufacturer disassembly, obtained from the official 5.1.465
+installer on the Intel macOS reference runner:
+
+1. `_ResolveDeviceURI` `0x100009a30..0x100009fd3` is represented
+   independently as `recovery/raster/original_device_uri.[ch]` using
+   original descriptor offsets, `cupsBackendDeviceURI`,
+   `httpSeparateURI`, IPv4 socket setup and **fixed TCP port 9100**
+   regardless of URI port. The original keeps a socket failure and null
+   DNS pointer defect; these have not been silently improved.
+2. `_CheckPrinterStatus` `0x100009190..0x100009a2e` was disassembled.
+   `recovery/raster/original_status_decoder.[ch]` now records its
+   original string classification, `ESC @ ESC Z` empty-label action
+   and branch-dependent five-second delays. It is **only** the
+   classifier, not the whole CUPS/socket/status/retry function.
+3. The original `command2leitz` was actually executed with four
+   additional synthetic ESC A responses: `MEDIA_EMPTY`, `MEDIA_JAM`,
+   `GENERAL_ERROR` and an unknown value. Stdout and state-message
+   comparisons were successful for those cases. The authoritative
+   manufacturer program was verified by original SHA-256 prior to running.
+4. The original `raster2printer` was executed with
+   `DEVICE_URI=ipp://127.0.0.1/ipp/print` while an isolated
+   local-only listener monitored TCP port 9100. For this **particular
+   two-page print input**, it returned success and produced the normal
+   3,620-byte stdout stream but established **no TCP connection**.
+   Consequently the experimental CUPS adapter must **not** be changed
+   to connect to a socket merely on the basis of the environment URI.
+   The native resolver exists in the original binary but its normal
+   activation conditions require further source tracing.
+
+Evidence:
+- [Native expanded status and assembly run](https://github.com/an3k/leitz-icon-linux/actions/runs/38461648480)
+- [Original URI build and macOS verification](https://github.com/an3k/leitz-icon-linux/actions/runs/38462879963)
+- [Actual localhost-only OEM network observation](https://github.com/an3k/leitz-icon-linux/actions/runs/38463372694)
+
+Remaining gaps have **not** been reclassified as completed:
+complete `_CheckPrinterStatus` control flow and native caller integration,
+precise network activation and socket lifetime in all cases, remaining
+original helper/error/signal paths, whole-program ABI/layout correspondence,
+and real-device output. No complete functionally equivalent replacement
+for both original macOS executables has been established.
