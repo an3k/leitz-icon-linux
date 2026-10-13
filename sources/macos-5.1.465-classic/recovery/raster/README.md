@@ -99,3 +99,20 @@ All exposed output bytes are derived from the previously audited original
 subroutines, but output identity for complete jobs remains unproven.
 
 No claim of a finished classic macOS native driver is made by this step.
+
+## Native classic CUPS entry — ordinary stdout route
+
+`classic_raster_cups_adapter.c` is a newly authored bridge from the original
+macOS classic CUPS PPD/raster-filter APIs to the individually reconstructed
+active print-job functions. It reads the marked manufacturer choices for
+`Resolution`, `PrintQuality`, `OptimizationLevel` and `LabelCutter`,
+opens the actual CUPS raster input and sends output via the original-style
+single fwrite/stdout route. `DebugMode` is left inert as indicated by the
+original classic disassembly; it is not replaced by Linux Mesh drawing.
+
+The original network `DEVICE_URI`/IPP socket and `PrintThroughPRN=ON`
+file/replay behaviors are **not reconstructed in this adapter**: it refuses
+these paths rather than claiming functional equivalence. This adapter is not
+OEM C, is not a complete replacement for the classic original, and must
+not be installed as a production filter. Full native SDK compilation and
+execution results must be recorded separately.

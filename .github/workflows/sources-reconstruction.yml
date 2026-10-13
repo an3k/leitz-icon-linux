@@ -40,6 +40,9 @@ jobs:
       - name: Compile classic command CUPS entry using Apple's SDK
         run: |
           make -C sources/macos-5.1.465-classic/recovery command2leitz_recovered_cups CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+      - name: Compile ordinary classic raster CUPS entry using Apple SDK
+        run: |
+          make -C sources/macos-5.1.465-classic/recovery/raster classic_raster_cups_adapter CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
       - name: Clean executable outputs
         run: |
           make -C sources/macos-5.1.465-classic/recovery clean
