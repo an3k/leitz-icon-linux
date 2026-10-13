@@ -59,3 +59,57 @@ Added `recovery/raster/classic_process_page_modes_23.[ch]`, based on the classic
 ## Verified build — modes 2 and 3
 
 For commit `86af3344029ed28d52fea915a453f065f5bdb3da`, the [Sources - Reconstruction Compile](https://github.com/an3k/leitz-icon-linux/actions/runs/38382200525) workflow completed successfully: the recovered classic command and raster fragments, including the newly added 2/3 row paths, built and passed their offline checks under **GCC and Clang**. The check compares known, disassembly-derived byte sequences; it is **not** an execution of the vendor Mach-O or a binary equivalence test. No unchanged manufacturer C files were modified.
+
+
+## 2026-10-13 — measured OEM runtime parity (supersedes historical pending-test statements above)
+
+The **actual original Leitz 5.1.465 x86_64 Mach-O programs**, downloaded
+from Leitz's official installer and verified against the exact SHA-256 hashes
+at the beginning of this file, were run on an Intel macOS-15 runner against
+the separate recovered C executables. These comparisons do not involve a
+physical printer.
+
+- Original `raster2printer` vs recovered filter with **14 original RGB24
+  `PrintQuality` choices × 2 resolution modes × 4 optimization modes =
+  112 tested combinations**: all 112 emitted exactly the same stdout
+  bytes in the tested two-page fixture. Original `Draft` uses the 1-bit
+  path rather than RGB24.
+- Two-page monochrome printing: for optimized modes 2 and 3 exact stdout
+  parity; for unoptimized modes 0 and 1, the OEM sends **four additional
+  bytes beyond every raw row's nominal stride**. The recovered source now
+  reproduces the read size. For these modes the last four bytes of each page
+  are undefined OEM memory, so comparison of **all defined bytes** is
+  reported separately and must never be called universal exact parity.
+- Four additional combinations with 33 and 127 raster rows, modes 2 and 3,
+  `LabelCutter=OFF`: exact emitted bytes, including original end-of-job
+  cutter behavior. There is no imposed fixed label length.
+- Original `command2leitz` vs CUPS entry: seven cases covering recognized
+  status/firmware queries, empty or failed backchannel response and an
+  unrecognized command. A real macOS dynamic interposer supplies synthetic
+  read responses to the original; the same responses are supplied to
+  recovered code. Exit codes, raw stdout and `STATE:/ATTR:` lines match
+  across every exercised case.
+- `_OpenDebugFile` and `_SendDebugFileToPrinter` reconstructed from
+  native original disassembly, including original mode bits 0755/0644
+  and `fopen("wb")` / `fopen("r")`. The recovered native
+  `PrintThroughPRN=ON` output path was then compared against the actual
+  original: both produced an identical 3,620-byte intermediate PRN file
+  and an identical 3,620-byte stdout stream for the verified test case.
+- GCC, Clang, Intel macOS test builds and native macOS SDK CUPS adapter
+  builds passed. Executions, not merely compilation, ground the comparisons.
+
+Verified logs:
+- [Command filter reference run](https://github.com/an3k/leitz-icon-linux/actions/runs/38431824113)
+- [First 32 RGB24 cases](https://github.com/an3k/leitz-icon-linux/actions/runs/38432253626)
+- [Remaining 80 RGB24 cases and dynamic lengths](https://github.com/an3k/leitz-icon-linux/actions/runs/38432927269)
+- [Original PRN file transfer](https://github.com/an3k/leitz-icon-linux/actions/runs/38434844921)
+
+**Not yet complete or proven equivalent for all input/control paths:**
+the native `_ResolveDeviceURI` and `_CheckPrinterStatus` branches,
+real IPP socket setup, original global logging and diagnostic helpers,
+exception/termination behavior under all causes, full original function
+ABI/layout and real-device communication. The test helper structures
+are newly authored, and actual manufacturer C source was absent from
+the installer. Neither the OEM's source code nor whole-executable
+behavior has been reproduced in full. The safer alternative modules
+under `enhancements/` remain separate.
