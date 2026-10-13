@@ -44,6 +44,13 @@ static int stdout_write(void *ctx,const uint8_t *data,size_t length) {
                              mac_classic_file_write,ctx,NULL,NULL};
   return mac_classic_write_data(&output,data,length);
 }
+/* Original _ProcessPage writes CUPS progress messages every 32 rows.
+ * This is host-side encode progress, not mechanical device status. */
+static void cups_progress(void *context, unsigned page, unsigned row, unsigned percent) {
+  (void)context; (void)row;
+  fprintf(stderr, "\nINFO: Printing page %u, %u%% complete...\n", page,percent);
+  fprintf(stderr, "ATTR: job-media-progress=%u\n", percent);
+}
 static const char *choice(ppd_file_t *ppd,const char *key,const char *fallback) {
   ppd_choice_t *c=ppdFindMarkedChoice(ppd,key);
   return c && c->choice[0] ? c->choice : fallback;
@@ -115,7 +122,8 @@ int main(int argc,char **argv) {
   }
   mac_classic_job_io io={&src,&ctx,
     through_prn ? mac_classic_prn_write : stdout_write,
-    through_prn ? (void *)&prn : (void *)stdout};
+    through_prn ? (void *)&prn : (void *)stdout,
+    cups_progress,NULL};
   unsigned pages=0;
   int result=mac_classic_job_run(&io,&cfg,&pages);
   if(result == 0 && through_prn) result=mac_classic_prn_replay(&prn);

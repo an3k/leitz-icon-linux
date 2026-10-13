@@ -20,11 +20,16 @@ typedef struct {
   int terminate_flag;          /* cancellation after requested pages */
 } mac_classic_job_config;
 
+/* Progress describes rows submitted to the encoder, not printer feedback. */
+typedef void (*mac_classic_progress_fn)(void *ctx, unsigned page,
+                                        unsigned row, unsigned percent);
 typedef struct {
   const mac_classic_page_source *source;
   void *read_ctx;
   mac_classic_write_fn write;
   void *write_ctx;
+  mac_classic_progress_fn progress; /* optional, CUPS ATTR on every 32nd row */
+  void *progress_ctx;
 } mac_classic_job_io;
 
 /* No USB, no retries. Returns -1 on bad input, short read, write failure or

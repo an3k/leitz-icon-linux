@@ -8,6 +8,7 @@
 #include "mac_classic_dither.h"
 #include "mac_classic_raster_boundaries.h"
 #include "mac_classic_process_page.h"
+#include "mac_classic_progress.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,7 +23,7 @@ static int emit(const mac_classic_job_io *io, const uint8_t *src, size_t len) {
 static int process(const mac_classic_job_io *io,
                    const mac_classic_job_config *cfg,
                    const mac_classic_page_info *p,
-                   const uint8_t *pixels) {
+                   const uint8_t *pixels, unsigned page) {
   if (!p->width || p->width > 960 || !p->height || p->height > 65535u) return -1;
   const unsigned packed_stride = (p->width + 7u) / 8u;
   if (packed_stride > 120u) return -1;
@@ -57,6 +58,10 @@ static int process(const mac_classic_job_io *io,
   if (emit(io, header, n) != 0) goto finish;
 
   for (unsigned y=0; y<p->height; ++y) {
+    unsigned percent = 0;
+    int report = mac_classic_raster_progress(y,p->height,&percent);
+    if (report < 0) goto finish;
+    if (report && io->progress) io->progress(io->progress_ctx,page,y,percent);
     uint8_t encoded[1024];
     size_t length = 0;
     const uint8_t *row = bitmap + (size_t)y * packed_stride;
@@ -96,7 +101,7 @@ int mac_classic_job_run(const mac_classic_job_io *io,
         bytes != (size_t)p.bytes_per_line * p.height) {
       free(pixels); return -1;
     }
-    const int ok = process(io,cfg,&p,pixels);
+    const int ok = process(io,cfg,&p,pixels,*pages_done+1u);
     free(pixels);
     if (ok != 0) return -1;
     ++*pages_done;

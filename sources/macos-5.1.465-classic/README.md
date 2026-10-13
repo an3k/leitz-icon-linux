@@ -179,3 +179,16 @@ Added `reconstructed/mac_classic_prn.c/.h` to implement **deferred PRN buffering
 **Local verification:** `make clean all check` succeeded with GCC C11 `-Wall -Wextra -Werror`, CUPS adapter syntax checked against local *mock headers* (not the SDK), and PRN writer smoke passed with ASan/UBSan. No printer, macOS/CUPS SDK build, or original Mach-O runtime equivalence confirmed.
 
 **Still missing for full classic driver reconstruction:** exact PRN/debug file behavior, `ResolveDeviceURI` and socket creation, page-reprint/resume path, platform-specific status side effects, complete option/layout semantics, and manufacturer-runtime output comparisons.
+
+## Classic ProcessPage progress and dormant reprint branch (13 October 2026)
+
+Further direct analysis of the **original macOS classic** Mach-O (not inferred from the Linux implementation) establishes:
+
+- At `_ProcessPage` `0x1000077a6..0x1000078a9`, progress is emitted at the first raster row and every 32nd row thereafter (`row & 31 == 0`). It computes a truncated percentage from the 0-based row index and page height, writing `INFO: Printing page ...` and `ATTR: job-media-progress=...` to stderr. This is **host-side raster encoding progress, not confirmed printer progress**.
+- The optional portable helper `mac_classic_progress.[ch]` reconstructs this cadence and truncation. The common job coordinator now accepts an optional progress callback (page number, row, percentage), and the experimental CUPS adapter exposes the original CUPS-style messages. This callback has no effect on emitted printer bytes or on completion status.
+- A nominal "reprint last label" path exists at `_raster2printer` `0x100006128..0x1000061d6`, invoking `_ProcessPage` a second time with its fourth argument equal to 1. **The local flag controlling entry is initialized to zero at `0x100005603` and there is no subsequent assignment to this flag in the examined normal function body.** Therefore the reprint branch is not evidenced as an active behavior of normal print jobs; no automatic reprint has been added to this reconstruction. Hardware or an external control path would require separate evidence.
+- The original option parser recognizes `DebugMode=Mesh` at `0x100005116..0x100005138`. A corresponding active raster-mutation path was **not** found in the examined classic `_ProcessPage`. Its behavior remains unverified: it is not emulated using the Linux vendor version's Mesh routine.
+
+Tests: `make all check` with GCC C11, direct progress boundary checks (0, 32, 64), multi-page callback indexing, short input/output failures, Clang compile of progress code, and GCC AddressSanitizer/UndefinedBehaviorSanitizer checks all passed locally. A complete original macOS execution comparison and a CUPS SDK compilation are still outstanding.
+
+**Scope:** This reconstruction adds an independently evidenced raster progress function and resolves one misleading assumption about the reprint branch. It does not establish full equivalence of `_ProcessPage`, original job controls, or the printer's mechanical completion.

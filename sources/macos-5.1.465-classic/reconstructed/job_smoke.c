@@ -1,4 +1,5 @@
 #include "mac_classic_job.h"
+#include "mac_classic_progress.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -10,6 +11,13 @@ typedef struct {
  unsigned count, index;
  unsigned truncated;
 } test_source;
+typedef struct { unsigned n, page[16], row[16], percent[16]; } test_progress;
+static void progress_seen(void *context,unsigned page,unsigned row,unsigned percent) {
+  test_progress *p=context;
+  assert(p->n<16);
+  p->page[p->n]=page;p->row[p->n]=row;p->percent[p->n]=percent;
+  ++p->n;
+}
 typedef struct {
  uint8_t data[2048];
  size_t n;
@@ -40,15 +48,26 @@ static int has(const test_sink *s,const uint8_t *needle,size_t n) {
 }
 static void init_sink(test_sink *s){memset(s,0,sizeof *s);s->reject_after=sizeof s->data;}
 int main(void){
+ unsigned value=99;
+ assert(mac_classic_raster_progress(0,33,&value)==1 && value==0);
+ assert(mac_classic_raster_progress(1,33,&value)==0 && value==0);
+ assert(mac_classic_raster_progress(32,33,&value)==1 && value==96);
+ assert(mac_classic_raster_progress(33,33,&value)==-1);
+ assert(mac_classic_raster_progress(0,0,&value)==-1);
+ assert(mac_classic_raster_progress(0,33,NULL)==-1);
  const mac_classic_page_source source={get_header,get_pixels};
  mac_classic_job_config cfg={.optimization_level=0,.quality_selector=0,.vertical_dpi=300,.cut_each_label=0};
  test_source ps={0};test_sink os;init_sink(&os);
- mac_classic_job_io io={&source,&ps,put_bytes,&os};
+ test_progress progress={0};
+ mac_classic_job_io io={&source,&ps,put_bytes,&os,progress_seen,&progress};
  unsigned pages=99;
  ps.count=2;
  for(int j=0;j<2;j++) {ps.pages[j].height=1;ps.pages[j].width=8;ps.pages[j].bytes_per_line=1;ps.pages[j].bits_per_pixel=1;ps.data[j][0]=(uint8_t)(0xff-j);}
  assert(mac_classic_job_run(&io,&cfg,&pages)==0);
  assert(pages==2 && os.n==122+2*(11+4+1+2)+6);
+ assert(progress.n==2 && progress.page[0]==1 && progress.page[1]==2);
+ assert(progress.row[0]==0 && progress.row[1]==0);
+ assert(progress.percent[0]==0 && progress.percent[1]==0);
  assert(os.data[0]==0x1b && os.data[121]=='@');
  const uint8_t raw[]={0x1b,'D',1,0x16,0xff};
  assert(has(&os,raw,sizeof raw));
@@ -84,6 +103,14 @@ int main(void){
  ps.data[0][0]=0xff;os.reject_after=123;
  assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==0);
 
+ /* In the original, rows 0,32,64,... emit progress; never a mechanical ack. */
+ memset(&ps,0,sizeof ps);init_sink(&os);memset(&progress,0,sizeof progress);
+ ps.count=1;ps.pages[0]=(mac_classic_page_info){.width=8,.height=65,.bytes_per_line=1,.bits_per_pixel=1};
+ /* Test source has room for 128 bytes and all rows are blank in mode 0. */
+ cfg.optimization_level=0;
+ assert(mac_classic_job_run(&io,&cfg,&pages)==0 && pages==1);
+ assert(progress.n==3 && progress.row[0]==0 && progress.row[1]==32 && progress.row[2]==64);
+ assert(progress.percent[0]==0 && progress.percent[1]==49 && progress.percent[2]==98);
  /* No empty 'successful' print job. */
  memset(&ps,0,sizeof ps);init_sink(&os);
  assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==0);
