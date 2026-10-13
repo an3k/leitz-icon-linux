@@ -61,10 +61,13 @@ jobs:
           curl --fail --location --retry 2 --connect-timeout 30 --max-time 240 \
             --output "$work/vendor.dmg" "$url"
           hdiutil attach -readonly -nobrowse -mountpoint "$work/mounted" "$work/vendor.dmg"
-          echo "Installer content:"
-          find "$work/mounted" -maxdepth 8 \( -name 'raster2printer' -o -name 'command2leitz' -o -name '*.mpkg' -o -name '*.pkg' \) -print | head -40
-          raster="$(find "$work/mounted" -type f -name raster2printer -print -quit)"
-          command="$(find "$work/mounted" -type f -name command2leitz -print -quit)"
+          echo "Installer package:"
+          find "$work/mounted" -maxdepth 2 -print | head -40
+          pkgutil --expand-full "$work/mounted/LeitzIconSoftware-Installer.mpkg" "$work/expanded"
+          echo "Expanded package executables:"
+          find "$work/expanded" -type f \( -name raster2printer -o -name command2leitz \) -print
+          raster="$(find "$work/expanded" -type f -name raster2printer -print -quit)"
+          command="$(find "$work/expanded" -type f -name command2leitz -print -quit)"
           test -n "$raster" && test -n "$command"
           echo "Original vendor SHA-256 values:"
           shasum -a 256 "$raster" "$command"
