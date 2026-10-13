@@ -1,5 +1,6 @@
 #include "original_device_uri.h"
 #include <cups/cups.h>
+#include <cups/backend.h>
 #include <cups/http.h>
 #include <arpa/inet.h>
 #include <errno.h>
