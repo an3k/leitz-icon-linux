@@ -18,6 +18,8 @@ make -C sources/macos-5.1.465-classic/recovery \
 
 errors=0
 for scenario in "ReportStatus READY" "ReportStatus NONE" \
+                "ReportStatus MEDIA_EMPTY" "ReportStatus MEDIA_JAM" \
+                "ReportStatus GENERAL_ERROR" "ReportStatus UNKNOWN_STATUS" \
                 "ReportStatus READ_ERROR" "GetUnitedStatus U_42" \
                 "GetFirmwareVersion V_42" "GetUnitedStatus NONE" \
                 "ReportState NONE"; do

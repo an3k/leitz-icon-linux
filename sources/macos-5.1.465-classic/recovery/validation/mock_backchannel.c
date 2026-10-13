@@ -26,6 +26,19 @@ static ssize_t substitute_read(char *buffer, int capacity, double deadline) {
         fputs("MOCK_BACKCHANNEL: READY\n",stderr);
         return 1;
     }
+    /* Additional OEM ESC A state bytes: empty roll, jam, general error,
+     * and an unrecognized status. The underlying byte mapping is taken
+     * from the disassembled original's exact comparisons. */
+    if (!strcmp(setting,"MEDIA_EMPTY") || !strcmp(setting,"MEDIA_JAM") ||
+        !strcmp(setting,"GENERAL_ERROR") || !strcmp(setting,"UNKNOWN_STATUS")) {
+        if (capacity<1) return -1;
+        buffer[0]=!strcmp(setting,"MEDIA_EMPTY") ? 0x20 :
+                  !strcmp(setting,"MEDIA_JAM") ? 0x30 :
+                  !strcmp(setting,"GENERAL_ERROR") ? 0x40 : 0x23;
+        fprintf(stderr,"MOCK_BACKCHANNEL: STATUS 0x%02x\n",
+                (unsigned char)buffer[0]);
+        return 1;
+    }
     size_t n=strlen(setting);
     if (capacity<0 || n>(size_t)capacity) return -1;
     memcpy(buffer,setting,n);
