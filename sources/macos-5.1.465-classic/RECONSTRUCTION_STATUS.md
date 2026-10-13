@@ -198,3 +198,9 @@ A fresh, SHA-256-verified macOS Intel reference run captured the actual `command
 - `_CloseLogFile` at `0x100002480`: conditional fclose and clear the file pointer.
 
 The callback/pointer interfaces are separate reconstruction scaffolding and **not the original ABI**. The original command `_WriteData` and other longer functions remain incompletely reconstructed. Passing source compilation alone does not establish whole-program equivalence or hardware readiness.
+
+## 2026-10-14 — command2leitz output writer recovered
+
+New `recovery/classic_command_write_data.[ch]` records manufacturer `_WriteData` (original command Mach-O `0x100001a80..0x100001c14`), whose machine instructions were captured from the SHA-confirmed official macOS installer in [reference run 38479552118](https://github.com/an3k/leitz-icon-linux/actions/runs/38479552118). The independently isolated implementation preserves the original socket selection (URI contains `ipp` and socket != -1), one `send` without retry, optional debug-file `fwrite`, conditional stdout `fwrite`, and acceptance of positive short writes. The diagnostic `fprintf` failure text and original global ABI remain incomplete; the recovered wrapper is not a byte-identical original source file. A separate C smoke test validates the sink decisions without opening a network connection or modifying the existing command entry.
+
+All GCC, Clang, native macOS and OEM-reference CI jobs for [run 38479996800](https://github.com/an3k/leitz-icon-linux/actions/runs/38479996800) passed. This validates compilation and the existing reference scenarios, **not the untested writer's original socket error diagnostics**. Do not report the whole original executable as reconstructed.
