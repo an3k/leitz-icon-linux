@@ -28,3 +28,19 @@ jobs:
         run: |
           make -C sources/macos-5.1.465-classic/recovery clean
           make -C sources/macos-5.1.465-classic/recovery/raster clean
+
+  native-macos-classic:
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run original-derived isolated C on macOS
+        run: |
+          make -C sources/macos-5.1.465-classic/recovery clean all check CC=clang
+          make -C sources/macos-5.1.465-classic/recovery/raster clean all check CC=clang
+      - name: Compile classic command CUPS entry using Apple's SDK
+        run: |
+          make -C sources/macos-5.1.465-classic/recovery command2leitz_recovered_cups CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+      - name: Clean executable outputs
+        run: |
+          make -C sources/macos-5.1.465-classic/recovery clean
+          make -C sources/macos-5.1.465-classic/recovery/raster clean
