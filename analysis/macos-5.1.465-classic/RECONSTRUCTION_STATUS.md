@@ -277,3 +277,10 @@ Disassembled the six previously unfinished, very small C++ functions from SHA-25
 `__Z14signal_handleri` (`0x100004420`), C++ `strrchr` / `strstr` wrapper calls and their libc delegation (`0x100004570`, `0x100008cf0`, `0x10000a010`, `0x10000a040`), and the 16-bit byte swap (`0x100009fe0`).
 
 New `original_raster_private_helpers.[ch]` preserves the original cancellation message, integer flag assignment, search functions and 16-bit swap. This is a C-compatible functional reconstruction; the original C++ ABI/mangled static helper symbols, original globals layout and signal registration in `_main` are not claimed to be binary-identical. Deliberately, the original `fprintf` inside the signal callback is not replaced with a signal-safe logging method, since that would change the OEM implementation. GCC, Clang and ASan/UBSan tests passed locally, including all 65,536 swap inputs. GitHub source CI will compile and check the new standalone test after the commit; its outcome must be verified. No production driver integration or manufacturer source modification.
+
+## Verified reference and source builds — 2026-10-14
+
+- [Run 38487010945](https://github.com/an3k/leitz-icon-linux/actions/runs/38487010945) for commit `8f3aabd67ffb4420f47daedcd815c376b6ec3752`: all 3 jobs succeeded. This covered GCC/Clang isolated PPD diagnostic tests, native macOS SDK compilation of the recovered `_output_cups_info` function, and existing authentic vendor comparisons.
+- [Run 38487275493](https://github.com/an3k/leitz-icon-linux/actions/runs/38487275493) for commit `a76914bacf3091c84393d8fec1d8b935921911f2`: all 3 jobs succeeded, including local raster signal/C++ helper checks on GCC/Clang and native macOS alongside the existing vendor comparison suite.
+
+Both new OEM-derived parts remain **isolated reconstructions**; the genuine manufacturer's dormant `_output_cups_info` function and the original native signal handler have **not** been directly invoked and compared. These passing workflows do not establish full executable equivalence, and the incomplete original raster/command entry paths remain outstanding.
