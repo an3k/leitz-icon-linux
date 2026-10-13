@@ -1,0 +1,37 @@
+#include <cups/raster.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+int main(int argc,char **argv) {
+ if(argc!=2)return 2;
+ int fd=open(argv[1],O_CREAT|O_TRUNC|O_WRONLY,0600);
+ if(fd<0)return 3;
+ cups_raster_t *r=cupsRasterOpen(fd,CUPS_RASTER_WRITE);
+ if(!r){close(fd);return 4;}
+ for(unsigned pg=0;pg<2;++pg){
+  cups_page_header2_t h={0};
+  h.HWResolution[0]=300;h.HWResolution[1]=300;
+  h.PageSize[0]=249;h.PageSize[1]=19;
+  h.cupsWidth=704;h.cupsHeight=80;
+  h.cupsBytesPerLine=88;h.cupsBitsPerColor=1;
+  h.cupsBitsPerPixel=1;h.cupsColorSpace=CUPS_CSPACE_K;
+  h.cupsColorOrder=CUPS_ORDER_CHUNKED;h.NumCopies=1;
+  if(!cupsRasterWriteHeader2(r,&h))return 5;
+  for(unsigned y=0;y<h.cupsHeight;++y){
+   uint8_t row[88]={0};
+   if(y%7==1)memset(row,0xff,sizeof row);
+   if(y%7==2){row[1]=0xff;row[2]=0xff;}
+   if(y%7==3)row[0]=0xff;
+   if(y%7==4)for(unsigned x=1;x<70;++x)row[x]=0x55;
+   if(y%7==5)for(unsigned x=10;x<40;++x)row[x]=0xf0;
+   if(y%7==6){row[22]=0x01;row[23]=0x80;}
+   if(pg==1&&y==0)row[1]=0x80;
+   if(cupsRasterWritePixels(r,row,sizeof row)!=sizeof row)return 6;
+  }
+ }
+ cupsRasterClose(r);close(fd);
+ puts("CUPS raster reference fixture generated");
+ return 0;
+}

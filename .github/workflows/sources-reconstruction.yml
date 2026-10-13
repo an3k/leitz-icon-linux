@@ -80,3 +80,15 @@ jobs:
           file "$raster" "$command"
           otool -L "$raster"
           otool -L "$command"
+          echo "Compare OEM stdout with reconstructed raster output:"
+          ppd="$(find "$work/expanded" -type f -name 'LeitzIcon.ppd' -print -quit)"
+          test -n "$ppd"
+          make -C sources/macos-5.1.465-classic/recovery/raster \
+            classic_raster_cups_adapter CC=clang \
+            CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+          clang -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
+            -o "$work/cups-fixture" \
+            sources/macos-5.1.465-classic/recovery/validation/cups_fixture.c -lcups
+          "$work/cups-fixture" "$work/input.ras"
+          bash sources/macos-5.1.465-classic/recovery/validation/compare_with_vendor.sh \
+            "$work" "$raster" "$ppd"
