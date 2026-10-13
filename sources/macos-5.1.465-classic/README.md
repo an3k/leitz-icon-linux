@@ -200,3 +200,33 @@ The manufacturer `_main` installs signal 15 at `0x100004515` and the signal hand
 The portable `mac_classic_job_io` therefore now supports an **optional cancellation callback** at the beginning of a job, before reading each page, and before emitting each raster row. `mac_classic_cups_filter.c` installs SIGTERM and SIGPIPE handlers, stores only a `volatile sig_atomic_t` flag from the signal handler, and makes no unsafe CUPS calls from the handler. On cancellation, the reconstructed coordinator exits with failure, does **not** emit a success/cut page trailer for the unfinished page, and does **not** retry unknown output. This is a safer termination policy than a verbatim reproduction of every original `EndPage` exit path; it is explicitly not a claim of byte-identical behavior under cancellation.
 
 The local GCC C11 `make all check` and ASan/UBSan job check passed, including a cancellation during a four-row label and the assertion that no `ESC G` page completion follows. The actual CUPS 2.x SDK adapter compilation and printer operation have **not** been verified.
+
+## Raster geometry and persistent row width — 13 October 2026
+
+A fresh comparison of the original **classic macOS 5.1.465** `raster2printer` Mach-O revealed two discrepancies in the earlier reconstructed C.
+
+### 1. Distinguish physical page width and packed raster row stride
+
+Original `_ReadPage` at `0x100008e16..0x100008eb0` derives its mono output bytes per line by dividing `cupsBytesPerLine` by `cupsBitsPerPixel`, rounding up **if there is a remainder**. The previous reconstructed job coordinator instead used `ceil(cupsWidth/8)` and required exact, unpadded CUPS rows. This was not vendor-equivalent.
+
+New `reconstructed/mac_classic_geometry.[ch]` restores the observed calculation: `ceil(cupsBytesPerLine / cupsBitsPerPixel)`. `cupsWidth` still controls the page-width field passed to `_StartPage` independently, and `cupsHeight` remains the page length input. The extra raster bytes are not silently discarded. Added bounds checking ensures that the packed row does not exceed 120 bytes and that RGB24 data are complete 3-byte pixels; rejecting malformed data is deliberate hardening relative to the vendor. No arbitrary 170 mm page length is introduced.
+
+Realistic examples checked: one 1-bit page width of 8 pixels with 2 CUPS bytes/row is emitted as a **two-byte** raw raster line. An RGB24 width-8 row containing 10 complete pixels (30 input bytes) produces two packed bytes. Incomplete RGB triples fail rather than read across rows.
+
+### 2. Retain last ESC D width across printed pages
+
+For optimization level **2**, the original `_ProcessPage` compares the current row width with `__ZZ11ProcessPageE26bytesPrintedInPreviousLine` at `0x10000815f..0x10000818b`. The additional first-row force only occurs with the fourth (reprint) argument set; the normal print path supplies zero.
+
+For optimization level **3**, the original compares current width against the persistent print descriptor field at `+0x24`, at `0x100007c71..0x100007c87`. Neither value is reset by `_ReadPage` at the start of a new page.
+
+The reconstructed row encoder now omits redundant `ESC D` when the next row has the same width. The job coordinator retains the last printed width across page calls instead of starting each page with an implicit zero state. Distinct option levels use only their one selected mode for an entire CUPS job.
+
+### Checks and remaining limitations
+
+- GCC C11 `make clean all check`: successful.
+- Clang C11 `make CC=clang all check`: successful.
+- Clang `-fsanitize=address,undefined` on the combined job smoke program: successful.
+- Added validation for padded 1-bit and complete RGB24 input rows and that two consecutive pages with equal optimized width result in a **single `ESC D` width command** for modes 2 and 3.
+- These are **offline reconstruction checks** of derived code, not an execution comparison with the original Mach-O executable or a real CUPS SDK/USB print test.
+
+Still open: complete original `_ProcessPage` control branches, all macOS raster/PPD options (including `DebugMode=Mesh` semantics), exact status and platform-specific output behavior, and manufacturer-binary equivalence. No production printer deployment is claimed.

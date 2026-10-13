@@ -10,7 +10,7 @@
 typedef struct {
   unsigned optimization;  /* Original modes 0, 1, 2, 3 */
   unsigned stride;        /* Bytes in a packed monochrome row, 1..120 */
-  unsigned previous_width;
+  unsigned previous_width; /* OEM mode 2 static / mode 3 descriptor state across pages */
   unsigned previous_offset;
   unsigned pending_blank;
   unsigned first_nonblank;

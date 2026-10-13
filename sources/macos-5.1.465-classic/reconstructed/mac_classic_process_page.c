@@ -128,7 +128,12 @@ int mac_classic_row_encode(mac_classic_raster_row *s, const uint8_t *row,
     const uint8_t offset[] = {ESC, 'B', (uint8_t)left};
     if (append(out, capacity, &at, offset, sizeof offset)) return -1;
   }
-  if (s->first_nonblank || n != s->previous_width) {
+  /* In normal _ProcessPage (fourth argument 0), mode 2 emits ESC D
+   * only when n differs from the process-static previous width:
+   * 0x10000815f..0x10000818b. Its first-row exception requires the
+   * inactive reprint argument. Mode 3 compares descriptor +0x24:
+   * 0x100007c71..0x100007c87. Both widths survive page boundaries. */
+  if (n != s->previous_width) {
     const uint8_t width[] = {ESC, 'D', (uint8_t)n};
     if (append(out, capacity, &at, width, sizeof width)) return -1;
   }

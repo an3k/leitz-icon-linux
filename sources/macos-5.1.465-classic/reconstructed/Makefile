@@ -1,6 +1,6 @@
 CC ?= cc
 CFLAGS ?= -O2 -std=c11 -Wall -Wextra -Werror
-LIB_SRCS = mac_classic_command_core.c mac_classic_raster_boundaries.c mac_classic_dither.c mac_classic_process_page.c mac_classic_read_page.c mac_classic_job.c mac_classic_output.c mac_classic_status_exchange.c mac_classic_command_dispatch.c mac_classic_command_job.c mac_classic_prn.c mac_classic_progress.c
+LIB_SRCS = mac_classic_command_core.c mac_classic_raster_boundaries.c mac_classic_dither.c mac_classic_process_page.c mac_classic_read_page.c mac_classic_job.c mac_classic_output.c mac_classic_status_exchange.c mac_classic_command_dispatch.c mac_classic_command_job.c mac_classic_prn.c mac_classic_progress.c mac_classic_geometry.c
 LIB_OBJS = $(LIB_SRCS:.c=.o)
 
 .PHONY: all check clean check-command

@@ -1,5 +1,6 @@
 #include "mac_classic_job.h"
 #include "mac_classic_progress.h"
+#include "mac_classic_geometry.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -50,6 +51,11 @@ static int put_bytes(void *context,const uint8_t *b,size_t n) {
 static int has(const test_sink *s,const uint8_t *needle,size_t n) {
  for(size_t i=0;i+n<=s->n;i++)if(memcmp(s->data+i,needle,n)==0)return 1;
  return 0;
+}
+static unsigned count_pattern(const test_sink *s,const uint8_t *needle,size_t n) {
+ unsigned count=0;
+ for(size_t i=0;i+n<=s->n;i++)if(memcmp(s->data+i,needle,n)==0)++count;
+ return count;
 }
 static void init_sink(test_sink *s){memset(s,0,sizeof *s);s->reject_after=sizeof s->data;}
 int main(void){
@@ -127,6 +133,50 @@ int main(void){
  const uint8_t page_end[]={0x1b,'G'};
  assert(!has(&os,page_end,sizeof page_end));
  io.cancelled=NULL;io.cancel_ctx=NULL;
+ /* Original _ReadPage bases the printed row stride on CUPS row bytes,
+  * not just page width. Padded 1-bit and complete RGB triple rows must
+  * preserve that extra source data rather than be rejected or truncated. */
+ {
+   unsigned stride=0;
+   mac_classic_page_info h={.width=8,.height=1,.bytes_per_line=2,.bits_per_pixel=1};
+   assert(mac_classic_packed_stride(&h,&stride)==0 && stride==2);
+   h.bits_per_pixel=24; h.bytes_per_line=30;
+   assert(mac_classic_packed_stride(&h,&stride)==0 && stride==2);
+   h.bytes_per_line=25;
+   assert(mac_classic_packed_stride(&h,&stride)<0); /* partial RGB triple */
+   h.bytes_per_line=21;
+   assert(mac_classic_packed_stride(&h,&stride)<0); /* less than 8 RGB pixels */
+   h.bits_per_pixel=1; h.bytes_per_line=121;
+   assert(mac_classic_packed_stride(&h,&stride)<0); /* device row byte limit */
+ }
+ memset(&ps,0,sizeof ps);init_sink(&os);
+ ps.count=1;ps.pages[0]=(mac_classic_page_info){.width=8,.height=1,.bytes_per_line=2,.bits_per_pixel=1};
+ ps.data[0][0]=0xff;ps.data[0][1]=0x55;
+ cfg.optimization_level=0;
+ assert(mac_classic_job_run(&io,&cfg,&pages)==0 && pages==1);
+ const uint8_t mono_padded[]={0x1b,'D',2,0x16,0xff,0x55};
+ assert(has(&os,mono_padded,sizeof mono_padded));
+ memset(&ps,0,sizeof ps);init_sink(&os);
+ ps.count=1;ps.pages[0]=(mac_classic_page_info){.width=8,.height=1,.bytes_per_line=30,.bits_per_pixel=24};
+ assert(mac_classic_job_run(&io,&cfg,&pages)==0 && pages==1);
+ const uint8_t rgb_padded[]={0x1b,'D',2,0x16,0xff,0xc0};
+ assert(has(&os,rgb_padded,sizeof rgb_padded));
+ /* The OEM keeps its most recently transmitted ESC D width across
+  * _ProcessPage calls: mode 2 in a function-static variable, mode 3
+  * in the print descriptor at +0x24. Do not resend it at every page. */
+ for (unsigned optimization=2;optimization<=3;++optimization) {
+   memset(&ps,0,sizeof ps); init_sink(&os);
+   ps.count=2;
+   for(unsigned i=0;i<2;++i) {
+     ps.pages[i]=(mac_classic_page_info){.width=8,.height=1,.bytes_per_line=1,.bits_per_pixel=1};
+     ps.data[i][0]=0xff;
+   }
+   cfg.optimization_level=optimization;
+   assert(mac_classic_job_run(&io,&cfg,&pages)==0 && pages==2);
+   const uint8_t width_cmd[]={0x1b,'D',1};
+   assert(count_pattern(&os,width_cmd,sizeof width_cmd)==1);
+ }
+ cfg.optimization_level=0;
  /* No empty 'successful' print job. */
  memset(&ps,0,sizeof ps);init_sink(&os);
  assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==0);

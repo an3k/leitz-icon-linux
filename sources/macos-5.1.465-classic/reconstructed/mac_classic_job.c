@@ -9,6 +9,7 @@
 #include "mac_classic_raster_boundaries.h"
 #include "mac_classic_process_page.h"
 #include "mac_classic_progress.h"
+#include "mac_classic_geometry.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,19 +18,16 @@ static int emit(const mac_classic_job_io *io, const uint8_t *src, size_t len) {
   return len && io->write(io->write_ctx, src, len) != 0 ? -1 : 0;
 }
 
-/* Original _ProcessPage has geometry, margin, and page-specific branches that
- * are not yet fully recovered. This integration accepts only exact packed
- * row stride: no arbitrary CUPS row padding is silently treated as artwork. */
+/* Original _ProcessPage has geometry, margin, and page-specific branches
+ * not yet fully recovered. The packed stride below comes from _ReadPage's
+ * CUPS byte count / bits-per-pixel, not the CUPS page width. */
 static int process(const mac_classic_job_io *io,
                    const mac_classic_job_config *cfg,
                    const mac_classic_page_info *p,
-                   const uint8_t *pixels, unsigned page) {
-  if (!p->width || p->width > 960 || !p->height || p->height > 65535u) return -1;
-  const unsigned packed_stride = (p->width + 7u) / 8u;
-  if (packed_stride > 120u) return -1;
-  if (p->bits_per_pixel != 1 && p->bits_per_pixel != 24) return -1;
-  if ((p->bits_per_pixel == 1 && p->bytes_per_line != packed_stride) ||
-      (p->bits_per_pixel == 24 && p->bytes_per_line != p->width * 3u)) return -1;
+                   const uint8_t *pixels, unsigned page,
+                   unsigned *previous_optimized_width) {
+  unsigned packed_stride = 0;
+  if (mac_classic_packed_stride(p, &packed_stride) != 0) return -1;
   if (p->bits_per_pixel == 24 && cfg->quality_selector == 7) return -1;
 
   uint8_t *mono = NULL;
@@ -53,6 +51,9 @@ static int process(const mac_classic_job_io *io,
   mac_classic_raster_row state;
   if (mac_classic_row_init(&state, cfg->optimization_level, packed_stride) != 0)
     goto finish;
+  /* OEM mode 2's static bytesPrintedInPreviousLine and mode 3's
+   * descriptor+0x24 retain their value across page calls. */
+  if (cfg->optimization_level >= 2) state.previous_width = *previous_optimized_width;
   uint8_t header[4];
   size_t n = mac_classic_row_preamble(&state, header);
   if (emit(io, header, n) != 0) goto finish;
@@ -74,6 +75,7 @@ static int process(const mac_classic_job_io *io,
   }
   n = mac_classic_end_page(cfg->cut_each_label, cmd);
   if (!n || emit(io, cmd, n) != 0) goto finish;
+  if (cfg->optimization_level >= 2) *previous_optimized_width=state.previous_width;
   ret = 0;
 finish:
   free(mono);
@@ -93,6 +95,7 @@ int mac_classic_job_run(const mac_classic_job_io *io,
   if (!len || emit(io,start,len)) return -1;
 
   unsigned read_pages = 0;
+  unsigned previous_optimized_width = 0;
   for (;;) {
     if (io->cancelled && io->cancelled(io->cancel_ctx)) return -1;
     mac_classic_page_info p = {0};
@@ -106,7 +109,8 @@ int mac_classic_job_run(const mac_classic_job_io *io,
         bytes != (size_t)p.bytes_per_line * p.height) {
       free(pixels); return -1;
     }
-    const int ok = process(io,cfg,&p,pixels,*pages_done+1u);
+    const int ok = process(io,cfg,&p,pixels,*pages_done+1u,
+                           &previous_optimized_width);
     free(pixels);
     if (ok != 0) return -1;
     ++*pages_done;
