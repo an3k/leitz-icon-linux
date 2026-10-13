@@ -80,6 +80,16 @@ jobs:
           file "$raster" "$command"
           otool -L "$raster"
           otool -L "$command"
+          echo "Unrecovered original native function symbols:"
+          nm -nm "$raster" "$command" | grep -E '(_ResolveDeviceURI|_CheckPrinterStatus|_WriteData|_OpenLogFile)' || true
+          echo "Disassembly of unresolved raster functions (bounded output):"
+          otool -tvV "$raster" | awk '
+            /^_ResolveDeviceURI:$/ || /^_CheckPrinterStatus:$/ {
+              show=1; count=0; print; next
+            }
+            show && /^_[A-Za-z0-9_.$]+:$/ { show=0 }
+            show && count++ < 130 {print}
+          '
           echo "Compare OEM stdout with reconstructed raster output:"
           ppd="$GITHUB_WORKSPACE/sources/macos-5.1.465-classic/LeitzIcon.ppd"
           test -f "$ppd"
