@@ -35,3 +35,7 @@ Further differences may exist. Neither the successful builds nor local smoke tes
 - All 13 matrix tables and all 5237 integer elements previously extracted from the classic Mach-O are now present in standalone C under `recovery/raster/`. C declarations expose these arrays without changing their numeric values.
 - All 15 original `PrintQuality` labels were matched against the byte-identical original PPD, and their previously reverse-engineered selector indices, matrix sizes and scaling constants are in separate C.
 - Full `_DitherPage` and full raster filter remain incomplete; no 1:1 equivalence claim. This revision has **not** been newly compiled because the container runtime was unavailable.
+
+## 2026-10-13 — dither inner loop reconstruction
+
+Added `recovery/raster/raster2printer_dither_recovered.[ch]`, extracted from the already documented OEM `_DitherPage` RGB24 arithmetic. The recovered fragment uses manufacturer matrix values and exact previously decoded mode selection, without previous experimental boundary checks; additional test inputs have been added to the offline Makefile. **The complete original function is not recovered, and no compiler or OEM execution check was possible in the current session.**
