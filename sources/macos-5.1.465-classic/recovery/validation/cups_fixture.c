@@ -2,11 +2,14 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 int main(int argc,char **argv) {
- if(argc!=2 && argc!=3)return 2;
- int rgb=argc==3 && !strcmp(argv[2],"rgb");
+ if(argc<2 || argc>4)return 2;
+ int rgb=argc>=3 && !strcmp(argv[2],"rgb");
+ unsigned height=argc==4 ? (unsigned)strtoul(argv[3],NULL,10) : 80u;
+ if(height==0 || height>1024)return 2;
  int fd=open(argv[1],O_CREAT|O_TRUNC|O_WRONLY,0600);
  if(fd<0)return 3;
  cups_raster_t *r=cupsRasterOpen(fd,CUPS_RASTER_WRITE);
@@ -15,7 +18,7 @@ int main(int argc,char **argv) {
   cups_page_header2_t h={0};
   h.HWResolution[0]=300;h.HWResolution[1]=300;
   h.PageSize[0]=249;h.PageSize[1]=19;
-  h.cupsWidth=704;h.cupsHeight=80;
+  h.cupsWidth=704;h.cupsHeight=height;
   h.cupsBytesPerLine=rgb ? 2112 : 88;
   h.cupsBitsPerColor=rgb ? 8 : 1;
   h.cupsBitsPerPixel=rgb ? 24 : 1;

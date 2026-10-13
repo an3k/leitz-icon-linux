@@ -98,4 +98,10 @@ jobs:
           echo "Compare original RGB24 dithering against recovered raster output:"
           "$work/cups-fixture" "$work/rgb.ras" rgb
           bash sources/macos-5.1.465-classic/recovery/validation/compare_rgb_with_vendor.sh \
+            "$work" "$raster" "$ppd" \
+            "Bayer8x8SuperCell1 Bayer8x8SuperCell2 SuperCell1 SuperCell3 CUPSThresold64x64 SuperCell Bayer14x14 Clustered8x8 Dispersed8x8 Nasik4x4"
+          echo "Check original variable-length and no-cut print paths:"
+          "$work/cups-fixture" "$work/mono-33.ras" mono 33
+          "$work/cups-fixture" "$work/mono-127.ras" mono 127
+          bash sources/macos-5.1.465-classic/recovery/validation/compare_variable_length.sh \
             "$work" "$raster" "$ppd"

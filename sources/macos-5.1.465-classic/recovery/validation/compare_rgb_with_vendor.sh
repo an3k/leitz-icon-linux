@@ -7,7 +7,10 @@ original="$2"
 ppd="$3"
 native="sources/macos-5.1.465-classic/recovery/raster/classic_raster_cups_adapter"
 bad=0
-for quality in Bayer8x8 Bayer4x4 SuperCell2 Dithering3x3; do
+# Fourth argument allows running only previously unverified PPD choices.
+quality_set="Bayer8x8 Bayer4x4 SuperCell2 Dithering3x3"
+if [[ $# -ge 4 ]];then quality_set="$4";fi
+for quality in $quality_set; do
   for resolution in 300dpi 600dpi; do
     for mode in 0 1 2 3; do
       opts="Resolution=$resolution PrintQuality=$quality OptimizationLevel=$mode LabelCutter=ON PrintThroughPRN=OFF DebugMode=Release"
