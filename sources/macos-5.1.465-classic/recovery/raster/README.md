@@ -31,3 +31,23 @@ These are recovered **data and option-selection fragments**. They are not a reco
 This is a **C fragment**, not the OEM function ABI: the surrounding original memory allocation, raster header, per-page option selection, fallback and error paths are **not recovered**. The OEM `Draft` choice selects a 1-bit input route; calling this RGB24 fragment with selector 7 is outside the recovered path. The experimental source with deliberate input validation stays under `enhancements/`.
 
 No fresh compilation, binary-reference execution or printer test was performed in this session: the local compiler/container runtime is unavailable. The prior reconstructed model is not a substitute for byte-exact comparison with the original macOS executable.
+
+
+## Recovered `_ReadPage` and `_WriteData` branch fragments
+
+This revision adds two newly authored, isolated C interfaces corresponding to **observed manufacturer branches**. Neither is a complete clone of the original Mach-O function, argument ABI or surrounding macOS/CUPS integration.
+
+**`classic_read_page.[ch]`** — original `_ReadPage`, `0x100008d20..0x10000918b`:
+
+- `cupsRasterReadHeader2` returns zero: EOF; nonzero: page counter increments *before* the pixel allocation or reading.
+- 32-bit `cupsHeight * cupsBytesPerLine` allocation expression and one `cupsRasterReadPixels` request for the entire page.
+- A zero returned pixel count selects the failure branch. A **nonzero short read is accepted**, reproducing the branch observed in assembly rather than the protective complete-read check in the enhanced implementation.
+- The native page buffer layout, all header-dependent state and original ownership/error unwinding are **not** recovered. The standalone C callback interface therefore exposes allocation ownership explicitly; this interface itself is not manufacturer code.
+
+**`classic_write_data.[ch]`** — original `_WriteData` at `0x100001450`:
+
+- One selected `send` call for IPP/socket output; a positive short send is not retried.
+- The alternate stdout path optionally writes to the PRN/debug file before stdout; the debug write return is not treated as fatal.
+- The offline interface is explicitly passed a previously selected sink: **the OEM's full URI/global-file selection is not yet recovered**, and its original return-value ABI and diagnostic side effects have not been verified.
+
+Source-only checks `classic_read_page_test.c` and `classic_write_data_test.c` cover these recovered decisions and are included in `make check`. The original programs have **not** been executed for comparison and there is **no 1:1 equivalence claim**.

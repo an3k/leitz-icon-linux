@@ -1,0 +1,30 @@
+name: Sources - Reconstruction Compile
+
+on:
+  push:
+    branches: [sources]
+    paths:
+      - 'sources/macos-5.1.465-classic/recovery/**'
+      - '.github/workflows/sources-reconstruction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  classic-c-recovery:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: GCC - compile and run isolated recovered C
+        run: |
+          make -C sources/macos-5.1.465-classic/recovery clean all check CC=gcc
+          make -C sources/macos-5.1.465-classic/recovery/raster clean all check CC=gcc
+      - name: Clang - compile and run isolated recovered C
+        run: |
+          make -C sources/macos-5.1.465-classic/recovery clean all check CC=clang
+          make -C sources/macos-5.1.465-classic/recovery/raster clean all check CC=clang
+      - name: Clean executable outputs
+        run: |
+          make -C sources/macos-5.1.465-classic/recovery clean
+          make -C sources/macos-5.1.465-classic/recovery/raster clean
