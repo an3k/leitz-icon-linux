@@ -14,3 +14,10 @@ The original has **no malloc-failure check**, and does not reject partial positi
 The mock CUPS header under `fixture/` is test scaffolding only; the native macOS build uses real CUPS SDK headers. The isolated GCC and Clang tests check row counts, short-read acceptance, EOF and the exact diagnostic text. They are not evidence of full executable equality. `_test_raster` is **not called by the ordinary vendor printing path** and is not being introduced into that path.
 
 This one recovered function does not finish either original executable. Native error/termination branches and several longer diagnostic/status helpers remain incomplete.
+
+
+## OEM _PrintPageDebugInfo in both classic executables
+
+A second dormant helper was directly disassembled in both original Mach-O binaries: raster2printer 0x100003e50–0x100004419 and command2leitz 0x100004480–0x100004a49. Their seven diagnostic fprintf calls use identical original format strings and line numbers 385, 386, 387, 388, 389, 391, and 392. Both functions have been reconstructed in `original_page_debug.c` with the original filename basename and without additional null checks, path redaction or logging behavior changes.
+
+The test-only CUPS fixture exposes only the fields needed for the isolated tests; on real macOS this file includes the actual CUPS raster SDK. The local GCC/Clang checks verify all seven exact output lines, and native SDK compilation is part of the sources CI workflow. No production raster/command entry point is changed to call this dormant helper. The executable as a whole remains incompletely reconstructed.

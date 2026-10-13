@@ -8,6 +8,18 @@ typedef struct {
     uint32_t cupsHeight;
     uint32_t cupsBytesPerLine;
     uint32_t NumCopies;
+    uint32_t cupsBitsPerColor;
+    uint32_t cupsBitsPerPixel;
+    uint32_t cupsColorOrder;
+    uint32_t cupsWidth;
+    float cupsBorderlessScalingFactor;
+    uint32_t HWResolution[2];
+    uint32_t ImagingBoundingBox[4];
+    uint32_t Margins[2];
+    uint32_t PageSize[2];
+    float cupsImagingBBox[4];
+    float cupsPageSize[2];
+    char cupsPageSizeName[64];
 } cups_page_header2_t;
 cups_raster_t *cupsRasterOpen(int fd, cups_mode_t mode);
 unsigned cupsRasterReadHeader2(cups_raster_t *, cups_page_header2_t *);
