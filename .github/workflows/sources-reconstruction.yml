@@ -93,6 +93,14 @@ jobs:
           echo "COMMAND_ORIGINAL_SYMBOLS_END"
           echo "Unrecovered original native function symbols:"
           nm -nm "$raster" "$command" | grep -E '(_ResolveDeviceURI|_CheckPrinterStatus|_WriteData|_OpenLogFile)' || true
+          echo "Original command utility assembly: flush, bit test and output"
+          otool -tvV "$command" | awk '
+            /^_FlushDataStreams:$/ || /^_is_bit_set:$/ ||
+            /^_WriteData:$/ || /^_CloseDebugFile:$/ ||
+            /^_CloseLogFile:$/ { show=1; count=0; print; next }
+            show && /^_[A-Za-z0-9_.$]+:$/ {show=0}
+            show && count++ < 130 {print}
+          '
           echo "Disassembly of unresolved raster functions (bounded output):"
           otool -tvV "$raster" | awk '
             /^_ResolveDeviceURI:$/ || /^_CheckPrinterStatus:$/ {
