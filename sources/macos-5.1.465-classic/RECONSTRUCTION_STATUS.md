@@ -185,3 +185,16 @@ Before making changes, branch `sources` was checked at `8d0997704ecf314d19dcfa7d
 executables, complete OEM status-check/socket state logic, native function
 ABIs, all error paths and comprehensive reference equality for all inputs.
 Therefore a fully reconstructable 1:1 C replacement cannot yet be declared.
+
+## 2026-10-14 — latest-state checked, native command helpers reconstructed
+
+Before writing, branch `sources` was independently checked at `32bae496d3952985cffd28a6a307cc233047d157`. The previously proven 112 RGB24 comparisons, command response cases, PRN transfer, and variable-length jobs were left unchanged. No original manufacturer files or optimized `enhancements/` were overwritten.
+
+A fresh, SHA-256-verified macOS Intel reference run captured the actual `command2leitz` machine instructions. Four previously unimplemented helpers now have isolated C in `recovery/classic_command_original_utils.[ch]`:
+
+- `_is_bit_set` at `0x100001c60`: original 32-bit bitmask comparison, including x86 shift-count masking;
+- `_FlushDataStreams` at `0x100001c20`: unconditional output flush and optional debug flush, with error results ignored;
+- `_CloseDebugFile` at `0x100002440`: conditional fclose and clear the file pointer;
+- `_CloseLogFile` at `0x100002480`: conditional fclose and clear the file pointer.
+
+The callback/pointer interfaces are separate reconstruction scaffolding and **not the original ABI**. The original command `_WriteData` and other longer functions remain incompletely reconstructed. Passing source compilation alone does not establish whole-program equivalence or hardware readiness.
