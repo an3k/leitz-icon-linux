@@ -40,7 +40,7 @@ int classic_command_get_status(const classic_command_io *io, char command,
                                const char *prefix, int should_send_esc_a,
                                double timeout) {
   /* The original sends each byte with putchar, then fflush(stdout). */
-  char reply[1025];
+  char reply[1024];
   int received;
   io->put_character(io->context, 0x1b);
   io->put_character(io->context, (unsigned char)command);
@@ -51,9 +51,9 @@ int classic_command_get_status(const classic_command_io *io, char command,
     io->message(io->context, "ATTR: marker-message=NoData");
     return 0;
   }
-  /* Vendor writes reply[received] = 0. The original's 1024-byte stack
-   * array would write one byte outside its bounds for a full-sized reply;
-   * this copy reserves the terminator but keeps the original text behavior. */
+  /* Faithfully reproduces the vendor's reply[received] store. When
+   * received == 1024 the original overflows this buffer by one byte.
+   * No additional bounds check is introduced in the recovered path. */
   reply[received] = '\0';
   if (command == 'A') {
     emit_state(io, (unsigned char)reply[0]);

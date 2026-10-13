@@ -25,7 +25,7 @@ The CUPS entry adapter compiles against Linux CUPS 2.x for **offline** inspectio
 
 1. The original command executable also links `_OpenDebugFile`, `_OpenLogFile`, `_WriteData`, `_SendDebugFileToPrinter`, `_output_cups_info`, `_test_raster` and other utilities. These are not reproduced in this isolated active-path source.
 2. Diagnostic stdout/stderr formatting and auxiliary side effects are not fully re-created.
-3. The vendor writes a NUL at `reply[received]` into its nominal 1024-byte stack buffer. The recovery uses 1025 bytes for the 1024-byte reply boundary: this is an explicitly identified memory-layout deviation, not a verified match for undefined original behavior.
+3. The vendor writes a NUL at `reply[received]` into a 1024-byte stack buffer. The recovered code retains that operation without a new bounds check; for a 1024-byte answer both implementations can write one byte out of bounds. This is a known original defect, not safe or production-qualified behavior.
 4. The original Mach-O cannot be executed on this Linux host for direct parity comparisons; the real macOS build and device communication are unverified.
 5. The **other** classic executable, `raster2printer`, is **not complete**. The prior experimental raster components remain separately under `enhancements/macos-5.1.465-classic/reconstructed/`.
 
