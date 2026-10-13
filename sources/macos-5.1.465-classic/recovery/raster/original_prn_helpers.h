@@ -19,6 +19,11 @@ typedef struct {
 void classic_original_prn_open(classic_original_prn_state *state);
 void classic_original_prn_close(classic_original_prn_state *state);
 
+/* _WriteDebugBuffer, OEM 0x100001e90..0x100001ee8: writes exactly one
+ * element of length size, and ignores the fwrite result. */
+void classic_original_prn_write_buffer(classic_original_prn_state *state,
+                                       const void *buffer,size_t size);
+
 /* The new output FILE parameter is for isolated comparison. The actual OEM
  * calls fputc(..., stdout). All branching and diagnostics below reflect
  * the observed manufacturer code, including unchecked I/O operations.

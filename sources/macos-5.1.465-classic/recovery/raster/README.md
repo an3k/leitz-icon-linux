@@ -110,9 +110,11 @@ opens the actual CUPS raster input and sends output via the original-style
 single fwrite/stdout route. `DebugMode` is left inert as indicated by the
 original classic disassembly; it is not replaced by Linux Mesh drawing.
 
-The original network `DEVICE_URI`/IPP socket and `PrintThroughPRN=ON`
-file/replay behaviors are **not reconstructed in this adapter**: it refuses
-these paths rather than claiming functional equivalence. This adapter is not
+The original network `DEVICE_URI`/IPP socket path is **not yet
+reconstructed** in this adapter and remains disabled. The original
+`PrintThroughPRN=ON` file/replay route is implemented and was verified
+against the manufacturer's executed binary for the standard mono,
+OptimizationLevel 2 reference fixture. This adapter is not
 OEM C, is not a complete replacement for the classic original, and must
 not be installed as a production filter. Full native SDK compilation and
 execution results must be recorded separately.
@@ -144,5 +146,13 @@ container or on an ordinary workstation. The isolated unit test sets
 only a disposable temporary filename for replay; it does not invoke
 the OEM hardcoded-path open routine. The state structure and injectable
 output FILE argument are newly authored test interfaces; the separate
-close routine remains unverified against its exact assembly.
-This is not yet the integrated `PrintThroughPRN=ON` option.
+close routine has now been checked against the exact original
+assembly (0x100001e10..0x100001e45), and the one-element
+`fwrite(buffer,size,1,stream)` of `_WriteDebugBuffer` at
+0x100001e90..0x100001ee8 was recovered and integrated.
+
+`PrintThroughPRN=ON` is integrated in the CUPS entry. The actual native
+macOS manufacturer and reconstructed runs each produced an identical
+3,620-byte PRN file and an identical 3,620-byte stdout stream in the
+tested case ([reference run](https://github.com/an3k/leitz-icon-linux/actions/runs/38434844921)).
+This does not prove other PRN error branches or production safety.

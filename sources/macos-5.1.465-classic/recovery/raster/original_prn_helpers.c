@@ -31,12 +31,19 @@ void classic_original_prn_open(classic_original_prn_state *state) {
 }
 
 void classic_original_prn_close(classic_original_prn_state *state) {
-  /* _CloseDebugFile is a separate, short OEM routine, not yet independently
-   * verified instruction-by-instruction in this reconstruction. */
+  /* _CloseDebugFile 0x100001e10..0x100001e45, directly checked
+   * against original machine instructions: fclose then clear pointer. */
   if(state->dump) {
     fclose(state->dump);
     state->dump=NULL;
   }
+}
+
+void classic_original_prn_write_buffer(classic_original_prn_state *state,
+                                       const void *buffer,size_t size) {
+  /* Original _WriteDebugBuffer: three independent nonzero checks.
+   * Its fwrite(ptr,size,1,stream) return is ignored. */
+  if(state->dump && buffer && size) fwrite(buffer,size,1,state->dump);
 }
 
 int classic_original_prn_send(classic_original_prn_state *state,FILE *output) {

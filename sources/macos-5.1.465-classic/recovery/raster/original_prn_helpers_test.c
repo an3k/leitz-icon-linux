@@ -27,6 +27,17 @@ int main(void) {
   assert(unlink(file)==0);
   /* OEM returns zero even if the original PRN file cannot be reopened. */
   assert(classic_original_prn_send(&state,stdout)==0);
+  /* OEM _WriteDebugBuffer writes one element of the supplied size. */
+  state.dump=tmpfile();
+  assert(state.dump!=NULL);
+  classic_original_prn_write_buffer(&state,expected,sizeof expected);
+  assert(fflush(state.dump)==0);
+  assert(fseek(state.dump,0,SEEK_SET)==0);
+  unsigned char fromdump[sizeof expected]={0};
+  assert(fread(fromdump,1,sizeof fromdump,state.dump)==sizeof expected);
+  assert(memcmp(fromdump,expected,sizeof expected)==0);
+  classic_original_prn_close(&state);
+  assert(state.dump==NULL);
   /* Never invoke OpenDebugFile here: its original fixed path is global. */
   return 0;
 }

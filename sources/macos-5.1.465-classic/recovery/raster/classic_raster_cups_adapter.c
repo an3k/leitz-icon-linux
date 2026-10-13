@@ -40,14 +40,14 @@ static int emit_stdout(void *unused,const uint8_t *buf,size_t n) {
     (void)unused;
     /* Follow OEM one-call positive-result acceptance for its normal
      * stdout fwrite path; do not retry short writes. */
-    return fwrite(buf,1,n,stdout)>0 ? 0 : -1;
+    return fwrite(buf,n,1,stdout)>0 ? 0 : -1;
 }
 static void flush_stdout(void *unused) {(void)unused;fflush(stdout);}
 static int emit_prn(void *context,const uint8_t *buf,size_t n) {
     classic_original_prn_state *state=context;
     /* The original writes the dump once and ignores a short or failed
      * fwrite. With __fd_stdout=NULL it does not send directly to stdout. */
-    if(state->dump) fwrite(buf,1,n,state->dump);
+    classic_original_prn_write_buffer(state,buf,n);
     return 0;
 }
 static void flush_prn(void *context) {
