@@ -86,10 +86,10 @@ jobs:
           otool -L "$command"
           echo "Complete original classic macOS symbol inventory:"
           echo "RASTER_ORIGINAL_SYMBOLS_BEGIN"
-          nm -nm "$raster" | grep -E '^[[:xdigit:]]+ [Tt] ' || true
+          nm -nm "$raster" | grep -F '(__TEXT,__text)' || true
           echo "RASTER_ORIGINAL_SYMBOLS_END"
           echo "COMMAND_ORIGINAL_SYMBOLS_BEGIN"
-          nm -nm "$command" | grep -E '^[[:xdigit:]]+ [Tt] ' || true
+          nm -nm "$command" | grep -F '(__TEXT,__text)' || true
           echo "COMMAND_ORIGINAL_SYMBOLS_END"
           echo "Unrecovered original native function symbols:"
           nm -nm "$raster" "$command" | grep -E '(_ResolveDeviceURI|_CheckPrinterStatus|_WriteData|_OpenLogFile)' || true
