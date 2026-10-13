@@ -95,3 +95,7 @@ jobs:
           echo "Compare classic OEM command filter against recovered C:"
           bash sources/macos-5.1.465-classic/recovery/validation/compare_command_with_vendor.sh \
             "$work" "$command" "$ppd"
+          echo "Compare original RGB24 dithering against recovered raster output:"
+          "$work/cups-fixture" "$work/rgb.ras" rgb
+          bash sources/macos-5.1.465-classic/recovery/validation/compare_rgb_with_vendor.sh \
+            "$work" "$raster" "$ppd"
