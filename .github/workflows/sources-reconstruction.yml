@@ -44,3 +44,33 @@ jobs:
         run: |
           make -C sources/macos-5.1.465-classic/recovery clean
           make -C sources/macos-5.1.465-classic/recovery/raster clean
+
+  vendor-macos-reference:
+    name: Inspect original 5.1.465 Mach-O on macOS
+    runs-on: macos-15-intel
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Obtain and identify authentic Leitz installer from vendor
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/leitz-original"
+          mkdir -p "$work/mounted"
+          url="https://www.leitz.com/firmware/install/LeitzIconInstaller__1002__05010465__LeitzIconSoftware-Installer_5.1.465/dmg"
+          curl --fail --location --retry 2 --connect-timeout 30 --max-time 240 \
+            --output "$work/vendor.dmg" "$url"
+          hdiutil attach -readonly -nobrowse -mountpoint "$work/mounted" "$work/vendor.dmg"
+          echo "Installer content:"
+          find "$work/mounted" -maxdepth 8 \( -name 'raster2printer' -o -name 'command2leitz' -o -name '*.mpkg' -o -name '*.pkg' \) -print | head -40
+          raster="$(find "$work/mounted" -type f -name raster2printer -print -quit)"
+          command="$(find "$work/mounted" -type f -name command2leitz -print -quit)"
+          test -n "$raster" && test -n "$command"
+          echo "Original vendor SHA-256 values:"
+          shasum -a 256 "$raster" "$command"
+          test "$(shasum -a 256 "$raster" | awk '{print $1}')" = "72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13"
+          test "$(shasum -a 256 "$command" | awk '{print $1}')" = "6e43cae5e152d5e2d8e9e975d026375563afdffdadca08f835cb4c3a58d3f3ee"
+          echo "Original binaries match the uploaded reference hashes."
+          file "$raster" "$command"
+          otool -L "$raster"
+          otool -L "$command"
