@@ -240,3 +240,43 @@ timeout value, return code and original write/flush calls still need to
 be connected and checked against real original execution. The helper
 is included in the GCC/Clang offline test target. No status results are
 inferred from the separate `command2leitz` status byte format.
+
+## 14 October 2026: Original _CheckPrinterStatus I/O, status and retry loop
+
+`original_status_exchange.[ch]` reconstructs **additional previously missing**
+control flow from the verified classic Leitz `raster2printer` Mach-O at
+`0x100009190..0x100009a2e`, using the same original manufacturer bytes as
+`original_status_gate` and `original_status_decoder`. This is a standalone
+function with an analysis callback interface; it is NOT linked to the CUPS
+adapter and cannot contact a real printer.
+
+- At entry, with an IPP scheme and missing socket (or termination), the OEM
+  calls `_ResolveDeviceURI` then **returns immediately**; it does not
+  automatically open a socket for every ordinary print job.
+- Otherwise, it sends exactly `ESC U`, via a single socket `send(2)` followed
+  by a `recv(64)`, or by stdout putchars followed by flush and
+  `cupsBackChannelRead(64, 7.0)`. The `7.0` timeout was decoded directly
+  from the manufacturer's Mach-O constant at virtual address `0x10000a4a0`.
+- The original prints `STATE: none` before classifying the answer. For
+  `SKU:Load Error;` or `USED:-1`, it increases job size by four, invokes
+  `_WriteData` for `ESC @ ESC Z`, and sleeps five seconds. For open door
+  or missing cartridge, it emits the corresponding state and also sleeps five.
+  These three statuses **repeat** the status loop; no retry ceiling is added.
+- A ready answer, unknown nonempty string, bad cartridge, empty reply or
+  failed backchannel read exits. The original returns a bool indicating
+  whether it encountered a waiting-media/door/cartridge condition; it is
+  **not** a success/ready indicator.
+- The original does not NUL-terminate 64-byte replies and uses an
+  uninitialized read count after a socket send of less than two bytes.
+  Neither undefined behavior can be equivalently mapped to deterministic C.
+  The isolated analysis helper therefore reports `-2` exclusively for
+  these **unverified original paths**; this is not an OEM return value or
+  a production driver error policy. The original's by-value descriptor
+  copy into `_WriteData` and full globals ABI are also not implemented.
+
+The recovered branch simulation has GCC, Clang and sanitizer tests for
+ready, repeated out-of-paper, door/no-cartridge with termination, empty and
+failed reads, resolver entry, and a successful socket query. It has not been
+directly invoked against the original Mach-O's private function; no
+whole-program equality may be claimed. The new code does not modify
+`enhancements/` or the active Linux/Unraid driver.

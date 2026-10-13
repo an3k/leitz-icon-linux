@@ -224,3 +224,23 @@ GCC and Clang have compiled the new source locally and its exact-text offline te
 At commit `867492daeb82a0e1579f18092003240d4671355d`, [Sources - Reconstruction Compile (run 38482664031)](https://github.com/an3k/leitz-icon-linux/actions/runs/38482664031) finished with **all three jobs successful**: GCC/Clang isolated tests, original-derived macOS C tests and genuine macOS CUPS SDK compilation of `original_test_raster.c` and `original_page_debug.c`, and the existing original-program reference scenarios. Local AddressSanitizer/UndefinedBehaviorSanitizer checks for both individual recovered diagnostic helpers also passed.
 
 This confirms the reconstructed dormant helpers compile and emit the documented outputs in isolation; it does **not** prove that the original dormant OEM functions were directly executed against matching inputs, nor does it establish whole-program behavior equivalence. The active print or command entrypoints and original Linux/macOS manufacturer files were not modified.
+
+## 2026-10-14 — CheckPrinterStatus native I/O and retry recovery
+
+Inspected branch `sources` at `1df6fd4bbbfd8acbdd9249ddbec9ed35117fd432`
+before starting; the existing vendor parity comparisons and the previous
+status gate/decoder were left unchanged.
+
+A newly isolated `recovery/raster/original_status_exchange.[ch]` recovers
+the original `_CheckPrinterStatus` active I/O, retry, return-value and
+termination paths from the verified Mach-O code at
+`0x100009190..0x100009a2e`. The original CUPS timeout is **7.0 seconds**,
+decoded from the native constant. Offline GCC, Clang and sanitizer unit
+tests have passed locally. The GitHub Actions build must be confirmed
+after committing.
+
+**Remaining limitations:** the original by-value descriptor/globals ABI,
+socket-short-send and full 64-byte uninitialized memory cases, exact network
+activation through the caller, ancillary diagnostics and native whole-program
+parity. The new function is a standalone reconstruction and is not connected
+to the production print path.
