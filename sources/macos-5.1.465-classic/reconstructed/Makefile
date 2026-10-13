@@ -1,6 +1,6 @@
 CC ?= cc
 CFLAGS ?= -O2 -std=c11 -Wall -Wextra -Werror
-LIB_SRCS = mac_classic_command_core.c mac_classic_raster_boundaries.c mac_classic_dither.c mac_classic_process_page.c mac_classic_read_page.c mac_classic_job.c mac_classic_output.c mac_classic_status_exchange.c mac_classic_command_dispatch.c mac_classic_command_job.c mac_classic_prn.c mac_classic_progress.c mac_classic_geometry.c
+LIB_SRCS = mac_classic_command_core.c mac_classic_raster_boundaries.c mac_classic_dither.c mac_classic_process_page.c mac_classic_read_page.c mac_classic_job.c mac_classic_output.c mac_classic_status_exchange.c mac_classic_command_dispatch.c mac_classic_command_job.c mac_classic_prn.c mac_classic_progress.c mac_classic_geometry.c mac_classic_raster_diagnostics.c
 LIB_OBJS = $(LIB_SRCS:.c=.o)
 
 .PHONY: all check clean check-command
@@ -21,14 +21,15 @@ job_smoke: job_smoke.c $(LIB_SRCS) mac_classic_job.h
 io_smoke: io_smoke.c mac_classic_output.c mac_classic_prn.c mac_classic_status_exchange.c mac_classic_command_core.c mac_classic_command_dispatch.c
 	$(CC) $(CFLAGS) -o $@ io_smoke.c mac_classic_output.c mac_classic_prn.c mac_classic_status_exchange.c mac_classic_command_core.c mac_classic_command_dispatch.c
 
-check: smoke job_smoke io_smoke command_job_smoke
+check: smoke job_smoke io_smoke command_job_smoke raster_diagnostics_smoke
 	./smoke
 	./job_smoke
 	./io_smoke
 	./command_job_smoke
+	./raster_diagnostics_smoke
 
 clean:
-	rm -f smoke job_smoke io_smoke command_job_smoke command_job_smoke_clang mac_classic_cups_filter mac_classic_command_filter *.o *.a
+	rm -f raster_diagnostics_smoke smoke job_smoke io_smoke command_job_smoke command_job_smoke_clang mac_classic_cups_filter mac_classic_command_filter *.o *.a
 
 # Optional: real CUPS 2.x development headers + libraries required.
 # This is an unqualified reconstructed filter: DO NOT install on a printer.
@@ -52,3 +53,7 @@ command_job_smoke: command_job_smoke.c mac_classic_command_job.c mac_classic_out
 
 check-command: command_job_smoke mac_classic_command_filter
 	./command_job_smoke
+
+# Inactive original CUPS raster helpers, reconstructed without printer I/O.
+raster_diagnostics_smoke: raster_diagnostics_smoke.c mac_classic_raster_diagnostics.c mac_classic_raster_diagnostics.h
+	$(CC) $(CFLAGS) -o $@ raster_diagnostics_smoke.c mac_classic_raster_diagnostics.c

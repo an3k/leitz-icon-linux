@@ -238,3 +238,18 @@ The original classic PPD defines `DebugMode` as `Release`, `Debug`, and `Mesh` (
 The classic reconstruction now accepts these three original choices without modifying raster bits. The Linux 1.0.3 manufacturer source has a **separate active** Mesh drawing branch: it must not be incorrectly imputed to the macOS classic binary. A lack of code references is evidence of absent **local raster modification**, not a claim about unexamined firmware behavior.
 
 This change is in the optional `mac_classic_cups_filter.c` adapter; compilation of that adapter against the actual macOS/CUPS SDK is still pending. Portable reconstruction modules' GCC and Clang checks were successful.
+
+## Classic raster diagnostics recovered from dormant manufacturer functions — 2026-10-13
+
+The original classic macOS `raster2printer` binary additionally contains two independently disassembled raster helpers in `raster_c_functions.c`:
+
+- `_test_raster` (`0x100003c60..0x100003e40`): opens CUPS raster input from file descriptor 0, loops over `cupsRasterReadHeader2`, reads `cupsHeight` rows with `cupsRasterReadPixels` using `cupsBytesPerLine` per row, and outputs `PAGE: <page> <NumCopies>`. The second integer comes from raster header offset **0x154**, corresponding to `NumCopies`, **not** `cupsWidth` (offset 0x174). Unlike the main `_ReadPage` helper, it uses *one CUPS read per row*. It is **not called from the examined production filter path**.
+- `_PrintPageDebugInfo` (`0x100003e50..0x100004419`): prints the original raster-header field inventory to stderr: `cupsBytesPerLine`, `cupsBitsPerColor`, `cupsBitsPerPixel`, `cupsColorOrder`, `cupsWidth`/`cupsHeight`, `cupsBorderlessScalingFactor`, `HWResolution`, `ImagingBoundingBox`, `Margins`, `PageSize`, `cupsImagingBBox`, `cupsPageSize`, and `cupsPageSizeName`. No direct caller in the active print entrypoint was found.
+
+New `reconstructed/mac_classic_raster_diagnostics.[ch]` recovers this functionality in **portable C**. The code takes raster headers and row input from callbacks rather than hard-coding stdin/CUPS SDK and rejects short rows rather than treating any positive result as sufficient. The debug output omits the original manufacturer's absolute build-server pathname and source line prefixes. This is **functional reconstruction**, not recovered verbatim original source. These helpers are **not activated** in the CUPS print path, preventing invented debugging side effects.
+
+The original `_ProcessPage` mode-2 compressed/uncompressed selection was separately checked with **13,200 offline byte-sequence comparisons** using an independently reconstructed implementation of the observed Mach-O run-count state transitions, for input sizes 1–120 bytes. There were **no mismatches** in those cases. This is **not** a direct comparison against an executing Mach-O binary and does not establish complete printer parity.
+
+Validation: `make clean all check` GCC C11 successful with `-Wall -Wextra -Werror`, Clang C11 compilation successful, and the new auxiliary helpers passed a Clang ASan/UBSan check. No real CUPS 2.x SDK/macOS execution or hardware printing is implied.
+
+The remaining active raster limitations are still the full manufacturer-specific `_ProcessPage` branches, device/driver integration, and original-binary output verification. No other project branch was modified.
