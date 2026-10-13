@@ -88,7 +88,7 @@ jobs:
               show=1; count=0; print; next
             }
             show && /^_[A-Za-z0-9_.$]+:$/ { show=0 }
-            show && count++ < 130 {print}
+            show && count++ < 480 {print}
           '
           echo "Compare OEM stdout with reconstructed raster output:"
           ppd="$GITHUB_WORKSPACE/sources/macos-5.1.465-classic/LeitzIcon.ppd"
