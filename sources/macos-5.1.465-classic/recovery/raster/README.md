@@ -62,3 +62,17 @@ Source-only checks `classic_read_page_test.c` and `classic_write_data_test.c` co
 - The OEM length is based on each job's raster row, without any general fixed paper length. The source's 16-bit blank-row counter is based on the disassembly; what happens on extremely long overflows still needs execution against the original.
 
 These are standalone fragments, **not** complete `_ProcessPage`: mode 2/3 branches, state carried between pages, cancellation, complete page positioning and error paths remain missing in this module. The previous enhanced full-row approximation is still under `enhancements/`. A separate test checks framing and deferred blank rows. The original Mach-O has not been run.
+
+## _ProcessPage modes 2/3 — isolated row emission
+
+The new `classic_process_page_modes_23.[ch]` implements the previously audited, disassembly-derived **row-level** mechanics of mode 2 and mode 3, with the original byte framing and state distinctions:
+
+- Both accumulate empty rows as deferred 16-bit `ESC f` advances, emitted only when another nonempty row occurs.
+- Mode 2 always emits the `ESC B` byte offset, trims both byte edges, emits an `ESC D` only on changed packed width (or the first nonblank row of an explicit reprint invocation), and selects `0x17` bit-run encoding **only when strictly shorter** than `0x16` plus raw trimmed row bytes. Run bytes encode 1–128 bits, most-significant-bit first.
+- Mode 3 emits `ESC B` only when its left offset changes; the original mode-3 path trims the right-hand white bytes **only if the left offset is nonzero**. It always emits uncompressed `0x16` raster bytes.
+- Mode-2 and mode-3 previous widths survive page boundaries in different job-cache fields. The previous mode-3 left offset, pending blank rows and first-nonblank state are reset at each page start.
+- The compiler-facing state structures are **newly authored analysis interfaces**, not reconstructed original structure layouts. Caller-provided output capacity is required; this file deliberately does **not** inherit the bounds/error-handling improvements of the separate `enhancements/` version.
+
+`classic_process_page_modes_23_test.c` covers the observed compression case, raw fallback, original mode-3 trimming asymmetry, blank feed, cached width across page boundaries, and the explicit reprint branch.
+
+This module does **not** restore the entirety of OEM `_ProcessPage`: the original's loop-level progress/cancellation order, all memory accesses, option reading, start/end integration, all error paths, and original ABI are not covered. Its tests compare with previously audited reconstruction expectations; **the manufacturer Mach-O is not executed**. Neither functional identity nor full branch coverage may be claimed.
