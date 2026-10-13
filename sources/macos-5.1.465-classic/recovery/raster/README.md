@@ -178,3 +178,34 @@ branches and all 32 bit positions. It deliberately does **not** write
 the OEM's hardcoded global log path. The explicit C state structures
 are analysis interfaces and are not proof that the entire original
 Mac process has been recovered.
+
+## Newly recovered native _ResolveDeviceURI (13 October 2026)
+
+The original SHA-verified Leitz 5.1.465 `raster2printer` Mach-O was
+disassembled on the Intel macOS runner, and the complete function
+`_ResolveDeviceURI` at `0x100009a30..0x100009fd3` was inspected.
+`original_device_uri.[ch]` reproduces this OEM CUPS/network sequence,
+**separately from the production CUPS adapter**:
+
+- `getenv("DEVICE_URI")`, then `cupsBackendDeviceURI(&uri)` and
+  `httpSeparateURI(0, resolved, scheme, 1024, username, 1024,
+  hostname, 1024, &port, resource, 1024)`.
+- The original descriptor byte offsets `0x50`, `0x450`, `0x850`,
+  `0xc50`, and `0x1098` are represented exactly and verified by
+  compile-time assertions. Unidentified bytes remain unnamed.
+- The function returns 0 for unresolved/malformed URI and 1 as soon as
+  a URI is parsed, **even if socket creation or connection fails**.
+- It tests for lowercase `ipp` by substring match and uses
+  `socket(AF_INET,SOCK_STREAM,0)`, `gethostbyname`, and `connect`
+  using a **hard-coded port 9100**, regardless of the parsed URI port.
+- The original does not close or retry a failed socket. It calls
+  `herror("resolv")` if DNS lookup fails and then continues into an
+  unchecked host-entry dereference; this original defect is not silently
+  repaired in the reconstruction.
+
+`original_device_uri_test` is macOS-only and uses a non-network
+`usb://` URI. It does not establish socket/connection parity.
+The original `_CheckPrinterStatus` remains a separate, unfinished
+device-status function. **No network equipment should be connected
+during the original-code experiment without explicit authorization.**
+The existing functional stdout/PRN driver paths remain unchanged.

@@ -43,6 +43,10 @@ jobs:
       - name: Compile ordinary classic raster CUPS entry using Apple SDK
         run: |
           make -C sources/macos-5.1.465-classic/recovery/raster classic_raster_cups_adapter CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+      - name: Build and execute OEM-derived URI resolver without a network connection
+        run: |
+          make -C sources/macos-5.1.465-classic/recovery/raster original_device_uri_test CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+          sources/macos-5.1.465-classic/recovery/raster/original_device_uri_test
       - name: Clean executable outputs
         run: |
           make -C sources/macos-5.1.465-classic/recovery clean
