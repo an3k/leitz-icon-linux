@@ -18,7 +18,9 @@ int mac_classic_read_page(const mac_classic_page_source *src, void *context,
       !pixels || !length || !page_count) return MAC_CLASSIC_PAGE_ERROR;
   *pixels = NULL;
   *length = 0;
-  if (!src->read_header(context, header)) return MAC_CLASSIC_PAGE_EOF;
+  const int header_result = src->read_header(context, header);
+  if (header_result == 0) return MAC_CLASSIC_PAGE_EOF;
+  if (header_result < 0) return MAC_CLASSIC_PAGE_ERROR;
   if (!header->height || !header->bytes_per_line ||
       (size_t)header->height > SIZE_MAX / (size_t)header->bytes_per_line)
     return MAC_CLASSIC_PAGE_ERROR;

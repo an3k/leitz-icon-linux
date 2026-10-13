@@ -86,6 +86,10 @@ static int process(const mac_classic_job_io *io,
   if (io->cancelled && io->cancelled(io->cancel_ctx)) goto finish;
   n = mac_classic_end_page(cfg->cut_each_label, cmd);
   if (!n || emit(io, cmd, n) != 0) goto finish;
+  /* OEM _EndPage invokes _FlushDataStreams at 0x100008a8d after the
+   * page-end command, before _ReadPage proceeds to another label.
+   * Preserve that boundary for stdout and for deferred PRN output. */
+  if (io->flush && io->flush(io->write_ctx) != 0) goto finish;
   if (cfg->optimization_level >= 2) *previous_optimized_width=state.previous_width;
   ret = 0;
 finish:

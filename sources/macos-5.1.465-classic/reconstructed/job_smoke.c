@@ -31,7 +31,14 @@ typedef struct {
  size_t reject_after;
  test_cancel *cancel_at_final_row;
  uint8_t final_row_value;
+ unsigned flushes;
+ unsigned fail_flush_at;
 } test_sink;
+static int flush_page(void *context) {
+ test_sink *s=context;
+ ++s->flushes;
+ return s->fail_flush_at && s->flushes == s->fail_flush_at ? -1 : 0;
+}
 
 static int get_header(void *context,mac_classic_page_info *p) {
  test_source *s=context;
@@ -78,12 +85,18 @@ int main(void){
  mac_classic_job_config cfg={.optimization_level=0,.quality_selector=0,.vertical_dpi=300,.cut_each_label=0};
  test_source ps={0};test_sink os;init_sink(&os);
  test_progress progress={0};
- mac_classic_job_io io={&source,&ps,put_bytes,&os,progress_seen,&progress,NULL,NULL};
+ mac_classic_job_io io={
+   .source=&source,.read_ctx=&ps,.write=put_bytes,.write_ctx=&os,
+   .progress=progress_seen,.progress_ctx=&progress,
+   .cancelled=NULL,.cancel_ctx=NULL,.flush=flush_page
+ };
  unsigned pages=99;
  ps.count=2;
  for(int j=0;j<2;j++) {ps.pages[j].height=1;ps.pages[j].width=8;ps.pages[j].bytes_per_line=1;ps.pages[j].bits_per_pixel=1;ps.data[j][0]=(uint8_t)(0xff-j);}
  assert(mac_classic_job_run(&io,&cfg,&pages)==0);
  assert(pages==2 && os.n==122+2*(11+4+1+2)+6);
+ /* The OEM _EndPage flushes after every label, not just once per job. */
+ assert(os.flushes==2);
  assert(progress.n==2 && progress.page[0]==1 && progress.page[1]==2);
  assert(progress.row[0]==0 && progress.row[1]==0);
  assert(progress.percent[0]==0 && progress.percent[1]==0);
@@ -247,6 +260,26 @@ int main(void){
    assert(count_pattern(&os,width_cmd,sizeof width_cmd)==1);
  }
  cfg.optimization_level=0;
+ /* Flush failure after completed page data must not report a printed page,
+  * and must not send the final document terminator or start another page. */
+ memset(&ps,0,sizeof ps); init_sink(&os);
+ ps.count=2;
+ for(unsigned i=0;i<2;++i){
+   ps.pages[i]=(mac_classic_page_info){
+     .width=8,.height=1,.bytes_per_line=1,.bits_per_pixel=1
+   };
+   ps.data[i][0]=0x81;
+ }
+ os.fail_flush_at=1;
+ assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==0);
+ assert(os.flushes==1);
+ assert(!has(&os,(const uint8_t[]) {0x1b,'@',0x1b,'Z'},4));
+ ps.index=0; init_sink(&os);
+ os.fail_flush_at=2;
+ assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==1);
+ assert(os.flushes==2);
+ /* The stdout printer bytes may already have been sent; never retry. */
+ assert(count_pattern(&os,(const uint8_t[]) {0x1b,'G'},2)==2);
  /* No empty 'successful' print job. */
  memset(&ps,0,sizeof ps);init_sink(&os);
  assert(mac_classic_job_run(&io,&cfg,&pages)!=0 && pages==0);

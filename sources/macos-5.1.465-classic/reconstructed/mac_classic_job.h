@@ -25,6 +25,10 @@ typedef void (*mac_classic_progress_fn)(void *ctx, unsigned page,
                                         unsigned row, unsigned percent);
 /* Mirrors the original global SIGTERM cancellation check as a callback. */
 typedef int (*mac_classic_cancel_fn)(void *ctx);
+/* _EndPage calls _FlushDataStreams immediately after ESC G[/ESC E].
+ * An explicit callback preserves this original per-page flush boundary.
+ * A failed flush is fatal, rather than ignored as in the OEM routine. */
+typedef int (*mac_classic_flush_fn)(void *write_ctx);
 typedef struct {
   const mac_classic_page_source *source;
   void *read_ctx;
@@ -34,6 +38,7 @@ typedef struct {
   void *progress_ctx;
   mac_classic_cancel_fn cancelled; /* optional: stop before transmitting another row */
   void *cancel_ctx;
+  mac_classic_flush_fn flush; /* optional: called once after each completed page */
 } mac_classic_job_io;
 
 /* No USB, no retries. Returns -1 on bad input, short read, write failure or

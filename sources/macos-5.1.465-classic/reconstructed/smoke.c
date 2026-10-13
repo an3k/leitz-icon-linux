@@ -14,6 +14,12 @@ static int fake_header(void *ctx, mac_classic_page_info *h) {
   h->height=2; h->bytes_per_line=(unsigned)c->amount;
   return 1;
 }
+static int fake_header_error(void *ctx, mac_classic_page_info *h) {
+  (void)ctx;
+  h->height=2;
+  h->bytes_per_line=4;
+  return -1;
+}
 static size_t fake_pixels(void *ctx, uint8_t *dst,size_t bytes) {
   fake_pages *c=(fake_pages *)ctx;
   size_t n=c->deliver<bytes?c->deliver:bytes;
@@ -37,6 +43,9 @@ int main(void) {
   fp.stage=0;fp.amount=0;
   assert(mac_classic_read_page(&src,&fp,&page_info,&page,&bytes,&page_count)==MAC_CLASSIC_PAGE_ERROR);
   assert(page==NULL && page_count==1);
+  const mac_classic_page_source broken_header={fake_header_error,fake_pixels};
+  assert(mac_classic_read_page(&broken_header,&fp,&page_info,&page,&bytes,&page_count)==MAC_CLASSIC_PAGE_ERROR);
+  assert(page==NULL && bytes==0 && page_count==1);
 
   for (int i = 0; i < 3; i++) {
     assert(mac_classic_encode_query(mac_classic_queries[i].command,b) == 2);

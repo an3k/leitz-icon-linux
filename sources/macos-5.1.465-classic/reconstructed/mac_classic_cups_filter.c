@@ -46,6 +46,14 @@ static size_t raster_pixels(void *v,uint8_t *dst,size_t size) {
   if (size > UINT_MAX) return 0;
   return cupsRasterReadPixels(c->raster,dst,(unsigned)size);
 }
+static int mac_classic_flush_stdout(void *ctx) {
+  FILE *f = ctx;
+  return f && fflush(f) == 0 ? 0 : -1;
+}
+static int mac_classic_flush_prn(void *ctx) {
+  mac_classic_prn *p = ctx;
+  return p && p->store && fflush(p->store) == 0 ? 0 : -1;
+}
 static int stdout_write(void *ctx,const uint8_t *data,size_t length) {
   mac_classic_output output={MAC_CLASSIC_STDOUT,
                              mac_classic_file_write,ctx,NULL,NULL};
@@ -141,7 +149,8 @@ int main(int argc,char **argv) {
   mac_classic_job_io io={&src,&ctx,
     through_prn ? mac_classic_prn_write : stdout_write,
     through_prn ? (void *)&prn : (void *)stdout,
-    cups_progress,NULL,cups_cancelled,NULL};
+    cups_progress,NULL,cups_cancelled,NULL,
+    through_prn ? mac_classic_flush_prn : mac_classic_flush_stdout};
   unsigned pages=0;
   int result=mac_classic_job_run(&io,&cfg,&pages);
   if(result == 0 && through_prn) result=mac_classic_prn_replay(&prn);

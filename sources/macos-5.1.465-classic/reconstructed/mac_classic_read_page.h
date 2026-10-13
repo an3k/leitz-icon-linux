@@ -15,6 +15,8 @@ typedef struct {
   unsigned color_space;    /* CUPS cupsColorSpace; OEM dispatches on RGB == 1 */
 } mac_classic_page_info;
 
+/* Return 1 for a page, 0 for EOF, negative for a damaged/failed header.
+ * In particular, a negative return must never be mistaken for normal EOF. */
 typedef int (*mac_classic_read_header_fn)(void *ctx, mac_classic_page_info *out);
 typedef size_t (*mac_classic_read_pixels_fn)(void *ctx, uint8_t *out, size_t bytes);
 typedef struct {
