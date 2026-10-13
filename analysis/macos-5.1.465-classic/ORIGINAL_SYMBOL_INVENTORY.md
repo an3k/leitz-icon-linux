@@ -19,7 +19,7 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 | `_CloseDebugFile` | 0x100001e10 | Isolated helper |
 | `_CloseLogFile` | 0x100001e50 | Isolated helper |
 | `_WriteDebugBuffer` | 0x100001e90 | Isolated helper |
-| `_output_cups_info` | 0x100001ef0 | **Not fully reconstructed** |
+| `_output_cups_info` | 0x100001ef0 | Function body recovered and cross-checked with original Linux 1.0.3 source; see `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_output_cups_info.c` |
 | `_test_raster` | 0x100003c60 | Reconstructed from original assembly in `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_test_raster.c`; dormant function, not called by normal printing |
 | `_PrintPageDebugInfo` | 0x100003e50 | Seven original diagnostic calls recovered in `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_page_debug.c`; not linked into the active filter |
 | `__Z14signal_handleri` | 0x100004420 | Partly reflected in adapter |
@@ -57,7 +57,7 @@ Other symbol entries: `__mh_execute_header` at 0, `__ZL7strrchrUa9enable_ifIXLb1
 | `_CloseDebugFile` | 0x100002440 | Original-specific effects incomplete |
 | `_CloseLogFile` | 0x100002480 | Original-specific effects incomplete |
 | `_WriteDebugBuffer` | 0x1000024c0 | Original-specific effects incomplete |
-| `_output_cups_info` | 0x100002520 | Not fully reconstructed |
+| `_output_cups_info` | 0x100002520 | Same independently disassembled OEM function; shared recovered C source, not connected to live command entry |
 | `_test_raster` | 0x100004290 | Same C behavior independently verified against original command binary disassembly; shared reconstructed source under `reconstructions/macos-5.1.465-classic/shared/diagnostics/` |
 | `_PrintPageDebugInfo` | 0x100004480 | Same seven OEM calls independently established from this Mach-O; shared standalone reconstruction, dormant |
 

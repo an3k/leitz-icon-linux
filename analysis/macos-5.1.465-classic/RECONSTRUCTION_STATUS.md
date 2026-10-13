@@ -256,3 +256,17 @@ original Mac executable printing/command comparisons. The native original
 `_CheckPrinterStatus` function itself has **not** been directly called
 against the new simulated I/O scenarios; there is no claim of complete
 byte-for-byte status-function or whole-executable equivalence.
+
+## 2026-10-14 — complete isolated original _output_cups_info function reconstructed
+
+This work began with a fresh branch inventory after the `sources` layout change at `cdd8b40605ff2f59f61422be061a7c1ec314fe3d`. No existing C reconstruction, OEM originals, enhancements, or printer execution path was overwritten.
+
+The **original Linux 1.0.3 manufacturer C implementation** of `output_cups_info` in `originals/linux-1.0.3/raster_c_functions.c` was audited statement-for-statement against both verified original macOS classic Mach-O bodies:
+- raster2printer `0x100001ef0..0x100003c60`
+- command2leitz `0x100002520..0x100004290`
+
+Both original functions contain exactly 1372 disassembly records, 108 calls and 140 literal references. Their PPD field access, conditionals, filter/attribute/group/option/choice loops, paper geometry/size output, format strings and final `ppdClose` are structurally the same as the Linux manufacturer C. The recovered C body is taken from the manufacturer Linux code, not invented independently. A `#line` directive and four diagnostic line constants restore the macOS OEM's actual source-line numbers (205,214,244,248,259,267,271,277,289,296,311,312,315,319,322,340).
+
+**No improvements or safety guards added.** In particular the unusual string literal formatting, `sprintf` fixed offsets, omitted null/length checks and original resource lifetime remain. The only added header and source wrappers exist to compile this standalone function against CUPS.
+
+`reconstructions/macos-5.1.465-classic/shared/diagnostics/original_output_cups_info.c` is complete for this isolated function. The neighboring `ppd-fixture/` mock is test-only and never included in native macOS builds. Local GCC and Clang passed tests checking OEM diagnostics, PPD filters, attrs, groups, options, choices and paper dimensions. The exact original isolated function has not been invoked inside a running OEM Mach-O; whole-program parity remains unproven.

@@ -21,3 +21,11 @@ This one recovered function does not finish either original executable. Native e
 A second dormant helper was directly disassembled in both original Mach-O binaries: raster2printer 0x100003e50–0x100004419 and command2leitz 0x100004480–0x100004a49. Their seven diagnostic fprintf calls use identical original format strings and line numbers 385, 386, 387, 388, 389, 391, and 392. Both functions have been reconstructed in `original_page_debug.c` with the original filename basename and without additional null checks, path redaction or logging behavior changes.
 
 The test-only CUPS fixture exposes only the fields needed for the isolated tests; on real macOS this file includes the actual CUPS raster SDK. The local GCC/Clang checks verify all seven exact output lines, and native SDK compilation is part of the sources CI workflow. No production raster/command entry point is changed to call this dormant helper. The executable as a whole remains incompletely reconstructed.
+
+## Recovered OEM _output_cups_info (both classic binaries)
+
+The two original macOS implementations are fully aligned at the function level with the existing **manufacturer's Linux 1.0.3 C source**. The active function bodies at raster2printer `0x100001ef0..0x100003c60` and command2leitz `0x100002520..0x100004290` share 1372 disassembly records, 108 calls and 140 literal references. The original vendor C body is preserved, with macOS's actual source diagnostic line numbers restored, in `original_output_cups_info.c`.
+
+This is a **dormant diagnostic function**, not part of the normal printing path. Original behaviors including unchecked PPD pointers, fixed `sprintf` offsets, unusual concatenated formatting, and potential string-buffer overflows remain intentionally unchanged. Do not run it on untrusted PPD files. `ppd-fixture/` is only an offline mock of the CUPS data structures and is not shipped as a system header.
+
+Offline compilation is tested with GCC and Clang. macOS native compilation against actual Apple CUPS headers is in `Sources - Reconstruction Compile`; this tests the source but does not execute the original private function directly or establish complete executable equivalence.
