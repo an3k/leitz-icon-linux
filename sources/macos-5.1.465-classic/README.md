@@ -1,3 +1,5 @@
+> **Classification update (2026-10-13):** The experimental `reconstructed/` directory described in this historical audit has been relocated, unchanged, to [`enhancements/macos-5.1.465-classic/reconstructed/`](../../enhancements/macos-5.1.465-classic/reconstructed/). It includes deliberate deviations and is NOT a completed or verified 1:1 C reconstruction. See [`RECONSTRUCTION_STATUS.md`](RECONSTRUCTION_STATUS.md) before relying on any claims below.
+
 # Original macOS classic driver — installer 5.1.465, PPD 1.2.190
 
 | Component | Original size | SHA-256 | Branch contents |

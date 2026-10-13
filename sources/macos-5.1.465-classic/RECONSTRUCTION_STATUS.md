@@ -1,0 +1,25 @@
+# macOS 5.1.465 classic — reconstruction state
+
+## Manufacturer inputs (unmodified)
+
+- `raster2printer`: Mach-O x86_64, 84,252 bytes, SHA-256 `72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13`.
+- `command2leitz`: Mach-O x86_64, 35,932 bytes, SHA-256 `6e43cae5e152d5e2d8e9e975d026375563afdffdadca08f835cb4c3a58d3f3ee`.
+- `LeitzIcon.ppd`: unmodified manufacturer PPD.
+- The original archive does **not** contain original C files for either executable.
+
+## C source availability
+
+**Neither executable has a complete faithful C reconstruction.** The existing symbol lists and assembly analyses describe specific functions but cannot establish the original C source, all code paths, or full binary-to-C equivalence.
+
+Experimental, compilable C fragments formerly kept in `reconstructed/` have been moved unchanged into `enhancements/macos-5.1.465-classic/reconstructed/`. Do not attribute these files to the manufacturer or use them as exact replacements.
+
+The fragment library, command filter and test executables were built using GCC on Linux (`make clean all check`, successful); the full CUPS raster adapter could not be compiled in the local environment because genuine CUPS development headers are unavailable. The original Mach-O executables have not been run for reference-output comparison.
+
+## Documented intentional divergences in the experiments
+
+- Rejecting stdout/PRN flush errors where the original routine does not check the return code.
+- Extending the portable raster-header callback to distinguish negative errors from end-of-file.
+
+Further differences may exist. Neither the successful builds nor local smoke tests establish equivalent printing or cutting behavior.
+
+**Before a 1:1 claim:** reconstruct every active code path for both executables; compile for macOS using compatible system APIs; compare identical inputs/options, device-output bytes, status exchanges, errors and edge conditions against the original executable. No such final comparison is available.

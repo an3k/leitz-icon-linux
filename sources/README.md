@@ -1,16 +1,20 @@
-# Manufacturer originals and C reconstructions
+# Manufacturer reference sources
 
-This directory is dedicated to **manufacturer source material**, independent of the project's own raster encoders.
+The manufacturer material in this directory must be distinguished from project-developed code.
 
-| Manufacturer variant | Original archive | Confirmed files on this branch | Reconstruction status |
+| Manufacturer version | Authentic manufacturer C | Other material | Verified status |
 |---|---|---|---|
-| Linux 1.0.3 | `LeitzIconDriversForLinux1.0.3.zip` | Original C sources, headers, PPD, installation script | Complete manufacturer C source, byte-exact |
-| macOS 5.1.465, classic (PPD 1.2.190) | `LeitzIconSoftware-Installer_5.1.465.dmg.zip` | Original PPD; Mach-O symbol inventories | **C reconstruction incomplete**; original binaries disassembled offline |
-| macOS 5.1.465, V3 | Same macOS archive | Not yet processed | Pending separate phase |
-| Windows 5.0.3879.0 | `LeitzIconLabelSetup.zip` | Not yet processed | Pending separate phase |
+| Linux 1.0.3 | `raster2printer.c`, `raster_c_functions.c` and their two headers | Original PPD and installer; separately created build instructions | All four C/header files byte-identical to the supplied original archive |
+| macOS 5.1.465 classic | **Not supplied in the installer** | Original PPD, disassembly observations and recovered symbols | Neither `raster2printer` nor `command2leitz` has a complete validated C reconstruction |
+| macOS 5.1.465 V3 | Not yet established | To be investigated separately | Not completed |
+| Windows 5.0.3879.0 | Not yet established | To be investigated separately | Not completed |
 
-The original executable `raster2printer` inside the Linux 1.0.3 archive is Mach-O, despite being inside a Linux driver archive; the Linux C code must be built to produce a Linux executable.
+## Separation of unverified or modified implementations
 
-**Do not represent assembly, pseudocode, or incomplete functional equivalents as fully compilable C source.** A C reconstruction is accepted only after recovering the functions/data, making it buildable, and separately checking behavior.
+Previously developed, buildable macOS classic C reconstruction fragments have been preserved **without modification** under
+[`enhancements/macos-5.1.465-classic/reconstructed/`](../enhancements/macos-5.1.465-classic/reconstructed/).
+These are incomplete experimental implementations, **not** byte-for-byte manufacturer C, and their functional equivalence to either manufacturer binary has not been demonstrated. Their known intentional deviations must not be silently introduced into a fidelity-focused reconstruction.
 
-See the version-specific README files for original checksums and limitations. Source extraction does not imply that any feature has been integrated into the development driver's raster encoder.
+The root-level `src/` and `cups/` directories are the project's own driver and integration, not additional manufacturer sources.
+
+Acceptance requirement for future faithful reconstructions: recover the full execution path and data; produce a reproducible C build; compare supported behaviors and output against the **corresponding original manufacturer executable**; separately document any remaining uncertainty. Recompilation or project-only smoke tests do not prove fidelity.
