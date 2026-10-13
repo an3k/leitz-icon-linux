@@ -122,3 +122,6 @@ jobs:
           echo "Check genuine classic PrintThroughPRN transfer:"
           bash sources/macos-5.1.465-classic/recovery/validation/compare_prn_with_vendor.sh \
             "$work" "$raster" "$ppd"
+          echo "Probe original macOS network channel on 127.0.0.1 only:"
+          python3 sources/macos-5.1.465-classic/recovery/validation/loopback_original_ipp.py \
+            "$work" "$raster" "$ppd"
