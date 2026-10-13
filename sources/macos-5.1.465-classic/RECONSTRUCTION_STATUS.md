@@ -159,3 +159,29 @@ precise network activation and socket lifetime in all cases, remaining
 original helper/error/signal paths, whole-program ABI/layout correspondence,
 and real-device output. No complete functionally equivalent replacement
 for both original macOS executables has been established.
+
+## Verified continuation after latest-state inspection — 13 October 2026
+
+Before making changes, branch `sources` was checked at `8d0997704ecf314d19dcfa7ddd8dee20842c4a8b`. The already completed 112 RGB24 scenarios, native status commands, deferred PRN and variable-length comparisons were not duplicated or overwritten.
+
+- Actual `nm -nm` original x86-64 symbol inventory is now kept in
+  [ORIGINAL_SYMBOL_INVENTORY.md](ORIGINAL_SYMBOL_INVENTORY.md): 31 entries for
+  `raster2printer` and 20 for `command2leitz`, including entry and
+  compiler/library helper symbols. This is a source/function inventory,
+  not a completion percentage.
+- Newly reconstructed `recovery/raster/original_status_gate.[ch]`
+  reproduces the **original early _CheckPrinterStatus resolver-entry
+  decision** (`0x1000091c8..0x100009243`) from verified manufacturer
+  disassembly. It is independent from the previously recovered answer-text
+  classification and does not claim the remaining status/socket/retry loop.
+- GCC, Clang and Intel macOS compiler/test jobs plus the original macOS
+  reference execution **all passed** in
+  [workflow 38467570955](https://github.com/an3k/leitz-icon-linux/actions/runs/38467570955).
+- No manufacturer Linux or macOS original binary files or enhanced modules
+  were modified by this continuation.
+
+**Still not complete:** the remaining original function bodies including
+`_output_cups_info`, `_test_raster`, `_PrintPageDebugInfo` for both
+executables, complete OEM status-check/socket state logic, native function
+ABIs, all error paths and comprehensive reference equality for all inputs.
+Therefore a fully reconstructable 1:1 C replacement cannot yet be declared.
