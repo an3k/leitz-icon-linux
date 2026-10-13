@@ -209,3 +209,34 @@ The original `_CheckPrinterStatus` remains a separate, unfinished
 device-status function. **No network equipment should be connected
 during the original-code experiment without explicit authorization.**
 The existing functional stdout/PRN driver paths remain unchanged.
+
+## Original _CheckPrinterStatus reply classification — 2026-10-13
+
+The native original `_CheckPrinterStatus` function at
+`0x100009190..0x100009a2e` has been disassembled on the Intel macOS
+runner. `original_status_decoder.[ch]` reconstructs its observed response
+**decision path** separately from the unfinished full original function:
+
+- The OEM sends `ESC U` either through a connected TCP socket or using
+  stdout followed by `cupsBackChannelRead` with a 64-byte buffer.
+- Text containing `SKU:Load Error;` **or** `USED:-1` selects
+  `com.leitz.out-of-paper-error`, emits a four-byte reset/end command
+  `ESC @ ESC Z` and sleeps 5 seconds.
+- Text containing `SKU:Door Open;` or `SKU:No Cartridge;` emits the
+  corresponding printer state and sleeps 5 seconds.
+- `SKU:Bad Cartridge;`, empty response and read failure lead to
+  `com.leitz.general-error`. The literal OEM message says it will retry,
+  but the path itself does not always call `sleep(5)`.
+- Other nonempty text selects `com.leitz.ready`. An apparent incompatible
+  cartridge message path is unreachable from the observed default branch
+  because the OEM sets and tests its local flag immediately before it.
+- The helper does not introduce alternate interpretations of these reply
+  strings, new case folding, or a safety-driven change in status values.
+
+This is an isolated recovered **decision helper**, NOT the complete
+`_CheckPrinterStatus`: the original socket/backchannel transactions,
+retry loop, SIGTERM handling, error messages, exact descriptor layout,
+timeout value, return code and original write/flush calls still need to
+be connected and checked against real original execution. The helper
+is included in the GCC/Clang offline test target. No status results are
+inferred from the separate `command2leitz` status byte format.
