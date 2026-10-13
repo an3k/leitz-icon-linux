@@ -22,7 +22,7 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 | `_output_cups_info` | 0x100001ef0 | Function body recovered and cross-checked with original Linux 1.0.3 source; see `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_output_cups_info.c` |
 | `_test_raster` | 0x100003c60 | Reconstructed from original assembly in `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_test_raster.c`; dormant function, not called by normal printing |
 | `_PrintPageDebugInfo` | 0x100003e50 | Seven original diagnostic calls recovered in `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_page_debug.c`; not linked into the active filter |
-| `__Z14signal_handleri` | 0x100004420 | Partly reflected in adapter |
+| `__Z14signal_handleri` | 0x100004420 | Recovered original diagnostic + termination state in `original_raster_private_helpers.c`; C test-only function is not yet connected with active CUPS entry |
 | `_main` | 0x100004460 | Newly authored adapter, not OEM-equivalent |
 | `_raster2printer` | 0x1000045a0 | Active C sequence assembled, not OEM-equivalent |
 | `_StartDocument` | 0x100006890 | Isolated recovered output |
@@ -35,7 +35,7 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 | `_CheckPrinterStatus` | 0x100009190 | Entry decision + reply classifier only; native I/O/retries incomplete |
 | `_ResolveDeviceURI` | 0x100009a30 | Independently recovered native resolver, integration incomplete |
 
-Other symbol entries: `__mh_execute_header` at 0, `__ZL7strrchrUa9enable_ifIXLb1EEEPKci` at 0x100004570, `__ZL6strstrUa9enable_ifIXLb1EEEPcPKc` at 0x100008cf0, `__ZL12_OSSwapInt16t` at 0x100009fe0, `__ZL16__libcpp_strrchrPKci` at 0x10000a010, and `__ZL15__libcpp_strstrPKcS0_` at 0x10000a040. These local helpers also matter for whole-program reconstruction.
+Other symbol entries: `__mh_execute_header` at 0, `__ZL7strrchrUa9enable_ifIXLb1EEEPKci` at 0x100004570, `__ZL6strstrUa9enable_ifIXLb1EEEPcPKc` at 0x100008cf0, `__ZL12_OSSwapInt16t` at 0x100009fe0, `__ZL16__libcpp_strrchrPKci` at 0x10000a010, and `__ZL15__libcpp_strstrPKcS0_` at 0x10000a040. These five local helper bodies are now independently recovered in `reconstructions/macos-5.1.465-classic/raster2printer/original_raster_private_helpers.c`; their original C++ mangled ABI remains separate from the C test interface.
 
 ## command2leitz — 20 symbol entries
 

@@ -280,3 +280,9 @@ failed reads, resolver entry, and a successful socket query. It has not been
 directly invoked against the original Mach-O's private function; no
 whole-program equality may be claimed. The new code does not modify
 `enhancements/` or the active Linux/Unraid driver.
+
+## Original signal and C++ compiler helper bodies
+
+`original_raster_private_helpers.[ch]` implements the previously missing short native functions observed at `0x100004420`, `0x100004570`, `0x100008cf0`, `0x100009fe0`, `0x10000a010` and `0x10000a040`. The original cancellation handler writes the literal message to stderr using `fprintf` and then assigns integer 1 to `terminate_flag`. C-compatible wrappers reproduce original libc `strrchr` / `strstr` calls and 16-bit byte swap. The local test checks diagnostic bytes, flag state, string-lookup behavior and every 16-bit input.
+
+The recovered C interfaces do not recreate original static C++ mangling or register the signal handler into the live CUPS adapter. No replacement, improvement or protection is added to the original unsafe `fprintf` signal-handler behavior. This addition alone does not establish complete executable equality.

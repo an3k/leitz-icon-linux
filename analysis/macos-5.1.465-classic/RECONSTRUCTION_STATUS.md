@@ -270,3 +270,10 @@ Both original functions contain exactly 1372 disassembly records, 108 calls and 
 **No improvements or safety guards added.** In particular the unusual string literal formatting, `sprintf` fixed offsets, omitted null/length checks and original resource lifetime remain. The only added header and source wrappers exist to compile this standalone function against CUPS.
 
 `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_output_cups_info.c` is complete for this isolated function. The neighboring `ppd-fixture/` mock is test-only and never included in native macOS builds. Local GCC and Clang passed tests checking OEM diagnostics, PPD filters, attrs, groups, options, choices and paper dimensions. The exact original isolated function has not been invoked inside a running OEM Mach-O; whole-program parity remains unproven.
+
+## 2026-10-14 — original raster signal and compiler helper recovery
+
+Disassembled the six previously unfinished, very small C++ functions from SHA-256-verified OEM macOS classic `raster2printer`:
+`__Z14signal_handleri` (`0x100004420`), C++ `strrchr` / `strstr` wrapper calls and their libc delegation (`0x100004570`, `0x100008cf0`, `0x10000a010`, `0x10000a040`), and the 16-bit byte swap (`0x100009fe0`).
+
+New `original_raster_private_helpers.[ch]` preserves the original cancellation message, integer flag assignment, search functions and 16-bit swap. This is a C-compatible functional reconstruction; the original C++ ABI/mangled static helper symbols, original globals layout and signal registration in `_main` are not claimed to be binary-identical. Deliberately, the original `fprintf` inside the signal callback is not replaced with a signal-safe logging method, since that would change the OEM implementation. GCC, Clang and ASan/UBSan tests passed locally, including all 65,536 swap inputs. GitHub source CI will compile and check the new standalone test after the commit; its outcome must be verified. No production driver integration or manufacturer source modification.
