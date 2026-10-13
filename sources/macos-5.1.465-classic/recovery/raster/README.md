@@ -76,3 +76,26 @@ The new `classic_process_page_modes_23.[ch]` implements the previously audited, 
 `classic_process_page_modes_23_test.c` covers the observed compression case, raw fallback, original mode-3 trimming asymmetry, blank feed, cached width across page boundaries, and the explicit reprint branch.
 
 This module does **not** restore the entirety of OEM `_ProcessPage`: the original's loop-level progress/cancellation order, all memory accesses, option reading, start/end integration, all error paths, and original ABI are not covered. Its tests compare with previously audited reconstruction expectations; **the manufacturer Mach-O is not executed**. Neither functional identity nor full branch coverage may be claimed.
+
+## Integration of the recovered active printing sequence (13 October 2026)
+
+`classic_raster_job_recovered.[ch]` connects the separately reconstructed
+manufacturer-derived functions into a **CUPS-independent job callback runner**:
+StartDocument -> ReadPage -> optional RGB24 DitherPage -> StartPage ->
+ProcessPage (0,1,2,3) -> EndPage -> FlushDataStreams -> EndDocument.
+It retains the job-persistent mode-2/mode-3 width caches, sends the original
+per-page cutting commands and uses no arbitrary fixed label length.
+The isolated integration test exercises two consecutive three-row pages
+under every optimization level and checks headers, trailers, per-page
+flushes and cross-page cached width.
+
+Important limits: this is **newly authored integration C**, not a verbatim
+recovery of the OEM Mach-O ABI; the OEM CUPS/PPD command-line entrypoint,
+macOS networking, original PRN/debug files, complete error/termination
+branches and manufacturer executable comparison are not part of this module.
+For RGB24, the integration assumes the original PPD's complete RGB triples,
+and its callback error return convention is a reconstruction-level interface.
+All exposed output bytes are derived from the previously audited original
+subroutines, but output identity for complete jobs remains unproven.
+
+No claim of a finished classic macOS native driver is made by this step.
