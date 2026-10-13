@@ -39,6 +39,9 @@ size_t classic_mode01_row(classic_mode01_state *state,
       state->pending_empty_rows=0;
     }
   }
-  memcpy(output+n,row,state->packed_stride);
-  return n+state->packed_stride;
+  /* The original 5.1.465 binary reads four bytes beyond the row length.
+   * Runtime comparison confirms the extra bytes come from the following
+   * row; the final row's four bytes are not defined by the raster input. */
+  memcpy(output+n,row,(size_t)state->packed_stride+4u);
+  return n+(size_t)state->packed_stride+4u;
 }

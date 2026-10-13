@@ -17,7 +17,9 @@ typedef struct {
 /* Caller-provided CUPS packed row stride; no arbitrary fixed print length. */
 void classic_mode01_begin(classic_mode01_state *state,unsigned mode,
                           unsigned packed_stride,uint8_t output[4]);
-/* Output buffer must hold at least 4+packed_stride bytes. Return number of
+/* Output buffer must hold at least 8+packed_stride bytes.
+ * The read from the input row includes the original four extra bytes.
+ * Return number of
  * emitted bytes, 0 for a deferred blank row in mode 1.
  * The observed original does not flush trailing deferred rows. */
 size_t classic_mode01_row(classic_mode01_state *state,

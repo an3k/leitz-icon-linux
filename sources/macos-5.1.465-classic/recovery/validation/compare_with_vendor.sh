@@ -18,6 +18,13 @@ for mode in 0 1 2 3; do
     echo "MODE=$mode EXACT_OUTPUT=YES"
   else
     echo "MODE=$mode EXACT_OUTPUT=NO"
+    if [[ "$mode" == 0 || "$mode" == 1 ]] && \
+       [[ "$original_rc" == "$recovered_rc" ]] && \
+       python3 sources/macos-5.1.465-classic/recovery/validation/compare_defined_bytes.py \
+       "$work/o-$mode.bin" "$work/r-$mode.bin"; then
+      echo "MODE=$mode DEFINED_OUTPUT=YES (OEM final-row data is undefined)"
+      continue
+    fi
     echo "OEM diagnostics:"
     tail -n 12 "$work/o-$mode.err"
     echo "Recovered diagnostics:"
