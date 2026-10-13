@@ -81,8 +81,8 @@ jobs:
           otool -L "$raster"
           otool -L "$command"
           echo "Compare OEM stdout with reconstructed raster output:"
-          ppd="$(find "$work/expanded" -type f -name 'LeitzIcon.ppd' -print -quit)"
-          test -n "$ppd"
+          ppd="$GITHUB_WORKSPACE/sources/macos-5.1.465-classic/LeitzIcon.ppd"
+          test -f "$ppd"
           make -C sources/macos-5.1.465-classic/recovery/raster \
             classic_raster_cups_adapter CC=clang \
             CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
