@@ -78,5 +78,9 @@ print("LOOPBACK_PREFIX=", bytes_read[:64].hex(" "))
 print("LOOPBACK_QUERY_ESC_U_COUNT=", bytes_read.count(b"\x1bU"))
 print("\n".join(events))
 print("LOOPBACK_ONLY=YES")
+if (work / "original-ipp-stderr.txt").exists():
+    trace = (work / "original-ipp-stderr.txt").read_text(
+        encoding="utf-8", errors="replace")
+    print("OEM_IPP_STDERR_TAIL=", trace[-4000:])
 if code == -999 or not bytes_read:
     sys.exit(1)
