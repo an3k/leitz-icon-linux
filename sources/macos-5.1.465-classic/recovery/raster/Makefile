@@ -34,6 +34,6 @@ clean:
 	rm -f raster2printer_boundaries_recovered_test raster2printer_quality_recovered_test raster2printer_dither_recovered_test classic_read_page_test classic_write_data_test classic_process_page_modes_01_test classic_process_page_modes_23_test classic_raster_job_recovered_test classic_raster_cups_adapter original_prn_helpers_test
 
 # Experimental native CUPS shell for the ordinary vendor stdout raster path.
-# Original IPP and PRN paths remain unimplemented in this shell.
-classic_raster_cups_adapter: classic_raster_cups_adapter.c classic_raster_job_recovered.c classic_read_page.c classic_process_page_modes_01.c classic_process_page_modes_23.c raster2printer_boundaries_recovered.c raster2printer_dither_recovered.c raster2printer_quality_recovered.c raster2printer_matrices_recovered.c
-	$(CC) $(CFLAGS) -o $@ classic_raster_cups_adapter.c classic_raster_job_recovered.c classic_read_page.c classic_process_page_modes_01.c classic_process_page_modes_23.c raster2printer_boundaries_recovered.c raster2printer_dither_recovered.c raster2printer_quality_recovered.c raster2printer_matrices_recovered.c -lcups
+# Original IPP remains incomplete; the recovered deferred PRN path is linked.
+classic_raster_cups_adapter: classic_raster_cups_adapter.c classic_raster_job_recovered.c classic_read_page.c classic_process_page_modes_01.c classic_process_page_modes_23.c raster2printer_boundaries_recovered.c raster2printer_dither_recovered.c raster2printer_quality_recovered.c raster2printer_matrices_recovered.c original_prn_helpers.c original_prn_helpers.h
+	$(CC) $(CFLAGS) -o $@ classic_raster_cups_adapter.c classic_raster_job_recovered.c classic_read_page.c classic_process_page_modes_01.c classic_process_page_modes_23.c raster2printer_boundaries_recovered.c raster2printer_dither_recovered.c raster2printer_quality_recovered.c raster2printer_matrices_recovered.c original_prn_helpers.c -lcups

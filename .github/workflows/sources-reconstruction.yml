@@ -105,3 +105,6 @@ jobs:
           "$work/cups-fixture" "$work/mono-127.ras" mono 127
           bash sources/macos-5.1.465-classic/recovery/validation/compare_variable_length.sh \
             "$work" "$raster" "$ppd"
+          echo "Check genuine classic PrintThroughPRN transfer:"
+          bash sources/macos-5.1.465-classic/recovery/validation/compare_prn_with_vendor.sh \
+            "$work" "$raster" "$ppd"

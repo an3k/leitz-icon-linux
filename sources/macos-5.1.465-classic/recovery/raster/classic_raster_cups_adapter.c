@@ -2,11 +2,12 @@
  * Native CUPS 2.x shell for the separately reconstructed classic macOS
  * raster job. This is NEW integration C, not the original manufacturer
  * _main ABI or a 1:1 reconstructed executable. The supported path is
- * the ordinary stdout CUPS raster stream. OEM IPP socket/PRN modes are
- * intentionally not represented as working until fully reconstructed.
+ * the ordinary stdout CUPS raster stream and the OEM's deferred PRN file
+ * transfer mode. The IPP network route remains incomplete.
  */
 #include "classic_raster_job_recovered.h"
 #include "raster2printer_quality_recovered.h"
+#include "original_prn_helpers.h"
 #include <cups/cups.h>
 #include <cups/ppd.h>
 #include <cups/raster.h>
@@ -42,6 +43,20 @@ static int emit_stdout(void *unused,const uint8_t *buf,size_t n) {
     return fwrite(buf,1,n,stdout)>0 ? 0 : -1;
 }
 static void flush_stdout(void *unused) {(void)unused;fflush(stdout);}
+static int emit_prn(void *context,const uint8_t *buf,size_t n) {
+    classic_original_prn_state *state=context;
+    /* The original writes the dump once and ignores a short or failed
+     * fwrite. With __fd_stdout=NULL it does not send directly to stdout. */
+    if(state->dump) fwrite(buf,1,n,state->dump);
+    return 0;
+}
+static void flush_prn(void *context) {
+    classic_original_prn_state *state=context;
+    /* OEM flushes stdout even when deferred mode has disabled its
+     * _WriteData stdout channel. It ignores fflush return codes. */
+    fflush(stdout);
+    if(state->dump) fflush(state->dump);
+}
 static void progress_stdout(void *unused,unsigned page,unsigned row,
                             unsigned percent) {
     (void)unused;(void)row;
@@ -80,8 +95,8 @@ int main(int argc,char **argv) {
     int network=uri && strstr(uri,"ipp")!=NULL;
     cupsFreeOptions(n,arguments);
     ppdClose(ppd);
-    if(deferred_prn || network) {
-        fputs("ERROR: classic macOS IPP/PRN output reconstruction is incomplete\n",
+    if(network) {
+        fputs("ERROR: classic macOS IPP output reconstruction is incomplete\n",
               stderr);
         return 1;
     }
@@ -100,13 +115,21 @@ int main(int argc,char **argv) {
     }
     input inp={0};
     inp.handle=r;
+    classic_original_prn_state prn={0};
+    if(deferred_prn) classic_original_prn_open(&prn);
     classic_raster_job_io io={
-        {&inp,read_header,read_pixels},NULL,
-        emit_stdout,flush_stdout,progress_stdout,terminated
+        {&inp,read_header,read_pixels},deferred_prn ? (void*)&prn : NULL,
+        deferred_prn ? emit_prn : emit_stdout,
+        deferred_prn ? flush_prn : flush_stdout,
+        progress_stdout,terminated
     };
     unsigned pages=0;
     int status=classic_raster_job_run(&io,&cfg,&pages);
     cupsRasterClose(r);
     if(opened) close(fd);
+    if(deferred_prn) {
+        classic_original_prn_close(&prn);
+        if(status==0) classic_original_prn_send(&prn,stdout);
+    }
     return status ? 1 : 0;
 }
