@@ -761,3 +761,61 @@ comparison must both succeed before the result is reported as verified.
 - [Run 38497491545](https://github.com/an3k/leitz-icon-linux/actions/runs/38497491545), commit `379983dcadd7c74f08d4ca1aab8decaa418be901`: **all three jobs successful**. Isolated normal page dispatch, calls to the separately reconstructed OEM page functions, by-value `_EndPage` descriptor and original CUPS-status/buffer cleanup were checked under GCC/Clang, native macOS build, and the unchanged OEM reference suite.
 
 Both new modules remain **source-level reconstruction components**. They do not fully connect the original `_raster2printer` startup, the active raster acquisition, normal page dispatch, reprint/cancellation, device status, or `_EndDocument` into a single manufacturer-equivalent executable. The existing OEM execution comparisons cover their established reference scenarios, not a direct side-by-side invocation of these newly reconstructed private-function branches.
+
+## 2026-10-14 — OEM raster job epilogue recovered
+
+After checking the existing `sources` files at `e95b269152e17f354b24ace2246a48a89904f625`,
+the manufacturer's **actual** `raster2printer` x86-64 Mach-O was read locally
+(confirmed SHA-256 `72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13`).
+The previously missing active `_raster2printer` function exit at
+`0x1000062eb..0x10000685a` was translated into
+`original_raster_job_epilogue.[ch]` with C-level callbacks only for already
+known OEM helper calls. No original vendor source or prior reconstruction
+was overwritten. This segment follows the separately recovered page loop,
+but the two functions are **not** wired into a complete OEM-compatible binary.
+
+The assembly explicitly establishes the following original sequence:
+
+1. Call `_EndDocument` with a **by-value 0x10a8-byte descriptor** copy,
+   including when the job was aborted or the local return code is nonzero.
+2. Close the raster input fd only if **fd != 0**; call `_CloseDebugFile`
+   unconditionally.
+3. If the original descriptor's 32-bit PRN option at offset `0x08` is
+   nonzero, call `_SendDebugFileToPrinter` and print the original
+   `raster2printer.c:440` PRN diagnostic; otherwise print line 444.
+4. If `strstr(descriptor+0x50,"ipp")` is nonnull, the raw **8-byte slot
+   at descriptor offset `0x1090` is nonzero**, and socket fd != -1,
+   close the socket. The OEM's private meaning of that slot is not
+   guessed; the original **raw condition** is reproduced.
+5. If `terminate_flag` is nonzero, build `ESC @ ESC Z 00 00`,
+   increment the original global `job_size` by **six**, and invoke
+   `_WriteData` with all **six** bytes. In particular, do not
+   silently shorten this OEM write to the four non-NUL command bytes.
+6. With signed 32-bit `job_size % 64 == 0`, invoke `_WriteData`
+   once more for a **single `ESC` byte**, including when
+   `job_size==0`. OEM does **not** increment its counter for this extra byte.
+7. Emit exactly `STATE: none`, the manufacturer job-size diagnostic
+   `raster2printer.c:471`, and the finished diagnostic
+   `raster2printer.c:472`, then return the original status result.
+   Individual `close`, PRN transfer and `_WriteData` results are ignored.
+
+Original x86-64 stack-passed **descriptor copies** are represented
+through an analysis callback and in-memory by-value copies. This
+reconstructs defined side-effect order, payload length and byte values
+**but does not restore** the original native machine calling convention,
+global addresses or full program ABI.
+
+Tested locally with real GCC and Clang and Clang ASan/UBSan against
+standalone C mocks for direct stdout vs deferred PRN mode, input and
+socket close order, positive/nonzero and zero socket predicates,
+aborted job, preserved return code, complete six-byte abort payload,
+extra one-byte `ESC` at 64-byte boundaries (including zero),
+the ignored OEM helper return values and **exact original stderr bytes**.
+The existing OEM print-output comparison suite is separate. Native
+macOS and original-comparison GitHub Actions results are recorded only
+once the corresponding new commit has completed successfully.
+
+**Still missing:** Real `_ProcessPage` branch integration, original
+page-loop reprint/cancellation decisions, active device status and
+transport state, and a single complete rebuildable raster2printer
+executable. This new source is *not* linked into the production driver.
