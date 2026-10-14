@@ -39,6 +39,26 @@ static void emit_state(const classic_command_io *io, unsigned char status) {
 int classic_command_get_status(const classic_command_io *io, char command,
                                const char *prefix, int should_send_esc_a,
                                double timeout) {
+  /* OEM _GetPrinterStatus/_GetUnitedStatus/_GetFirmvareVersion
+   * native disassembly and direct execution establish these literal
+   * diagnostics BEFORE the ESC query and backchannel read. They have
+   * no terminating newline, as in the manufacturer's executable. */
+  switch (command) {
+    case 'A':
+      fprintf(stderr,
+        "\ncommand2leitz.c:123:GetPrinterStatus(): send command GetPrinterStatus");
+      break;
+    case 'U':
+      fprintf(stderr,
+        "\ncommand2leitz.c:132:GetUnitedStatus(): send command GetUnitedStatus");
+      break;
+    case 'V':
+      fprintf(stderr,
+        "\ncommand2leitz.c:141:GetFirmvareVersion(): send command GetFirmvareVersion");
+      break;
+    default:
+      break;
+  }
   /* The original sends each byte with putchar, then fflush(stdout). */
   char reply[1024];
   int received;
@@ -48,6 +68,8 @@ int classic_command_get_status(const classic_command_io *io, char command,
 
   received = (int)io->read_backchannel(io->context, reply, 1024, timeout);
   if (received == -1 || received == 0) {
+    if (received == 0)
+      fprintf(stderr,"\ncommand2leitz.c:172:GetStatus(): empty back channel data");
     io->message(io->context, "ATTR: marker-message=NoData");
     return 0;
   }

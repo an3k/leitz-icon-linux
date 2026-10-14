@@ -4,6 +4,7 @@
 #include "original_command_main_flow.h"
 #include "command2leitz_recovered.h"
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -48,8 +49,33 @@ static const char *get_conf(void *ctx,void*file,char *name,size_t sz,char **valu
 static int out_char(void *ctx,int ch){(void)ctx;return putchar(ch);}
 static int out_flush(void *ctx){(void)ctx;return fflush(stdout);}
 static ssize_t back(void *ctx,char *buf,int max,double seconds){(void)ctx;return cupsBackChannelRead(buf,max,seconds);}
-static void msg(void *ctx,const char*s){(void)ctx;fprintf(stderr,"%s\n",s);}
-static int log_file(void *ctx,const char*text){(void)ctx;cups_file_t *f=cupsFileOpen("/private/var/log/leitz.log","w");if(!f)return 0;cupsFilePrintf(f,"%s",text);cupsFileClose(f);return 1;}
+static void msg(void *ctx,const char*s){
+  (void)ctx;
+  /* OEM _GetStatus emits STATE lines with a preceding newline and no
+   * trailing newline; the NoData / ATTR lines have the conventional
+   * CUPS terminal newline. Compare against verified OEM stdout/stderr. */
+  if(!strncmp(s,"STATE:",6)) fprintf(stderr,"\n%s",s);
+  else fprintf(stderr,"%s\n",s);
+}
+static int log_file(void *ctx,const char*text){
+  (void)ctx;
+  cups_file_t *f=cupsFileOpen("/private/var/log/leitz.log","w");
+  if(!f) {
+    /* OEM _GetStatus at original source line 208 prints strerror(errno)
+     * followed by one literal space, without a final newline. */
+    int error=errno;
+    fprintf(stderr,
+      "\ncommand2leitz.c:208:GetStatus(): Failed while opening leitz.log file, error = %s ",
+      strerror(error));
+  } else {
+    cupsFilePrintf(f,"%s",text);
+    cupsFileClose(f);
+  }
+  fprintf(stderr,
+    "\ncommand2leitz.c:217:GetStatus(): data for state-message = : %s",
+    text);
+  return f!=NULL;
+}
 static void notify(void *ctx,const char*domain){(void)ctx;
 #ifdef __APPLE__
   notify_post(domain);
