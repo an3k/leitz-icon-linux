@@ -1281,3 +1281,28 @@ test, **not** an execution of original Mach-O private `_ProcessPage`
 under controlled inputs. The native C++/stack/global ABI and full
 mode 2/3 original control flow remain open. No live printer or
 production Linux driver changes occurred.
+
+## Original ProcessPage modes 0/1 control loop: native CI verified
+
+Source commit `5cef248e9f364c8faf3a0bf9522da03b6b6dc0ba`
+passed [Sources - Reconstruction Compile run 38555305488](https://github.com/an3k/leitz-icon-linux/actions/runs/38555305488):
+**all three jobs successful**, confirmed from the actual GitHub job results.
+
+The new `original_raster_process_page_modes01_test` compiled and
+executed successfully with Linux GCC, Linux Clang, and native macOS
+Clang. Cases included normal mode-0 rows, deferred two-white-row
+mode-1 `ESC f` and separate normal-row write, original trailing
+blank-row omission, 64-row CUPS progress output, termination after
+the first row, the complete independent descriptor argument
+and original job-size counter increments. The manufacturer's
+5.1.465 executable SHA-256/reference test suite also succeeded,
+but this suite did **not** directly execute its private
+`_ProcessPage` function with matching injected callbacks.
+
+New OEM-derived normal-case mode-0/1 loop is therefore **verified
+as a standalone C reconstruction**, not as a completed native
+`_ProcessPage` or full-original functional-equivalence proof.
+Original modes 2/3 have existing isolated row encoders but their
+complete write-call boundaries and state transitions still require
+integration, as does live device transport. No production
+Linux driver or manufacturer file was changed.
