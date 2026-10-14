@@ -1214,3 +1214,70 @@ in [run 38552792069](https://github.com/an3k/leitz-icon-linux/actions/runs/38552
 A complete original private-function invocation under injected inputs
 or real Leitz hardware has **not** occurred. `_ProcessPage` remains
 the primary still-incomplete native-function reconstruction.
+
+## 2026-10-14 — ProcessPage OEM modes 0/1 control-loop recovery
+
+Before modifying files, `sources` was confirmed at
+`e2e568155b1fa7b1d51fd5d9ed7681e5e25de0d3`; the already
+reconstructed four isolated row encoders, macOS CUPS adapter and
+document/page lifecycle were present and CI-verified. Neither the
+original manufacturer binaries nor those completed encoders were
+rewritten.
+
+A new native macOS original-Mach-O audit at commit
+`bd0e1d5dd5f58226b940bf8366ffff1813091c51`
+captured the complete 165-instruction original `_ProcessPage`
+entry/setup/progress segment `0x100007560..0x1000078eb` and
+the original 68-instruction output/termination/return segment
+`0x100008850..0x1000089b0`. It was run against the
+SHA-256-verified OEM file:
+`72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13`.
+These are explicit native machine-code fragments, not inferred
+from the different Linux OEM version.
+
+New `original_raster_process_page_modes01.[ch]` creates a **callable
+normal-case ProcessPage C control loop for manufacturer optimization
+modes 0 and 1**. It reuses the **unchanged**
+`classic_process_page_modes_01.c` row encoder, but reconstructs
+additional originally missing behavior:
+
+- Per-page initialization and single four-byte `ESC D <stride> SYN`
+  `_WriteData`, with the original global `job_size += 4`.
+- 16-bit OEM CUPS raster height and 32-bit stride from the original
+  `0x10a8`-byte descriptor; no fixed print length.
+- At row indices divisible by 32, original
+  `INFO: Printing page %d, %d%% complete...` and
+  `ATTR: job-media-progress=%d` diagnostics (not a device
+  acknowledgement), calculated using the original floating-point
+  conversion and truncation.
+- Mode 0: full row transfer of **packed stride + four bytes** per
+  original `_WriteData`, with global job counter increments.
+  The last row's four extra bytes may come from **uninitialized OEM
+  memory** on a buffer sized to the pixel data alone. The new
+  reconstruction explicitly requires caller-readable padding for
+  deterministic tests; it does **not** silently assert those four
+  bytes are genuine raster data or change the OEM encoder.
+- Mode 1: defer all-zero rows using the original 16-bit skipped-row
+  counter. When a nonwhite row appears, emit `ESC f` in a
+  **separate** four-byte `_WriteData`, then issue the original
+  packed-stride-plus-four row write. Trailing deferred whites
+  remain unsent.
+- Check the manufacturer's termination flag **after every
+  processed row**, including the last or an empty row. The OEM's
+  initial result slot is zero and normal cancellation returns zero.
+  Original negative/zero `_WriteData` responses do not cause
+  new recovery/error branches.
+- Modes 2 and 3 are **not** implemented by this new entry point;
+  `-2` is a documented reconstruction-only unsupported-mode
+  sentinel. Existing isolated mode 2/3 algorithms are left
+  untouched pending precise native write-call boundary/ABI proof.
+
+The dedicated test covers all row-command write sizes and bytes,
+separate skip-vs-row calls, 64-row progress diagnostics, 16-bit
+trailing whites, per-row abort, stdout diagnostics, combined
+job counter and ignored write errors, with an explicitly padded
+test input for the original overread. It is a source-level callback
+test, **not** an execution of original Mach-O private `_ProcessPage`
+under controlled inputs. The native C++/stack/global ABI and full
+mode 2/3 original control flow remain open. No live printer or
+production Linux driver changes occurred.
