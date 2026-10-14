@@ -999,3 +999,59 @@ test, **not** an execution of original Mach-O private `_ProcessPage`
 under controlled inputs. The native C++/stack/global ABI and full
 mode 2/3 original control flow remain open. No live printer or
 production Linux driver changes occurred.
+
+## 2026-10-14 — ProcessPage modes 2/3 native write-boundary control
+
+After verifying branch `sources` at
+`439605e7cc6a2419abc3581794bea6f6f76acef3`, the existing
+original mode-2/3 row encoders, source inventory and previous
+successful tests were inspected. No manufacturer file or previously
+recovered encoder was replaced.
+
+The original macOS 5.1.465 `raster2printer` Mach-O
+(SHA256 `72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13`)
+was disassembled at all direct mode-2/3 output calls by
+[run 38555919428](https://github.com/an3k/leitz-icon-linux/actions/runs/38555919428),
+**all three CI jobs successful**. Its original machine-code call sites
+confirm that the existing combined row bytes need **multiple**
+`_WriteData` invocations with separate job-size accounting:
+
+- Both modes: deferred `ESC f` is emitted separately when a later
+  nonempty row follows blank rows.
+- Mode 3: `ESC B` at `0x100007c38`, `ESC D` at
+  `0x100007d6d` as individually conditioned three-byte writes;
+  the raw `0x16` selector and actual raster bytes are sent **together**
+  at `0x100007e5e`.
+- Mode 2: `ESC B` at `0x10000808c`, `ESC D` at
+  `0x10000820e`, the **single-byte** raw/compression selector
+  at `0x10000866e` or `0x1000087b6`, and the following
+  separately transferred raw/run-encoded payload at
+  `0x1000086fd` or `0x10000885d`.
+- Both modes: the original status strings
+  `INFO: Printing page` and `ATTR: job-media-progress` are
+  emitted every 32 rows; the original termination flag is checked
+  after each row. The original does not flush trailing deferred
+  blank rows as a new command.
+
+New `original_raster_process_page_modes23.[ch]` translates these
+**normal-case** control effects and reuses
+`classic_process_page_modes_23.c` without duplicating its bit-run
+codec, trimming conditions, persistent width state, or row bytes.
+It maintains the original per-call job-size count and passes an
+independent `0x10a8`-byte descriptor copy to each output callback.
+The per-job width cache is provided by the caller to retain values
+across printed pages. It explicitly refuses unsupported non-2/3
+modes via a **reconstruction-only -2** sentinel.
+
+The standalone test validates exact combined OEM output bytes **and**
+their distinct transfer boundaries for mode-2 compressed and raw
+rows, mode-3 trimmed and untrimmed rows, persisted widths across
+pages, reset per-page offsets, blank-row deferral, progress, per-row
+SIGTERM and ignored WriteData failures. This is still a callback-based
+C reconstruction and not proof of ABI-identical manufacturer
+execution; out-of-bounds native data and all undocumented errors
+remain outside the defined normal-case model.
+
+The next stage is to connect modes 0/1 and 2/3 dispatch to the
+already joined raster page coordinator without changing original
+row encoders or adding a fixed media length.
