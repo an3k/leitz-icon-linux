@@ -650,3 +650,57 @@ No changes to `originals/`, `enhancements/`, the active Linux/Unraid
 driver, or previously recovered C implementations were made. The original
 native job/page-processing body after `_StartDocument`, its precise
 ABI and complete hardware behavior still require reconstruction.
+
+## 2026-10-14 — OEM active inline raster page acquisition recovered
+
+After confirming branch `sources` remained at
+`9c22be4bee0f50ac5a4803d3357741562292d211`,
+the original macOS 5.1.465 `raster2printer` `_raster2printer` Mach-O
+was examined directly from the SHA-256 verified manufacturer's binary
+(`72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13`),
+at `0x1000056c3..0x100005f22`.
+
+`original_raster_active_page_read.[ch]` reconstructs the **previously
+missing inline page-acquisition branch of the active `_raster2printer`
+routine**, not the existing separate exported `_ReadPage` (which remains
+unchanged). The two OEM functions have materially different behavior.
+
+Evidence-grounded details:
+- `cupsRasterReadHeader2` is called once. A zero result prints
+  `No more available page : %i` at original source line 346, retaining
+  the previous requested-byte count.
+- On a nonzero header it increments the page count and reports media type
+  and size name at original line 300. It copies the original 16-bit page
+  width/height, 32-bit CUPS stride, color space and bits-per-pixel into
+  the already recovered original descriptor offsets, computes the original
+  packed stride and uses the original unchecked `strcpy`.
+- OEM diagnostic lines 310, 312 and 314 report media name, CUPS bytes per
+  line and computed packed bytes per line.
+- This **active** path calls `malloc` with the original signed 32-bit
+  product of `cupsBytesPerLine * cupsHeight`. It reports original
+  allocation success/failure at lines 322/326, then makes **one**
+  `cupsRasterReadPixels` call, even if `malloc` returned null.
+- Zero pixels resets the requested-byte count to zero and stops the page.
+  It **does not free the page buffer here**. This differs from the
+  previously recovered standalone `_ReadPage` which uses `calloc`
+  and frees its buffer on a zero read.
+- Any positive pixel count (including a short read) prints the original
+  line 340 report and allocates a **second** `ditheredPage` buffer with
+  `cupsBytesPerLine * (uint16_t)cupsHeight`, reporting original lines
+  356/360. The allocation is **not** limited to a fixed paper length.
+
+The test invokes a deliberately minimal CUPS fixture with a positive
+short read, zero-pixel second page and EOF third call. It verifies exact
+OEM diagnostic text, state transitions, page counter, truncated geometry,
+original 24-bit packed-stride calculation, allocation ordering and
+non-freeing of the zero-read buffer. The test frees only its own
+buffers outside the reconstructed function.
+
+**Scope limitations:** Existing callback-based CUPS adapter and
+`_ReadPage` remain untouched. OEM reprint reuse, termination
+after page output, diagnostic messages before this region, original
+printing after the dither allocation, and allocation-failure undefined
+paths are not recovered here. Test mocks do not call the private
+`_raster2printer` function inside the manufacturer executable, and
+no complete executable equivalence is claimed. No safety hardening,
+fixed paper length, or altered manufacturer error behavior was added.
