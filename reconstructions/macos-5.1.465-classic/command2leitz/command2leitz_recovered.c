@@ -12,8 +12,8 @@ static const char united_status_prefix[] = "UNITED_STATUS_";
 static const char firmware_version_prefix[] = "FIRMWARE_VERSION_";
 static const char notification_domain[] = "com.xyron.Leitz-Icon-Software";
 
-static void send_end_of_job(const classic_command_io *io,
-                            int should_send_esc_a) {
+void EndOfJob(const classic_command_io *io,
+              int should_send_esc_a) {
   /* Vendor _EndOfJob ignores its only input argument. */
   (void)should_send_esc_a;
   io->put_character(io->context, 0x1b);
@@ -37,7 +37,7 @@ static void emit_state(const classic_command_io *io, unsigned char status) {
   }
 }
 
-int classic_command_get_status(const classic_command_io *io, char command,
+int GetStatus(const classic_command_io *io, char command,
                                const char *prefix, int should_send_esc_a,
                                double timeout) {
   /* OEM _GetPrinterStatus/_GetUnitedStatus/_GetFirmvareVersion
@@ -101,8 +101,29 @@ int classic_command_get_status(const classic_command_io *io, char command,
       }
     }
   }
-  send_end_of_job(io, should_send_esc_a);
+  EndOfJob(io, should_send_esc_a);
   return 1;
+}
+
+/* Original-named _GetStatus entry and the three original query
+ * functions are linked into the native CUPS candidate without copying
+ * or reimplementing their validated normal/error paths. */
+int classic_command_get_status(const classic_command_io *io,char command,
+                               const char *prefix,int should_send_esc_a,
+                               double timeout) {
+  return GetStatus(io,command,prefix,should_send_esc_a,timeout);
+}
+int GetPrinterStatus(const classic_command_io *io,int should_send_esc_a,
+                     double timeout) {
+  return GetStatus(io,'A',printer_status_prefix,should_send_esc_a,timeout);
+}
+int GetUnitedStatus(const classic_command_io *io,int should_send_esc_a,
+                    double timeout) {
+  return GetStatus(io,'U',united_status_prefix,should_send_esc_a,timeout);
+}
+int GetFirmvareVersion(const classic_command_io *io,int should_send_esc_a,
+                       double timeout) {
+  return GetStatus(io,'V',firmware_version_prefix,should_send_esc_a,timeout);
 }
 
 int classic_command_dispatch(const classic_command_io *io, const char *name,
@@ -111,16 +132,13 @@ int classic_command_dispatch(const classic_command_io *io, const char *name,
    * jumps straight to its common epilogue with exit code 1, irrespective
    * of _GetStatus's return value; the other two return to the read loop. */
   if (strcasecmp(name, "ReportStatus") == 0) {
-    classic_command_get_status(io, 'A', printer_status_prefix,
-                               should_send_esc_a, 7.0);
+    GetPrinterStatus(io,should_send_esc_a,7.0);
     return 1;
   }
   if (strcasecmp(name, "GetUnitedStatus") == 0) {
-    classic_command_get_status(io, 'U', united_status_prefix,
-                               should_send_esc_a, 7.0);
+    GetUnitedStatus(io,should_send_esc_a,7.0);
   } else if (strcasecmp(name, "GetFirmwareVersion") == 0) {
-    classic_command_get_status(io, 'V', firmware_version_prefix,
-                               should_send_esc_a, 7.0);
+    GetFirmvareVersion(io,should_send_esc_a,7.0);
   }
   (void)value;
   return 0;

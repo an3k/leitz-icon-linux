@@ -4,6 +4,7 @@
 #include "original_command_main_flow.h"
 #include "command2leitz_recovered.h"
 #include "original_command_file_helpers.h"
+#include "classic_command_write_data.h"
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -91,10 +92,24 @@ static void notify(void *ctx,const char*domain){(void)ctx;
   (void)domain;
 #endif
 }
+/* The OEM _main calls the three named helper entry points, which
+ * in turn call the common reconstructed _GetStatus implementation. */
 static int query(void *ctx,char command,const char*prefix,int send,double timeout){
   (void)ctx;
+  (void)prefix;
   classic_command_io io={NULL,out_char,out_flush,back,msg,log_file,notify};
-  return classic_command_get_status(&io,command,prefix,send,timeout);
+  if(command=='A')return GetPrinterStatus(&io,send,timeout);
+  if(command=='U')return GetUnitedStatus(&io,send,timeout);
+  if(command=='V')return GetFirmvareVersion(&io,send,timeout);
+  return 0; /* not reachable from the OEM command-main routing table */
+}
+
+/* Original _WriteData (0x100001a80) is dormant in this status-only
+ * filter path. Expose the already reconstructed output/sink decision
+ * as a named function for source-level reconstruction and ABI study.
+ * It does not create any new output in normal status processing. */
+int WriteData(const classic_command_output *io,const void *data,size_t size){
+  return classic_command_write_data(io,data,size);
 }
 static int query_a(void*ctx,int flag,double timeout){return query(ctx,'A',"PRINTER_STATUS_",flag,timeout);}
 static int query_u(void*ctx,int flag,double timeout){return query(ctx,'U',"UNITED_STATUS_",flag,timeout);}
