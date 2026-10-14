@@ -66,3 +66,7 @@ equivalence.
 ## Joined native original variable-length and PRN comparison (2026-10-14)
 
 `compare_connected_extended_with_vendor.sh` checks complete byte output and exit status of the original Mach-O vs the joined native CUPS reconstruction: 33 and 127 CUPS raster rows, cutter OFF, modes 2/3, plus a separate original PRN transfer with full stdout and PRN-file comparison. All five cases passed in [run 38574138676](https://github.com/an3k/leitz-icon-linux/actions/runs/38574138676), and the results were maintained following `_FlushDataStreams` integration in [run 38574758345](https://github.com/an3k/leitz-icon-linux/actions/runs/38574758345). No real printer was involved.
+
+## Exact native OEM raster stderr reference (2026-10-14)
+
+`compare_connected_with_vendor.sh` now compares complete stderr as well as stdout and return status for each two-page monochrome/RGB24 mode-2/3 case. After correcting manufacturer packed-width diagnostics and the original `_ProcessPage` initial 0xff sentinel condition, [run 38593969771](https://github.com/an3k/leitz-icon-linux/actions/runs/38593969771) passed all four whole-process exact-matching cases, together with the existing variable-length, PRN and connected command comparisons. Transient disassembly-only CI logging was removed after its results were incorporated into the reconstructed C comments and analysis report. No hardware was used.

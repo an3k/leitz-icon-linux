@@ -93,3 +93,5 @@ confirmed byte-identical **stdout AND entire stderr** and identical
 exit status for 13 synthetic OEM backchannel replies. The comparison
 confirms the interposer acted in both executable processes. This
 does not prove all original command paths or ABI equivalents.
+
+**Connected manufacturer stderr equality (2026-10-14):** [CI run 38593969771](https://github.com/an3k/leitz-icon-linux/actions/runs/38593969771) verifies full stdout, entire stderr and process exit for the joined macOS original-derived CUPS filter in four full mono/RGB jobs, modes 2/3. OEM `_DitherPage` packed-width diagnostics and the `_ProcessPage` source-line 860 initial 0xff sentinel were recovered using actual manufacturer execution plus native disassembly. This establishes tested observable output equality, not full native ABI equivalence or live hardware behavior.

@@ -159,6 +159,17 @@ int main(void){
     assert(strstr(logs,"\nINFO: Printing page 1, 0% complete..."));
     assert(strstr(logs,"\nINFO: Printing page 1, 50% complete..."));
     assert(strstr(logs,"\nATTR: job-media-progress=50"));
+    /* Manufacturer 0xff sentinel is initialized once per mode-2 row.
+     * Three fixture rows have an initial set bit; long black runs do
+     * NOT generate additional copies of this diagnostic. */
+    const char *diag="raster2printer.c:860:ProcessPage(): first bit/byte. do not send 255";
+    const char *cursor=logs;
+    unsigned diag_count=0;
+    while((cursor=strstr(cursor,diag))!=NULL) {
+        ++diag_count;
+        cursor+=strlen(diag);
+    }
+    assert(diag_count==3);
     assert(strstr(logs,"\nINFO: Printing page 3, 0% complete..."));
     puts("OEM mode-2/3 normal ProcessPage command boundaries, progress and state passed");
     return 0;
