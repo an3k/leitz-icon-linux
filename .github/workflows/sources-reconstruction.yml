@@ -101,7 +101,7 @@ jobs:
           clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
             -c reconstructions/macos-5.1.465-classic/raster2printer/original_raster_native_write_data_entry_test.c \
             -o "$RUNNER_TEMP/raster_write_data_native_abi.o"
-      - name: Compile OEM CheckPrinterStatus original by-value descriptor ABI
+      - name: Compile OEM CheckPrinterStatus original descriptor-pointer ABI
         run: |
           clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
             -c reconstructions/macos-5.1.465-classic/raster2printer/original_raster_native_status_entry_test.c \

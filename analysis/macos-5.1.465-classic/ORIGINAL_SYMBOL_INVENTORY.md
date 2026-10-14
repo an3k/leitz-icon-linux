@@ -10,7 +10,7 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 | OEM symbol | Original macOS offset | Current reconstructed scope |
 |---|---|---|
 | `start` | 0x100001410 | Not recovered independently |
-| `_WriteData` | 0x100001450 | Recovered socket/stdout/PRN sink decisions and error messages via `classic_write_data_core`; now exposed as named `WriteData` in the joined OEM-derived macOS CUPS executable, with full 0x10a8 descriptor-byte input; original C++ by-value calling ABI still incomplete |
+| `_WriteData` | 0x100001450 | Recovered manufacturer 3-register + 0x10a8-byte **by-value** descriptor call surface, proven at OEM `_CheckPrinterStatus` 0x100009759–0x100009792 (socket in `%edx`, `rep movsq` of 0x215 qwords, `callq _WriteData`). Linked into joined native CUPS candidate and delegates to existing verified `classic_write_data_core`, exact output parity CI 38651986542. Other private C++ ABI/incomplete error paths remain open |
 | `_FlushDataStreams` | 0x1000015f0 | Recovered stdout/optional PRN flush and connected via named `FlushDataStreams` entry to joined CUPS output lifecycle; exact native C++ global-state ABI remains open |
 | `_is_bit_set` | 0x100001630 | Recovered OEM 32-bit bit-test helper exposed as named `is_bit_set` entry in joined raster executable; encoder still uses independently verified identical bit arithmetic |
 | `_OpenDebugFile` | 0x100001660 | Recovered OEM PRN/debug file opening now linked through named `OpenDebugFile` and used by the joined raster job |
