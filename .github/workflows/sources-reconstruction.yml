@@ -100,7 +100,7 @@ jobs:
         run: |
           binary="reconstructions/macos-5.1.465-classic/raster2printer/original_raster2printer_cups_candidate"
           nm -g "$binary" > "$RUNNER_TEMP/oem-raster-linked-symbols.txt"
-          for name in _OpenLogFile _CloseLogFile _OpenDebugFile _CloseDebugFile _FlushDataStreams _is_bit_set _WriteDebugBuffer _SendDebugFileToPrinter; do
+          for name in _OpenLogFile _CloseLogFile _OpenDebugFile _CloseDebugFile _FlushDataStreams _is_bit_set _WriteDebugBuffer _SendDebugFileToPrinter _WriteData; do
             grep -Eq "[[:space:]]$name$" "$RUNNER_TEMP/oem-raster-linked-symbols.txt"
           done
       - name: Build and execute OEM-derived URI resolver without a network connection

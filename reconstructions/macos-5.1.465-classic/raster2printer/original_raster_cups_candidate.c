@@ -171,10 +171,15 @@ static size_t write_dump(void *ctx,const void *bytes,size_t size) {
      * Its own write result comes from the chosen stdout/socket sink. */
     return 1;
 }
-static int write_data(void *ctx,const uint8_t *bytes,size_t size,
-                      const void *descriptor,size_t descriptor_size,
-                      int socket_fd) {
-    classic_cups_context *c=ctx;
+/* Native OEM exported _WriteData boundary, macOS address 0x100001450.
+ * The manufacturer passes a full by-value descriptor; this C-only
+ * adapter receives its bytes explicitly. The underlying recovered sink
+ * function and all original errors/return semantics are unchanged.
+ * This is not the original C++ x86_64 function calling convention.
+ */
+int WriteData(const uint8_t *bytes,size_t size,
+              const void *descriptor,size_t descriptor_size,int socket_fd) {
+    classic_cups_context *c=&candidate;
     /* _WriteData reads scheme at OEM descriptor +0x50, and selects
      * one send(fd,bytes,size,0) only if it contains "ipp" and fd!=-1. */
     if(descriptor_size!=CLASSIC_OEM_DOCUMENT_DESCRIPTOR_SIZE) return 0;
@@ -186,6 +191,12 @@ static int write_data(void *ctx,const uint8_t *bytes,size_t size,
         native_send,write_stdout,write_dump
     };
     return classic_write_data_core(&io,bytes,size);
+}
+static int write_data(void *ctx,const uint8_t *bytes,size_t size,
+                      const void *descriptor,size_t descriptor_size,
+                      int socket_fd) {
+    (void)ctx;
+    return WriteData(bytes,size,descriptor,descriptor_size,socket_fd);
 }
 static void flush_data_streams(void *ctx) {
     (void)ctx;
