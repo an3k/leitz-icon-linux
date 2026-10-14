@@ -819,3 +819,24 @@ once the corresponding new commit has completed successfully.
 page-loop reprint/cancellation decisions, active device status and
 transport state, and a single complete rebuildable raster2printer
 executable. This new source is *not* linked into the production driver.
+
+## Verified original job-exit recovery build — 2026-10-14
+
+New independent `_raster2printer` job epilogue at commit
+`f085dca1c245c384adb511dae64c6b118c1e99cd` passed
+[Sources - Reconstruction Compile run 38498514631](https://github.com/an3k/leitz-icon-linux/actions/runs/38498514631):
+**all three jobs successful** — native GCC and Clang tests, native macOS
+compilation and tests with Clang, plus the established original
+Leitz 5.1.465 Mach-O execution comparisons. The actual original
+`_raster2printer` internal exit branch was analyzed directly from the
+verified Mach-O bytes; the newly exposed callback routine was tested
+against a mock environment. No claim of direct OEM-private-function
+execution equivalence or whole-program identity is made.
+
+**Newly evidenced:** The original job-end abort write transmits SIX
+bytes `1b 40 1b 5a 00 00`, not merely four command bytes. Another
+single `1b` byte is sent when original signed job-size modulo 64 is
+zero, including for a zero-size job, without incrementing the counter.
+These original behaviors should not be silently 'fixed' inside the
+`sources` reconstruction. Native reprint/transport state and complete
+OEM executable rebuild still remain uncompleted.
