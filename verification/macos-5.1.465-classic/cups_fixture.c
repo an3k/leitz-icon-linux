@@ -9,6 +9,7 @@ int main(int argc,char **argv) {
  if(argc<2 || argc>4)return 2;
  int rgb=argc>=3 && !strcmp(argv[2],"rgb");
  int blank=argc>=3 && !strcmp(argv[2],"blank");
+ int last_blank=argc>=3 && !strcmp(argv[2],"tailblank");
  unsigned height=argc==4 ? (unsigned)strtoul(argv[3],NULL,10) : 80u;
  if(height==0 || height>1024)return 2;
  int fd=open(argv[1],O_CREAT|O_TRUNC|O_WRONLY,0600);
@@ -38,7 +39,7 @@ int main(int argc,char **argv) {
     if(cupsRasterWritePixels(r,row,2112)!=2112)return 6;
     continue;
    }
-   if(blank) {
+   if(blank || (last_blank && y+1u==h.cupsHeight)) {
     if(cupsRasterWritePixels(r,row,88)!=88)return 6;
     continue;
    }

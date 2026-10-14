@@ -219,6 +219,12 @@ jobs:
           bash verification/macos-5.1.465-classic/compare_rgb_with_vendor.sh \
             "$work" "$raster" "$ppd" \
             "Bayer8x8SuperCell1 Bayer8x8SuperCell2 SuperCell1 SuperCell3 CUPSThresold64x64 SuperCell Bayer14x14 Clustered8x8 Dispersed8x8 Nasik4x4"
+          echo "Verify joined OEM mode-1 mixed pixels with defined last-row reads:"
+          for height in 33 80; do
+            "$work/cups-fixture" "$work/tailblank-$height.ras" tailblank "$height"
+          done
+          bash verification/macos-5.1.465-classic/compare_mode1_mixed_with_vendor.sh \
+            "$work" "$raster" "$ppd"
           echo "Verify joined reconstructed mode-1 all-white original CUPS jobs:"
           for height in 1 33 127; do
             "$work/cups-fixture" "$work/blank-$height.ras" blank "$height"
