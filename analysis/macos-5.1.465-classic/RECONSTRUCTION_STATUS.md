@@ -535,3 +535,20 @@ The SHA-256 verified original macOS 5.1.465 `raster2printer` Mach-O was inspecte
 The isolated source uses a small callback solely to inject `ppdFindMarkedChoice` results. Original CUPS option-array traversal, marking conflicts, and the remaining `_raster2printer` body have **not** been reconstructed into this helper, and there is no claim that the OEM entire function has become equivalent. The existing recovered `classic_raster_quality_selector` is reused by the production fragment; its name-to-index mapping already has its own tests. The isolated test uses a stub of that mapping only to verify caller semantics.
 
 GCC, Clang, and Clang ASan/UBSan builds and local unit tests **passed**. Cases include all 15 quality choices, absent choices, exact diagnostic strings, case sensitivity, negative optimization, field offsets, and original default initialization. The sources GitHub workflow will build the new tests on Linux and macOS; its result must be checked separately.
+
+## Verified classic PPD option recovery build — 2026-10-14
+
+At commit `5b0a80c1ab2e390563ac2a7edf26f49416d4adcc`,
+[Sources - Reconstruction Compile, run 38494696509](https://github.com/an3k/leitz-icon-linux/actions/runs/38494696509)
+finished with **all three jobs successful**. GCC and Clang compiled and ran the
+new isolated PPD selector test (including all 15 original halftone labels,
+six manufacturer option lookups, case sensitivity, unsigned optimization
+fallback, descriptor fields and exact option diagnostics). Native Apple macOS
+also compiled and executed these tests. The previous original-vendor execution
+comparison suite completed without regression.
+
+The new PPD-choice fragment has **not been executed inside the original OEM
+binary with injected choices** or integrated into the full
+`_raster2printer` function; this is confirmed **isolated reconstruction and
+test completion**, not a statement of whole-binary functional identity.
+Original manufacturer's files and the current driver were not changed.
