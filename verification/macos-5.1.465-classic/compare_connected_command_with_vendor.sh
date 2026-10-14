@@ -17,7 +17,10 @@ for case in "ReportStatus READY" "ReportStatus NONE" "ReportStatus MEDIA_JAM" \
             "GetFirmwareVersion V_42" \
             "Sequence_UV READY" "Sequence_VU READY" \
             "Sequence_U_Report READY" "Sequence_Report_U READY" \
-            "Sequence_Case READY" "Sequence_Unknown READY"; do
+            "Sequence_Case READY" "Sequence_Unknown READY" \
+            "ESC_No_Report READY" "ESC_No_United U_42" \
+            "ESC_No_Firmware V_42" "ESC_Yes_Report READY" \
+            "ESC_Yes_United U_42" "ESC_Yes_Firmware V_42"; do
   read -r command answer <<< "$case"
   case "$command" in
     Sequence_UV) printf 'GetUnitedStatus YES\nGetFirmwareVersion YES\n' > "$work/command-original-main.conf" ;;
@@ -26,14 +29,22 @@ for case in "ReportStatus READY" "ReportStatus NONE" "ReportStatus MEDIA_JAM" \
     Sequence_Report_U) printf 'ReportStatus YES\nGetUnitedStatus YES\n' > "$work/command-original-main.conf" ;;
     Sequence_Case) printf 'getunitedstatus YES\nGETFIRMWAREVERSION YES\n' > "$work/command-original-main.conf" ;;
     Sequence_Unknown) printf 'ReportState YES\nGetUnitedStatus YES\n' > "$work/command-original-main.conf" ;;
+    ESC_No_Report|ESC_Yes_Report) printf 'ReportStatus YES\n' > "$work/command-original-main.conf" ;;
+    ESC_No_United|ESC_Yes_United) printf 'GetUnitedStatus YES\n' > "$work/command-original-main.conf" ;;
+    ESC_No_Firmware|ESC_Yes_Firmware) printf 'GetFirmwareVersion YES\n' > "$work/command-original-main.conf" ;;
     *) printf '%s YES\n' "$command" > "$work/command-original-main.conf" ;;
   esac
+  ppd_opts=""
+  case "$command" in
+    ESC_No_*) ppd_opts="ShouldSend_ESC_A=NO" ;;
+    ESC_Yes_*) ppd_opts="ShouldSend_ESC_A=YES" ;;
+  esac
   PPD="$ppd" LEITZ_MOCK_REPLY="$answer" DYLD_INSERT_LIBRARIES="$module" \
-    "$original" 201 testuser Classic 1 "" "$work/command-original-main.conf" \
+    "$original" 201 testuser Classic 1 "$ppd_opts" "$work/command-original-main.conf" \
     > "$work/command-main-vendor.out" 2> "$work/command-main-vendor.err"
   a=$?
   PPD="$ppd" LEITZ_MOCK_REPLY="$answer" DYLD_INSERT_LIBRARIES="$module" \
-    "$candidate" 201 testuser Classic 1 "" "$work/command-original-main.conf" \
+    "$candidate" 201 testuser Classic 1 "$ppd_opts" "$work/command-original-main.conf" \
     > "$work/command-main-joined.out" 2> "$work/command-main-joined.err"
   b=$?
   if [[ "$a" == "$b" ]] &&
