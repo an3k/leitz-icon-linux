@@ -23,7 +23,7 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 | `_test_raster` | 0x100003c60 | Reconstructed from original assembly in `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_test_raster.c`; dormant function, not called by normal printing |
 | `_PrintPageDebugInfo` | 0x100003e50 | Seven original diagnostic calls recovered in `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_page_debug.c`; not linked into the active filter |
 | `__Z14signal_handleri` | 0x100004420 | Recovered original diagnostic + termination state in `original_raster_private_helpers.c`; C test-only function is not yet connected with active CUPS entry |
-| `_main` | 0x100004460 | OEM-defined call order and literal diagnostics reconstructed in `original_raster_main.c`; full native executable linkage still outstanding |
+| `_main` | 0x100004460 | OEM-derived C entry now linked into `original_raster2printer_cups_candidate` with actual Apple CUPS SDK; OEM symbol ABI and every original error/global case remain incomplete |
 | `_raster2printer` | 0x1000045a0 | Source-level joined C job executes original document/page lifecycle, the normal `_ProcessPage` modes 2/3 and the recovered RGB24 `_DitherPage` through its new callback bridge; mode 0/1 full-page integration still has an OEM four-byte overread, and full native CUPS/device ABI remains incomplete |
 | `_StartDocument` | 0x100006890 | Complete defined output/write-count sequence reconstructed in `original_raster_document_lifecycle.[ch]`; reusable original command bytes retained |
 | `_DitherPage` | 0x100006dd0 | Full defined RGB24 path including OEM descriptor and diagnostics reconstructed in `original_dither_page.[ch]`, reusing the existing halftone loop; now also wired through `original_raster_dither_bridge.[ch]` into the joined source-level raster job (GCC, Clang and macOS CI verified); original global/undefined-case ABI pending |
@@ -32,7 +32,7 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 | `_EndPage` | 0x1000089b0 | Native 2/4-byte `_WriteData`, counter and unconditional `_FlushDataStreams` recovered in `original_raster_page_lifecycle.[ch]` |
 | `_EndDocument` | 0x100008ac0 | Complete defined ESC E / conditional flush, ESC @ ESC Z, job size, CUPS close and stream-pointer reset recovered in `original_raster_document_lifecycle.[ch]` |
 | `_ReadPage` | 0x100008d20 | Complete defined branch recovery and original field-offset descriptor in `original_read_page.[ch]`; C++ ABI and whole-executable integration incomplete |
-| `_CheckPrinterStatus` | 0x100009190 | Entry decision + reply classifier only; native I/O/retries incomplete |
+| `_CheckPrinterStatus` | 0x100009190 | Recovered normal status and retry logic plus original send/recv flags, complete 0x10a8-byte descriptor copy for reset and ignored WriteData result; isolated callback ABI, undefined socket failures and global integration remain incomplete |
 | `_ResolveDeviceURI` | 0x100009a30 | Independently recovered native resolver, integration incomplete |
 
 Other symbol entries: `__mh_execute_header` at 0, `__ZL7strrchrUa9enable_ifIXLb1EEEPKci` at 0x100004570, `__ZL6strstrUa9enable_ifIXLb1EEEPcPKc` at 0x100008cf0, `__ZL12_OSSwapInt16t` at 0x100009fe0, `__ZL16__libcpp_strrchrPKci` at 0x10000a010, and `__ZL15__libcpp_strstrPKcS0_` at 0x10000a040. These five local helper bodies are now independently recovered in `reconstructions/macos-5.1.465-classic/raster2printer/original_raster_private_helpers.c`; their original C++ mangled ABI remains separate from the C test interface.
@@ -79,3 +79,10 @@ control/error/file/network side-effect equivalence for both programs remains
 outstanding. The genuine compiler-generated original C source does not exist
 in the vendor installer, and original source wording cannot be recovered
 verbatim from these executables.
+
+**Native OEM whole-output comparison (2026-10-14):**
+[run 38561245944](https://github.com/an3k/leitz-icon-linux/actions/runs/38561245944)
+matched four original two-page outputs exactly (mono/RGB, mode 2/3)
+through the newly linked native CUPS entry. This is stronger evidence
+than an isolated-function test but does not establish binary/native
+ABI equivalence or hardware print/cut confirmation.

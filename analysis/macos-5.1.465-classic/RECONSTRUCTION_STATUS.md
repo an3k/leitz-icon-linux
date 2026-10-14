@@ -1475,3 +1475,63 @@ installed as a printer filter; the active Linux driver is untouched.
 Commits: `a1665fbe018452676ff4045aaf861c13a9a23a31` (integration)
 and `75f30a367e3dd3390247f46df64338c8cccebc36` (remove obsolete
 duplicate test selector after CI identified symbol collision).
+
+## 2026-10-14 — original CUPS candidate verified against native OEM executable
+
+Actual branch `sources` was inspected at
+`920bb13a5c6ac531f98b2b05579f0ac271b54e27` before continuing.
+The existing document, page, raster, dither, error handling and
+status reconstructions were not replaced.
+
+**Status path** (`769ba82aa6590bcc75b494112fb9527ff9b21cc1`):
+Direct disassembly of SHA-256-verified original macOS `_CheckPrinterStatus`
+at `0x1000092a0..0x1000093e2` and `0x1000096d2..0x100009797`
+established the `send(...,2,0)` / `recv(...,64,0)` arguments,
+independent full **0x10a8-byte** OEM descriptor copy passed to
+`_WriteData` with the original socket argument, and the ignored
+write return. The existing isolated C callback interface and test
+were corrected. The original reset is still four bytes
+`ESC @ ESC Z`, and `job_size` increases by four. The original
+undefined socket-short-send / unchecked buffer conditions remain
+outside the modeled paths. This function remains isolated rather
+than being arbitrarily injected into a printer loop in which no
+direct OEM call to it exists.
+
+**Joined executable** (`0e27059cda167c4e5b66d053245c09c26d609328`,
+with macOS-only build correction
+`f218e1e6e9680911cde173076b2ebdfc96a412ca`):
+`original_raster_cups_candidate.c` binds the already reconstructed
+manufacturer-derived `_main`, CUPS/PPD preflight, document
+lifecycle, RGB24 `_DitherPage`, `_StartPage`, mode-dependent
+`_ProcessPage`, `_EndPage`, `_EndDocument`, output sink
+selection, PRN debug helpers, cancellation and epilogue to real
+Apple CUPS functions. Its executable
+`original_raster2printer_cups_candidate` is separate from the
+previously existing `classic_raster_cups_adapter`. It is an
+original-derived **source-level ABI bridge**, not a binary-ABI-identical
+decompilation and not a production install target.
+
+**Direct OEM execution evidence**:
+[Sources - Reconstruction Compile run 38561245944](https://github.com/an3k/leitz-icon-linux/actions/runs/38561245944)
+successfully completed Linux GCC, Linux Clang, native macOS Clang
+and manufacturer comparison jobs. The original `raster2printer`
+Mach-O checksum was authenticated before execution. For the same
+two-page CUPS inputs and PPD options, **both program return status
+and all stdout bytes were identical**:
+
+| Input | OptimizationLevel | Exit code | Byte-exact stdout |
+|---|---:|---:|---:|
+| 1-bit monochrome, 80 rows | 2 | 0 | 3,620 bytes |
+| 1-bit monochrome, 80 rows | 3 | 0 | 7,523 bytes |
+| RGB24, 80 rows | 2 | 0 | 14,889 bytes |
+| RGB24, 80 rows | 3 | 0 | 14,410 bytes |
+
+These are manufacturer **whole-executable** comparisons for four
+specific inputs, not only isolated C callback tests. The original's
+all-input, error/undefined, socket/IPP, file-logging and global
+process ABI are still NOT completely recovered. Modes 0/1 have
+original undefined final-row extra-byte reads and are intentionally
+excluded from the new exact-match proof. No physical printer or
+cut hardware has been used with the candidate. The independent
+production Linux driver and original vendor source directories
+remain unchanged.

@@ -24,6 +24,6 @@ The macOS naming convention uses a **single directory segment**, `macos-5.1.465-
 
 ## Source fidelity and status
 
-The original classic macOS Mach-O binaries are **not committed here**. CI retrieves the original manufacturer installer, verifies the recorded checksums, and compares the reconstructed output for **specific inputs**. Compilable code and individual successful comparisons are **not** proof of complete equivalence to every original branch or to real hardware. Consult [the current classic reconstruction status](analysis/macos-5.1.465-classic/RECONSTRUCTION_STATUS.md).
+The original classic macOS Mach-O binaries are **not committed here**. CI retrieves the original manufacturer installer, verifies the recorded checksums, and compares the reconstructed output for **specific inputs**. An independently compiled, joined original-derived macOS CUPS candidate now reproduces the original manufacturer's complete stdout and exit code for four specific two-page monochrome/RGB24 cases (optimization 2/3; [native CI evidence](https://github.com/an3k/leitz-icon-linux/actions/runs/38561245944)). Compilable code and these successful comparisons are **not** proof of complete equivalence to every original branch or to real hardware. Consult [the current classic reconstruction status](analysis/macos-5.1.465-classic/RECONSTRUCTION_STATUS.md).
 
 Do not merge intentional improvements from `enhancements/` into OEM-faithful source without separate evidence; preserve the manufacturer's original behavior, including its documented limitations.

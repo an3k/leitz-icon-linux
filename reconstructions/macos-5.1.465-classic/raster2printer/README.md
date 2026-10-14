@@ -1102,3 +1102,21 @@ The above is an analytical C ABI and CUPS fixture, not yet a
 working, whole-original macOS executable or an actual Leitz
 hardware run. The original vendor sources and the live Linux
 driver have not been modified.
+
+## 2026-10-14 — joined original-function CUPS entry
+
+The separately built `original_raster2printer_cups_candidate` now
+connects existing reconstructed original functions to the actual
+macOS CUPS SDK (via `original_raster_cups_candidate.c`).
+This is not a rewrite of `classic_raster_cups_adapter` and is not
+installed by the default `make all` target; the platform-specific
+build explicitly requests the new executable.
+
+[Authenticated original comparison run 38561245944](https://github.com/an3k/leitz-icon-linux/actions/runs/38561245944)
+establishes exact stdout and return-code parity for two-page
+monochrome and RGB24 mode 2/3 fixtures: 3,620, 7,523, 14,889
+and 14,410 bytes, respectively. The comparison calls two distinct
+executable files under macOS; it does not infer correctness from
+shared C helpers. Mode 0/1 last-row overread, network/IPP globals
+and untested error paths remain unresolved. **Do not install** the
+candidate for regular printing or run it on printer hardware.

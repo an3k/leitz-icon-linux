@@ -36,3 +36,15 @@ The comparison records return codes, raw standard-output bytes, and
 process actually invoked the interposer. A successful build or matching
 synthetic output is NOT proof of equivalence for untested side effects,
 device status values, or macOS file/notification paths.
+
+## Whole-job original-derived C entry comparison (2026-10-14)
+
+`compare_connected_with_vendor.sh` runs the newly compiled
+`original_raster2printer_cups_candidate` and the verified original
+manufacturer `raster2printer` as **separate** macOS processes with
+identical PPD, device URI, two-page raster data and options. The
+reference run [38561245944](https://github.com/an3k/leitz-icon-linux/actions/runs/38561245944)
+reports four `OEM_CONNECTED_C_PARITY=YES` cases (mono/RGB24
+and modes 2/3). These are exact stdout and exit-code comparisons,
+not standalone unit tests. Other modes and printer communication
+remain outside this proof.
