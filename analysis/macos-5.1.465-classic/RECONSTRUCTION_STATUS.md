@@ -515,3 +515,23 @@ runnable substitute for the manufacturer binary.
 - [Run 38492882650](https://github.com/an3k/leitz-icon-linux/actions/runs/38492882650), commit `66a89e4f23b9f14db20aee69ba20ab136d0e9094`: **all three jobs successful** for the original `_main` call order / signal / diagnostics tests, native macOS and vendor suite.
 
 These tests prove that the new source builds on both operating systems, its defined isolated behaviors match the recovered disassembly, and **pre-existing** original manufacturer printing scenarios continue to pass. They do **not** directly execute OEM private `_ReadPage`, `_DitherPage` or `_main` against matching injected inputs. The complete native `_raster2printer` body, device communication state, additional error paths and integrated manufacturer ABI remain unfinished. No code from `originals/`, the older active CUPS adapter or `enhancements/` was altered by these changes.
+
+## 2026-10-14 — classic OEM PPD choice recovery (new, isolated)
+
+The SHA-256 verified original macOS 5.1.465 `raster2printer` Mach-O was inspected again at `0x1000045a0..0x100005412`, including the option branches `0x100004c74..0x1000052d1`. The existing project CUPS adapter and all previously recovered functions were retained unchanged.
+
+`original_raster_ppd_options.[ch]` recovers the six actual `ppdFindMarkedChoice` decisions and their original call order: `Resolution`, `PrintQuality`, `DebugMode`, `PrintThroughPRN`, `OptimizationLevel`, `LabelCutter`. Their original behavior is preserved:
+
+- OEM first zeroes a `0x10a8`-byte descriptor and sets optimization to **1**.
+- `Resolution` uses case-insensitive comparison with `600dpi`, and the previously recovered 15 `PrintQuality` names use case-insensitive comparisons with the same indices. Unknown quality leaves the descriptor's current value unchanged.
+- `DebugMode` compares `Mesh` → 2, `Debug` → 1, `PrintToFile` → 3, **case sensitively**. Other choices leave the existing value unchanged.
+- `PrintThroughPRN` and `LabelCutter` accept only exactly `ON`; the comparison is case-sensitive.
+- `OptimizationLevel` uses `atoi`, compares the resulting 32-bit value **unsigned** against 4, and maps invalid/negative/out-of-range values to zero.
+- The original internal option field offsets are documented and used: `0x08` (PRN), `0x10` (cut), `0x14` (resolution), `0x18` (debug), `0x40` (optimization), and `0x4c` (quality). Fields outside this recovered fragment are untouched.
+- Original `fprintf` messages at source lines **142 and 249** are emitted without adding buffer truncation or replacement logging.
+
+**Important original platform difference:** The examined classic macOS `ppdFindMarkedChoice` sequence does **not** query `ContinuousMedia`, `ContinuousPaperLength`, or `ShouldCorrectMargins`. These names occur in the original **Linux** code but must not be silently attributed to the macOS 5.1.465 function.
+
+The isolated source uses a small callback solely to inject `ppdFindMarkedChoice` results. Original CUPS option-array traversal, marking conflicts, and the remaining `_raster2printer` body have **not** been reconstructed into this helper, and there is no claim that the OEM entire function has become equivalent. The existing recovered `classic_raster_quality_selector` is reused by the production fragment; its name-to-index mapping already has its own tests. The isolated test uses a stub of that mapping only to verify caller semantics.
+
+GCC, Clang, and Clang ASan/UBSan builds and local unit tests **passed**. Cases include all 15 quality choices, absent choices, exact diagnostic strings, case sensitivity, negative optimization, field offsets, and original default initialization. The sources GitHub workflow will build the new tests on Linux and macOS; its result must be checked separately.
