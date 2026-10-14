@@ -67,10 +67,18 @@ typedef struct {
     classic_original_process_page_adapter process;
     classic_original_prn_state prn;
     classic_original_log_state log;
-    int stdout_enabled;
     int socket_fd;
 } classic_cups_context;
 static classic_cups_context candidate={0};
+
+/* Original _WriteData at 0x100001b28..0x100001b58 tests and passes
+ * the actual OEM FILE* global __fd_stdout to fwrite. Recover that
+ * native stream slot rather than storing a separate boolean. */
+#if defined(__APPLE__)
+FILE *classic_original_fd_stdout __asm__("__fd_stdout");
+#else
+FILE *classic_original_fd_stdout;
+#endif
 
 void OpenLogFile(void) {
     classic_original_log_open(&candidate.log);
@@ -169,8 +177,8 @@ static void open_debug(void *ctx) {
     OpenDebugFile();
 }
 static void select_stdout(void *ctx,int enabled) {
-    classic_cups_context *c=ctx;
-    c->stdout_enabled=enabled;
+    (void)ctx;
+    classic_original_fd_stdout=enabled ? stdout : NULL;
 }
 static ssize_t native_send(void *ctx,const void *bytes,size_t size) {
     classic_cups_context *c=ctx;
@@ -178,7 +186,8 @@ static ssize_t native_send(void *ctx,const void *bytes,size_t size) {
 }
 static size_t write_stdout(void *ctx,const void *bytes,size_t size) {
     (void)ctx;
-    return fwrite(bytes,size,1,stdout);
+    /* _WriteData tests this global for NULL before dispatching here. */
+    return fwrite(bytes,size,1,classic_original_fd_stdout);
 }
 static size_t write_dump(void *ctx,const void *bytes,size_t size) {
     (void)ctx;
@@ -203,7 +212,7 @@ int WriteData(const uint8_t *bytes,size_t size,
     c->socket_fd=socket_fd;
     classic_write_data_io io={
         c, socket_fd!=-1 && strstr(scheme,"ipp")!=NULL,
-        c->stdout_enabled,c->prn.dump!=NULL,
+        classic_original_fd_stdout!=NULL,c->prn.dump!=NULL,
         native_send,write_stdout,write_dump
     };
     return classic_write_data_core(&io,bytes,size);
@@ -386,7 +395,7 @@ void EndPage(void *ctx,const void *descriptor,size_t descriptor_size) {
 int raster2printer(int argc,char **argv) {
     classic_cups_context *c=&candidate;
     c->socket_fd=-1; /* native original startup state, no speculative connect */
-    c->stdout_enabled=1;
+    classic_original_fd_stdout=stdout;
 
     c->bridge.original=(classic_original_document_ops){
         c,write_data,flush_data_streams,close_raster,
