@@ -155,7 +155,6 @@ static classic_original_raster_connected_io setup(mock*m) {
     io.finish=finish;io.is_terminated=terminated;io.termination_context=m;
     io.job_size=&m->job_size;io.socket_fd=-1;return io;
 }
-int classic_raster_quality_selector(const char *s){(void)s;assert(0);return -1;}
 static void reset(mock*m){memset(m,0,sizeof *m);active=m;}
 int main(void) {
     assert(setenv("PPD","classic.ppd",1)==0);
