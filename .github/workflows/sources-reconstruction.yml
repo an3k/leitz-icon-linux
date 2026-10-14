@@ -96,6 +96,11 @@ jobs:
       - name: Compile joined OEM raster CUPS candidate against native Apple SDK
         run: |
           make -C reconstructions/macos-5.1.465-classic/raster2printer original_raster2printer_cups_candidate CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+      - name: Compile OEM raster WriteData 0x10a8-byte by-value native ABI
+        run: |
+          clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
+            -c reconstructions/macos-5.1.465-classic/raster2printer/original_raster_native_write_data_entry_test.c \
+            -o "$RUNNER_TEMP/raster_write_data_native_abi.o"
       - name: Compile OEM CheckPrinterStatus original by-value descriptor ABI
         run: |
           clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \

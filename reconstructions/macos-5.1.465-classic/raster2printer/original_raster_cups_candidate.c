@@ -22,6 +22,7 @@
 #include "classic_write_data.h"
 #include "original_device_uri.h"
 #include "original_raster_native_status_entry.h"
+#include "original_raster_native_write_data_entry.h"
 #include "original_status_exchange.h"
 #include "original_read_page.h"
 #include <cups/cups.h>
@@ -211,19 +212,20 @@ static size_t write_dump(void *ctx,const void *bytes,size_t size) {
      * Its own write result comes from the chosen stdout/socket sink. */
     return 1;
 }
-/* Native OEM exported _WriteData boundary, macOS address 0x100001450.
- * The manufacturer passes a full by-value descriptor; this C-only
- * adapter receives its bytes explicitly. The underlying recovered sink
- * function and all original errors/return semantics are unchanged.
- * This is not the original C++ x86_64 function calling convention.
+/* Original raster2printer _WriteData 0x100001450 has the same
+ * (bytes,length,socket,descriptor-by-value) call surface as the
+ * manufacturer command helper. The original _CheckPrinterStatus
+ * caller at 0x100009759 loads sock into %edx, copies 0x215 qwords
+ * (0x10a8 bytes) to the stack, then calls _WriteData at 0x100009792.
+ * This must not be confused with the POINTER entry of CheckPrinterStatus.
+ * The already recovered stream selection and signed-return semantics
+ * remain delegated to classic_write_data_core.
  */
-int WriteData(const uint8_t *bytes,size_t size,
-              const void *descriptor,size_t descriptor_size,int socket_fd) {
+int WriteData(const uint8_t *bytes,size_t size,int socket_fd,
+              classic_oem_read_descriptor descriptor) {
     classic_cups_context *c=&candidate;
-    /* _WriteData reads scheme at OEM descriptor +0x50, and selects
-     * one send(fd,bytes,size,0) only if it contains "ipp" and fd!=-1. */
-    if(descriptor_size!=CLASSIC_OEM_DOCUMENT_DESCRIPTOR_SIZE) return 0;
-    const char *scheme=(const char *)descriptor+0x50;
+    /* _WriteData reads the exact original scheme offset +0x50. */
+    const char *scheme=(const char *)&descriptor+0x50;
     c->socket_fd=socket_fd;
     classic_write_data_io io={
         c, socket_fd!=-1 && strstr(scheme,"ipp")!=NULL,
@@ -236,7 +238,11 @@ static int write_data(void *ctx,const uint8_t *bytes,size_t size,
                       const void *descriptor,size_t descriptor_size,
                       int socket_fd) {
     (void)ctx;
-    return WriteData(bytes,size,descriptor,descriptor_size,socket_fd);
+    if(descriptor_size!=sizeof(classic_oem_read_descriptor))
+        return 0; /* invalid analysis callback, not an OEM branch */
+    classic_oem_read_descriptor copy;
+    memcpy(&copy,descriptor,sizeof copy);
+    return WriteData(bytes,size,socket_fd,copy);
 }
 static void flush_data_streams(void *ctx) {
     (void)ctx;
@@ -311,7 +317,7 @@ static int status_write_data(void *unused,const uint8_t *buf,size_t length,
                              const void *descriptor,size_t descriptor_size,
                              int fd) {
     (void)unused;
-    return WriteData(buf,length,descriptor,descriptor_size,fd);
+    return write_data(NULL,buf,length,descriptor,descriptor_size,fd);
 }
 static void status_sleep(void *unused,unsigned seconds) {
     (void)unused;
