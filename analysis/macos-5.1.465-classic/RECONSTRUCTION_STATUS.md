@@ -350,3 +350,11 @@ The direct comparison logged **EXACT_EXIT_STDOUT_STDERR_PARITY=YES** in all four
 No changes were made to existing vendor comparison scripts, original Linux sources, experimental enhancements or the older CUPS adapter.
 
 **Scope of evidence:** the original entry's non-device pre-status path, defined errors, exact printed diagnostics and those four scenarios. Status callbacks, actual device exchange, undefined OEM memory cases and whole-program equivalence remain incomplete.
+
+## 2026-10-14 — verified OEM _WriteData zero-only success criterion
+
+The manufacturer x86_64 Mach-O `_WriteData` routines were checked again at `command2leitz 0x100001a80..0x100001c14` and `raster2printer 0x100001450..0x1000015e4`. Both executables compare the primary `send` or `fwrite` result **only against zero** and return 1 for any nonzero value, including a signed `send` result of -1. Both OEM versions emit the exact error text `\nraster_c_functions.c:55:WriteData(): an error occured while writing data of size : %ld` **only** when the selected sink returns zero. On non-socket output, the original returns 0 immediately for zero length or no stdout stream, without an error message. The debug dump's return value is ignored.
+
+The two preexisting, incomplete sink-choice C implementations were corrected **in place only on those differences**; no alternative implementations, retry loops, additional guards, or changes to the established good paths were introduced. The separate cross-executable test in `verification/macos-5.1.465-classic/original_write_data_semantics_test.c` checks signed -1, positive short sends, zero sends, zero/positive stdout writes, PRN-only output, zero-length writes, dump ordering, and complete OEM stderr bytes. Local GCC and Clang with AddressSanitizer/UndefinedBehaviorSanitizer passed. CI builds now run this cross-test on Linux GCC/Clang and macOS Clang.
+
+The test is based on the **verified original assembly**, not on executing the original internal `_WriteData` directly. This still does not establish exact original ABI, network/device behavior or full program equivalence.
