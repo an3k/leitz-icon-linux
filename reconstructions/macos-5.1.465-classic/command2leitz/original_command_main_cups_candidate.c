@@ -54,7 +54,12 @@ static void msg(void *ctx,const char*s){
   /* OEM _GetStatus emits STATE lines with a preceding newline and no
    * trailing newline; the NoData / ATTR lines have the conventional
    * CUPS terminal newline. Compare against verified OEM stdout/stderr. */
-  if(!strncmp(s,"STATE:",6)) fprintf(stderr,"\n%s",s);
+  if(!strncmp(s,"STATE: -",8))
+    fprintf(stderr,"\n%s\n",s);
+  else if(!strcmp(s,"STATE: +media-jam-error,com.leitz.paper-jam-error"))
+    fprintf(stderr,"\n%s\n",s);
+  else if(!strncmp(s,"STATE:",6))
+    fprintf(stderr,"\n%s",s);
   else fprintf(stderr,"%s\n",s);
 }
 static int log_file(void *ctx,const char*text){
@@ -65,14 +70,14 @@ static int log_file(void *ctx,const char*text){
      * followed by one literal space, without a final newline. */
     int error=errno;
     fprintf(stderr,
-      "\ncommand2leitz.c:208:GetStatus(): Failed while opening leitz.log file, error = %s ",
+      "\ncommand2leitz.c:208:GetStatus(): Failed while opening leitz.log file, error = %s \n",
       strerror(error));
   } else {
     cupsFilePrintf(f,"%s",text);
     cupsFileClose(f);
   }
   fprintf(stderr,
-    "\ncommand2leitz.c:217:GetStatus(): data for state-message = : %s",
+    "\ncommand2leitz.c:217:GetStatus(): data for state-message = : %s\n",
     text);
   return f!=NULL;
 }
