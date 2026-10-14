@@ -33,6 +33,18 @@ _Static_assert(offsetof(classic_original_raster_descriptor,port)==0x1098,
  */
 int classic_original_resolve_device_uri(
     classic_original_raster_descriptor *descriptor);
+/* The two file-private C++ globals are independently identified by
+ * the authenticated OEM Mach-O _CheckPrinterStatus / _ResolveDeviceURI
+ * disassembly at 0x1000091fb, 0x100009285, 0x100009afb and 0x100009d51.
+ * On macOS, use their actual OEM Mach-O symbol names. Both recovered
+ * functions already include this header and therefore share one instance.
+ * These global assembler labels alone do not reproduce all vendor ABI. */
+#if defined(__APPLE__)
+extern int classic_original_socket __asm__("__ZL4sock");
+extern const char *classic_original_resolved_uri
+    __asm__("__ZL12resolved_uri");
+#else
 extern int classic_original_socket;
 extern const char *classic_original_resolved_uri;
+#endif
 #endif
