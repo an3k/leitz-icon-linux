@@ -1033,3 +1033,23 @@ of their private functions with injected side effects remains
 unverified. The new source is not wired into a live CUPS filter,
 and no real printer has been used. Recovered active driver output
 and manufacturer original files remain unchanged.
+
+## Verified original document boundary source build — 2026-10-14
+
+Commit `1232cc453b5a5cd6659923eba668cfe86bce68fb`
+passed [GitHub Actions 38549748927](https://github.com/an3k/leitz-icon-linux/actions/runs/38549748927):
+**all three jobs successful** (Linux GCC and Clang, native Apple
+macOS/Clang CUPS SDK, and the unchanged SHA-256-verified Leitz 5.1.465
+original-executable reference comparisons). The new standalone C
+document lifecycle test actually compiled and executed on GCC, Clang,
+and macOS, proving the defined original _StartDocument/_EndDocument
+write/counter/flush/CUPS-close branches.
+
+Scope: Original OEM function bodies were disassembled directly in the
+preceding successful [run 38549177080](https://github.com/an3k/leitz-icon-linux/actions/runs/38549177080)
+before creating the implementation. Native x86-64 stack/global ABI
+reconstruction and direct calling into original Mach-O functions with
+controlled CUPS/write mocks were NOT performed. Original Linux source,
+macOS manufacturer files and the active Unraid driver are unchanged.
+The newly recovered functions still have to be bound to the full
+native executable.
