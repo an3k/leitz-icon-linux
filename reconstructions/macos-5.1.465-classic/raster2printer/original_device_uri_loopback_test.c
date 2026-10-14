@@ -52,7 +52,7 @@ int main(void) {
                        (struct sockaddr*)&connected,&length)==0);
     assert(connected.sin_family==AF_INET);
     assert(connected.sin_port==htons(9100));
-    assert(connected.sin_addr.s_addr==htonl(INADDR_LOOPBACK));
+    assert(connected.sin_addr.s_addr==local.sin_addr.s_addr);
 
     assert(close(incoming)==0);
     assert(close(classic_original_socket)==0);
