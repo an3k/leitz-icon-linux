@@ -73,7 +73,7 @@ static classic_original_status_io setup(mock *m,unsigned *size,const char *uri,i
         m->descriptor[i]=(unsigned char)(i*37u+11u);
     classic_original_status_io io={m,uri,socket,resolved,term,resolve,
                                    sendv,recvv,put,flush,back,note,
-                                   write_job,sleepv,size,last_error,m->descriptor};
+                                   write_job,sleepv,size,last_error,m->descriptor,NULL,NULL};
     return io;
 }
 static void response(mock *m,unsigned i,const char *text){
