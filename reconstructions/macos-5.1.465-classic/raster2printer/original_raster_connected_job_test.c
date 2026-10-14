@@ -172,6 +172,35 @@ int main(void){
     rewind(captured);char stderr_text[8192]={0};
     size_t n=fread(stderr_text,1,sizeof(stderr_text)-1,captured);
     stderr_text[n]=0;assert(fclose(captured)==0);
+    /* Native OEM _raster2printer assembly at 0x100005523 / 0x1000055c3
+     * writes both messages after StartDocument, and loop head
+     * 0x10000567e logs the current index even before EOF. */
+    unsigned start_256_count=0,start_258_count=0,non_reprint_count=0;
+    const char *found=stderr_text;
+    while((found=strstr(found,
+        "\nraster2printer.c:256:raster2printer(): started printing pages"))!=NULL) {
+        ++start_256_count; ++found;
+    }
+    found=stderr_text;
+    while((found=strstr(found,
+        "\nraster2printer.c:258:raster2printer(): started printing pages"))!=NULL) {
+        ++start_258_count; ++found;
+    }
+    found=stderr_text;
+    while((found=strstr(found,"\n Not reprinted i_page = "))!=NULL) {
+        ++non_reprint_count; ++found;
+    }
+    /* Valid scenarios: normal 2-page, failed ProcessPage, early SIGTERM,
+     * zero-pixel read. Invalid-argc scenario never reaches StartDocument.
+     * Normal 2-page run makes a third read attempt that sees EOF. */
+    assert(start_256_count==4 && start_258_count==4);
+    assert(non_reprint_count==5);
+    assert(strstr(stderr_text,
+        "\nraster2printer.c:256:raster2printer(): started printing pages"
+        "\nraster2printer.c:258:raster2printer(): started printing pages"
+        "\n Not reprinted i_page = 0.\n")!=NULL);
+    assert(strstr(stderr_text,"\n Not reprinted i_page = 1.\n")!=NULL);
+    assert(strstr(stderr_text,"\n Not reprinted i_page = 2.\n")!=NULL);
     assert(strstr(stderr_text,"PAGE: 2 1\n")!=NULL);
     assert(strstr(stderr_text,"raster2printer.c:472:raster2printer(): raster filter finished\n")!=NULL);
     puts("Connected OEM raster startup/read/dispatch/epilogue C paths passed");

@@ -10,6 +10,7 @@
  * reused, not cloned or overwritten.
  */
 #include "original_raster_connected_job.h"
+#include <stdio.h>
 #include <string.h>
 
 int classic_original_raster_connected_job(
@@ -27,6 +28,15 @@ int classic_original_raster_connected_job(
         argc,argv,(unsigned char *)descriptor,&input,&early_result))
         return early_result;
 
+    /* Original _raster2printer after _StartDocument:
+     * 0x100005523 and 0x1000055c3, OEM source lines 256/258.
+     * These are unconditional upon successful startup, including
+     * a job terminated before its first page header. */
+    fprintf(stderr,
+        "\nraster2printer.c:256:raster2printer(): started printing pages");
+    fprintf(stderr,
+        "\nraster2printer.c:258:raster2printer(): started printing pages");
+
     descriptor->cups_raster=(cups_raster_t *)input.raster;
     memset(page_state,0,sizeof *page_state);
     *page_index=0;
@@ -36,6 +46,13 @@ int classic_original_raster_connected_job(
         if (io->is_terminated &&
             io->is_terminated(io->termination_context))
             break;
+
+        /* OEM loop head 0x10000567e..0x1000056b0 prints its
+         * non-reprint state BEFORE attempting another CUPS header;
+         * it also prints on the final EOF attempt. The original
+         * reprint-true branch has not been wired into this connector. */
+        fprintf(stderr,"\n Not reprinted i_page = %i.\n",
+                (int)*page_index);
 
         /* Separate original inline reader, NOT exported _ReadPage. */
         int has_page=classic_original_raster_active_page_read(

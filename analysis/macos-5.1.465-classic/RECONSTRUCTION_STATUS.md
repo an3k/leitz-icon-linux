@@ -919,3 +919,35 @@ callback API and unverified OEM transition points, and does not yet
 handle IPP/status, reprint, undocumented error cases or the original
 full C++/Mach-O ABI. No hardware test occurred. The earlier, unrelated
 normal CUPS candidate and all original sources remain untouched.
+
+## 2026-10-14 — manufacturer-confirmed raster-loop diagnostics and page index
+
+The full original manufacturer `raster2printer` Mach-O was audited
+at the three previously unverified control transitions in
+[run 38546191969](https://github.com/an3k/leitz-icon-linux/actions/runs/38546191969).
+`analysis/macos-5.1.465-classic/RASTER_LOOP_NATIVE_AUDIT.md`
+records the exact original instruction addresses and source format literals.
+
+Two `started printing pages` diagnostics (source lines 256 and 258),
+emitted directly **after** `_StartDocument`, were absent from the
+newly written `original_raster_connected_job` glue. A third
+diagnostic, `Not reprinted i_page = %i.`, is emitted **before**
+each normal page-header read, including the iteration that reaches EOF,
+and was also missing. Those three messages have been added to the
+connecting reconstruction **without** altering its OEM-derived
+individual functions or introducing a new printing protocol.
+
+The connected test now verifies exactly four successful startup
+sequences among its five scenarios, exactly five non-reprint
+messages (3 normal two-page/EOF, 1 failed page, 1 zero-read),
+the original page indexes 0/1/2, correct message ordering, and
+no startup diagnostics for an invalid-argument early exit.
+The non-reprint branch is the only path currently executed by the
+connected C callback. The native reprint path is independently
+visible in the original instructions but has NOT yet been proven
+reachable or reconstructed in full.
+
+An additional native audit of compiler-local reprint/has-page
+flags has been added to the original vendor verification script;
+verify its results before claiming any conclusion about reprint
+reachability. There is no claim of whole-binary equivalence.

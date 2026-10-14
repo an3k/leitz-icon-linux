@@ -34,3 +34,17 @@ for name, begin, end in sections:
     if len(lines) > 550:
         print("ORIGINAL_RASTER_TRANSITION_TRUNCATED", name, len(lines) - 550)
     print("ORIGINAL_RASTER_TRANSITION_END", name)
+
+# Original compiler locals governing loop behavior. Inventory *every*
+# direct reference in the native _raster2printer body, not just a few
+# selected blocks; do not assume a variable stays constant from a
+# source-code reading of one branch.
+print("ORIGINAL_RASTER_LOOP_SLOTS_BEGIN")
+slots = ("-0x7c05(%rbp)", "-0x7c06(%rbp)", "-0x7c19(%rbp)",
+         "-0x7bf0(%rbp)", "-0x7bf4(%rbp)")
+for address, line in asm:
+    if 0x1000045a0 <= address < 0x1000062eb and any(
+        s in line for s in slots
+    ):
+        print(line)
+print("ORIGINAL_RASTER_LOOP_SLOTS_END")

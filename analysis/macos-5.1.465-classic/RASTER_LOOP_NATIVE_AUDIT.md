@@ -1,0 +1,46 @@
+# Original macOS Classic raster-loop transition audit
+
+## Source and scope
+
+The original `raster2printer` Mach-O from the Leitz 5.1.465 installer,
+SHA-256 `72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13`,
+was disassembled **directly** by `otool -tvV` in
+[GitHub Actions 38546191969](https://github.com/an3k/leitz-icon-linux/actions/runs/38546191969)
+after verifying the vendor executable hash. The bounded native
+instruction audit is in `verification/macos-5.1.465-classic/audit_raster_transitions.py`.
+This is manufacturer's machine code, not inferred from the separate Linux OEM source
+or from the synthetic connected C helper.
+
+## Previously missing, assembly-proven control-flow steps
+
+| Original instruction | Original meaning | Reconstruction |
+|---|---|---|
+| `0x10000548e` | Call `_StartDocument` | Already recovered |
+| `0x10000550e..0x100005523` | `fprintf` at source line `0x100` (256), message `started printing pages` | Add original stderr literal immediately after successful startup |
+| `0x1000055ae..0x1000055c3` | `fprintf` at source line `0x102` (258), same message | Add second original stderr literal |
+| `0x1000055ce` | Set original zero-based printed-page index to zero | Already recovered |
+| `0x100005603` | Initialize native reprint bit to zero | Already initially modeled as non-reprint |
+| `0x10000562d..0x10000563c` | Check `terminate_flag` before entering page-loop diagnostics | Retain existing termination check |
+| `0x100005641..0x1000056a2` | Select original `Reprinted` or `Not reprinted` loop message | Add **only** the normal non-reprint message to the currently non-reprint connector |
+| `0x1000056a2..0x1000056c3` | If not reprinting, read CUPS header; otherwise branch to reprint handling | Existing connector covers only non-reprint branch |
+| `0x100006128..0x1000061d6` | Reprint branch can call `_ProcessPage` with fourth argument `1` and a selected retained buffer | Not yet treated as fully reconstructed |
+| `0x1000062b5..0x1000062e5` | Continue only if process status zero and original has-page bit is set | Existing connector has the normal outcome |
+
+The manufacturer emits the non-reprint message **before**
+`cupsRasterReadHeader2`; the message also appears on the iteration that
+ultimately encounters EOF. The byte-exact literal is
+`\n Not reprinted i_page = %i.\n` with the *current* zero-based page index.
+The manufacturer's paired startup diagnostics are
+`\nraster2printer.c:256:raster2printer(): started printing pages`
+and the same string at source line `258`, without a trailing newline.
+
+## Limits
+
+This audit confirms concrete native addresses and format literals. It does
+not prove that the complete native reprint path is reachable, unreachable,
+or equivalent under all inputs; the compiler-local flag's **complete**
+read/write inventory is being collected by the same script for independent
+verification. The original C++ ABI and IPP/status transport are not
+reconstructed by these diagnostic corrections. Any added code belongs
+only to the newly authored connecting C function, not to the manufacturer
+original files, existing isolated helper functions, or the active driver.
