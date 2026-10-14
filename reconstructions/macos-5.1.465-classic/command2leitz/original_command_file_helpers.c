@@ -14,9 +14,15 @@
 #include <string.h>
 #include <sys/stat.h>
 
+#if defined(__APPLE__)
+FILE *__fd_dump __asm__("__fd_dump") = NULL;
+FILE *__fd_log __asm__("__fd_log") = NULL;
+FILE *__fd_stdout __asm__("__fd_stdout") = NULL;
+#else
 FILE *__fd_dump = NULL;
 FILE *__fd_log = NULL;
 FILE *__fd_stdout = NULL;
+#endif
 char dbgprn_filename[1024];
 char log_filename[1024];
 

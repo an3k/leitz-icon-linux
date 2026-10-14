@@ -5,11 +5,19 @@
 
 /* macOS classic 5.1.465 command2leitz global storage and OEM functions.
  * This independent reconstruction is NOT linked into production filters. */
+/* Original Mach-O globals are __fd_dump, __fd_log and __fd_stdout.
+ * An ordinary C identifier beginning with "__" receives an extra
+ * Mach-O prefix underscore on Apple. Fix the assembler names while
+ * retaining portable isolated-test identifiers on Linux. */
+#if defined(__APPLE__)
+extern FILE *__fd_dump __asm__("__fd_dump");
+extern FILE *__fd_log __asm__("__fd_log");
+extern FILE *__fd_stdout __asm__("__fd_stdout");
+#else
 extern FILE *__fd_dump;
 extern FILE *__fd_log;
-/* Original _WriteData reads this global FILE* at 0x100001b28.
- * It is distinct from stdout; a NULL slot disables direct writing. */
 extern FILE *__fd_stdout;
+#endif
 extern char dbgprn_filename[1024];
 extern char log_filename[1024];
 void OpenDebugFile(void);
