@@ -22,6 +22,7 @@
 #include "classic_write_data.h"
 #include "original_device_uri.h"
 #include "original_status_exchange.h"
+#include "original_read_page.h"
 #include <cups/cups.h>
 #include <cups/ppd.h>
 #include <cups/raster.h>
@@ -281,6 +282,19 @@ static int status_errno(void *unused) {
     (void)unused;
     return errno;
 }
+/* The exported OEM _ReadPage (0x100008d20..0x10000918b) is a
+ * separate, dormant entry. The actual normal raster2printer job
+ * instead contains its own inline reader (with distinct malloc and
+ * EOF semantics) and must continue using that original implementation.
+ * No alternate allocation/retry code is introduced here.
+ */
+int ReadPage(classic_oem_read_descriptor *descriptor,
+             cups_page_header2_t *header,unsigned char **pixels,
+             int *requested_bytes,int *page_counter) {
+    return classic_original_read_page(
+        descriptor,header,pixels,requested_bytes,page_counter);
+}
+
 int CheckPrinterStatus(classic_oem_read_descriptor *descriptor) {
     classic_native_status_context state={descriptor};
     classic_original_status_io io={
