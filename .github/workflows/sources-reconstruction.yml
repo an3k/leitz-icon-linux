@@ -194,6 +194,12 @@ jobs:
             show && /^_[A-Za-z0-9_.$]+:$/ {show=0}
             show && count++ < 130 {print}
           '
+          echo "Audit original _ReadPage complete assembly (OEM 0x100008d20..0x10000918b):"
+          otool -tvV "$raster" | awk '
+            /^_ReadPage:$/ {show=1; print; next}
+            show && /^_[A-Za-z0-9_.$]+:$/ {show=0}
+            show {print}
+          '
           echo "Disassembly of unresolved raster functions (bounded output):"
           otool -tvV "$raster" | awk '
             /^_ResolveDeviceURI:$/ || /^_CheckPrinterStatus:$/ {
