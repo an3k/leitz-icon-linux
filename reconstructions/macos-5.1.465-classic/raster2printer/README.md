@@ -447,3 +447,24 @@ The SHA-256 verified original macOS 5.1.465 `raster2printer` Mach-O was inspecte
 The isolated source uses a small callback solely to inject `ppdFindMarkedChoice` results. Original CUPS option-array traversal, marking conflicts, and the remaining `_raster2printer` body have **not** been reconstructed into this helper, and there is no claim that the OEM entire function has become equivalent. The existing recovered `classic_raster_quality_selector` is reused by the production fragment; its name-to-index mapping already has its own tests. The isolated test uses a stub of that mapping only to verify caller semantics.
 
 GCC, Clang, and Clang ASan/UBSan builds and local unit tests **passed**. Cases include all 15 quality choices, absent choices, exact diagnostic strings, case sensitivity, negative optimization, field offsets, and original default initialization. The sources GitHub workflow will build the new tests on Linux and macOS; its result must be checked separately.
+
+## 2026-10-14 — CUPS raster preflight recovery, original Mach-O
+
+Checked current `sources` head `a1e5691b6a8da6f51b9c5c81acebe281ae456443` before modifying the repository. The previous PPD-choice selector and all other reconstructed files are unchanged.
+
+New `original_raster_preflight.[ch]` translates the **previously missing CUPS/PPD entry region** of the genuine macOS 5.1.465 `_raster2printer` (`0x100004608..0x100004c74`) from direct disassembly of the verified x86-64 Mach-O (`raster2printer` SHA-256 `72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13`).
+
+Original branch behavior recovered:
+- `setbuf(stderr,NULL)`, then `argc < 6 || argc > 7` with exact diagnostic line **76** and early return **1**;
+- when `argc == 7`, diagnostic line **83**, `open(argv[6],O_RDONLY)`, and on -1 diagnostic line **86**, `sleep(1)` and return **1**;
+- otherwise input fd 0; `cupsRasterOpen(fd,CUPS_RASTER_READ)`, with original `perror` and return **1** if null;
+- `ppdOpenFile(getenv("PPD"))` with original `perror` and return **-1** if null. The original does not implement the fallback described in its warning;
+- `cupsParseOptions(argv[5],0,&options)`, then `ppdMarkDefaults(ppd)`, before iterating options in order;
+- log **every** option at original line **115**, including those whose values are null; only invoke `ppdMarkOption` when the value is non-null; log nonzero conflicts at original line **123**;
+- log `process options` at original line **128** and invoke `cupsMarkOptions` exactly once, ignoring its return value.
+
+Unlike the Linux 1.0.3 manufacturer source, this original macOS loop has **no special handling for `ContinuousPaperLength`**. That Linux-only behavior has not been imported. The already reconstructed six choices in `original_raster_ppd_options` are the subsequent original region and were **not duplicated or modified**.
+
+The analysis-only callback structure exposes CUPS handles and the still-owned options array so a future full `_raster2printer` can continue with the original next call. It is not the OEM native ABI and is **not** connected to the active CUPS adapter. The OEM's incomplete cleanup in early return branches, unbuffered stderr, null-option logging, ignored `cupsMarkOptions` result, and early return values have been retained rather than hardened.
+
+Local GCC/Clang strict C11 builds and mock tests passed for normal fd/stdin routes, original callback order, conflicts and stderr, invalid argc, missing raster input, missing raster stream, and missing PPD. These tests exercise a reconstructed function with callback CUPS mocks, **not** the original Mach-O private function. CI will verify both Linux/macOS compilation and the pre-existing manufacturer comparisons; results must be checked before claiming success.
