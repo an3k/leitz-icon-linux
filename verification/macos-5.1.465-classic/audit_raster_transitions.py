@@ -35,6 +35,19 @@ for name, begin, end in sections:
         print("ORIGINAL_RASTER_TRANSITION_TRUNCATED", name, len(lines) - 550)
     print("ORIGINAL_RASTER_TRANSITION_END", name)
 
+# The inlined active page reader is separate from exported _ReadPage.
+# Inspect its actual quotient/remainder operators before propagating
+# any correction: neighboring source code is NOT evidence of parity.
+print("ORIGINAL_ACTIVE_PAGE_STRIDE_DIVISIONS_BEGIN")
+for index,(addr,line) in enumerate(asm):
+    if 0x1000056c0 <= addr < 0x100005ed0 and (
+        "divl" in line or "idivl" in line
+    ):
+        print("OEM_INLINE_STRIDE_DIVISION",hex(addr))
+        for _,neighbor in asm[max(0,index-10):min(len(asm),index+11)]:
+            print(neighbor)
+print("ORIGINAL_ACTIVE_PAGE_STRIDE_DIVISIONS_END")
+
 # Original compiler locals governing loop behavior. Inventory *every*
 # direct reference in the native _raster2printer body, not just a few
 # selected blocks; do not assume a variable stays constant from a
