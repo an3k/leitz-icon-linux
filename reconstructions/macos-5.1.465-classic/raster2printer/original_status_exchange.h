@@ -7,7 +7,9 @@
 
 /* _CheckPrinterStatus, OEM classic raster2printer 0x100009190..0x100009a2e.
  * Callback interface is a NEW reconstruction aid, not the original ABI.
- * No live printer, socket, or CUPS filter uses this module.
+ * The offline macOS CUPS reconstruction links it as a dormant named
+ * status entry using real libcups/socket callbacks; the ordinary OEM
+ * raster job does not call it, and no live printer tests use it.
  */
 typedef struct {
     void *context;

@@ -70,3 +70,7 @@ equivalence.
 ## Exact native OEM raster stderr reference (2026-10-14)
 
 `compare_connected_with_vendor.sh` now compares complete stderr as well as stdout and return status for each two-page monochrome/RGB24 mode-2/3 case. After correcting manufacturer packed-width diagnostics and the original `_ProcessPage` initial 0xff sentinel condition, [run 38593969771](https://github.com/an3k/leitz-icon-linux/actions/runs/38593969771) passed all four whole-process exact-matching cases, together with the existing variable-length, PRN and connected command comparisons. Transient disassembly-only CI logging was removed after its results were incorporated into the reconstructed C comments and analysis report. No hardware was used.
+
+## Original joined raster startup/error verification (2026-10-14)
+
+`compare_connected_startup_errors_with_vendor.sh` compares entire stdout, entire stderr, and exit codes from verified original macOS 5.1.465 `raster2printer` and its independently compiled original-derived native CUPS candidate for six deterministic cases: invalid argument counts 5/8; absent input file; absent PPD; zero-byte raster file; empty stdin. [Run 38605605549](https://github.com/an3k/leitz-icon-linux/actions/runs/38605605549) established **6/6 exact parity**. [Run 38606149312](https://github.com/an3k/leitz-icon-linux/actions/runs/38606149312) reconfirmed the same six plus all previous normal raster, variable-row, PRN and command cases after original status/URI symbols were linked. Real network/USB communication is not part of this proof.

@@ -8,8 +8,9 @@
  * The original status reset's full by-value 0x10a8-byte descriptor,
  * socket argument, and send/recv flags are now represented. This remains a
  * separate callback-based reconstruction, not the vendor's native ABI;
- * its undefined cases and global device state are not recovered. It must
- * not be linked to the live print filter.
+ * its undefined cases and full OEM global device state are not recovered.
+ * It is linked as a dormant named entry into the OFFLINE macOS CUPS
+ * reconstruction but is not invoked by ordinary printing or installed.
  */
 static int ipp_scheme(const classic_original_status_io *io) {
     return strstr(io->device_scheme,"ipp") != NULL;

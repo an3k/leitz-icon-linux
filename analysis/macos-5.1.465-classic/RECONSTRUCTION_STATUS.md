@@ -1696,3 +1696,25 @@ The source-level C wrappers use injected callback structures, **not** the binary
 Implementation commits: `0a30ec3a5d96d51d7350595cfa0e66b5f544bd26` (shared OEM diagnostics linked to both), `b5a4929b1c8a8e5d4bd5040ed9d5cb1eda8ea070` (named command entries linked), and `be7be990f7a12bff558cbe84dc9d4353b499f827` (direct original-entry test additions).
 
 **Still not reconstructed to native binary equivalence:** the manufacturer's original private C++ ABI/globals, the four-byte end-of-buffer read in modes 0/1, incomplete IPP/network state and hardware behavior, and still unexamined error branches. The original Linux production driver, `driver` and `cups` branches, and OEM original archives were not altered.
+
+## 2026-10-14 — macOS OEM startup errors and dormant status/URI functions
+
+**No duplication:** Inspected the live `sources` branch at `d734eec6c9e1394220a2a3b6b985c4043558bb93` before continuing. The original preflight, CUPS raster/error behavior and `original_status_exchange.c`/`original_device_uri.c` implementations already existed. No original encoder, installed Linux driver, or vendor file was replaced.
+
+**Real original start/error path coverage:** New `verification/macos-5.1.465-classic/compare_connected_startup_errors_with_vendor.sh` runs the independently linked C raster candidate and checksum-authenticated original macOS 5.1.465 Mach-O with identical environment and inputs. [CI run 38605605549](https://github.com/an3k/leitz-icon-linux/actions/runs/38605605549) passed exact complete **stdout bytes, stderr bytes and exit codes** for six additional original `_main`/`_raster2printer` branches:
+- argc 5: exit 1; no stdout.
+- argc 8: exit 1; no stdout.
+- Nonexistent input raster: exit 1; no stdout.
+- Nonexistent PPD: exit 255 (manufacturer returns -1); no stdout.
+- Zero-byte input raster file: exit 1; no stdout.
+- Empty standard input when argc==6: exit 1; no stdout.
+
+This establishes those six defined original startup/error behaviors with no further changes to existing correct code.
+
+**Source-level OEM status/URI integration:** The previously recovered `classic_original_check_status` and `classic_original_resolve_device_uri` implementations now link into the joined macOS executable with manufacturer-named **`CheckPrinterStatus`** and **`ResolveDeviceURI`** function boundaries. Original CUPS `cupsBackChannelRead`, `send`, `recv`, `fflush(stdout)`, `putchar`, `sleep`, the existing OEM `WriteData` sink, global job counter and original socket/URI state are connected via C callbacks. The original 0x10a8-byte descriptor offsets and copied reset payload remain in use. The existing isolated status tests still cover media missing/door/no cartridge/ready/backchannel errors, an IPP-socket path and early resolver; the already recovered URI test only uses a **non-IPP URI**.
+
+**No speculative printer behavior:** Original `_raster2printer` does not call `_CheckPrinterStatus` in the verified ordinary print loop, so the connected functions remain **dormant** there. The URI routine retains the original real TCP/9100 connection behavior if explicitly invoked for `ipp`, but that path was **not run** against a remote or actual printer. Manufacturer socket failure cases, native compiler ABI/global layout and analyzer-only status `-2` undefined-case markers are still incomplete.
+
+**Verification:** [GitHub Actions 38606149312](https://github.com/an3k/leitz-icon-linux/actions/runs/38606149312) passed all three jobs: Linux GCC/Clang tests, native Apple CUPS compile and symbol checks for both function entries, and SHA-256-authenticated OEM comparison. It retained **6/6 startup/error**, **13/13 command**, **4/4 whole-raster stdout+stderr**, **4/4 variable-length stdout** and **1/1 PRN-file** exact comparisons with the manufacturer. No physical printer, USB or TCP device was contacted by these new tests.
+
+Code commits: `bc9dd2a910e0d31b4abb773dbe99db195a9ab7cc` (start/error OEM comparisons), `f7a1dfcb01d4fc8002435423c0ea1acdb04b5d93` (OEM status/URI linkage) and `155a5b2e94418938e6bf22124869d04eb0ce6918` (native CUPS declaration). The two original 5.1.465 executables, `driver` and `cups` remain unchanged.
