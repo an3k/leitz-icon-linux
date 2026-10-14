@@ -334,15 +334,18 @@ int ReadPage(classic_oem_read_descriptor *descriptor,
         descriptor,header,pixels,requested_bytes,page_counter);
 }
 
-/* The original _CheckPrinterStatus operates on an entire 0x10a8-byte
- * C++ descriptor copied by value on the native x86_64 stack. Keep the
- * callback-based original status body unchanged, but give the exported
- * OEM-named entry the original-style by-value call surface. */
-int CheckPrinterStatus(classic_oem_read_descriptor descriptor) {
-    classic_native_status_context state={&descriptor};
+/* Manufacturer _CheckPrinterStatus 0x1000091a9 stores its first
+ * register parameter %rdi to -0x1100(%rbp), then loads that POINTER
+ * and adds 0x50 at 0x1000091d7..0x1000091de. The later call to
+ * _ResolveDeviceURI at 0x10000922c passes the same pointer. This
+ * function uses a pointer, NOT a by-value 0x10a8 stack parameter.
+ * The previous by-value trial was disproved and is corrected here.
+ * The recovered status body itself was already correct. */
+int CheckPrinterStatus(classic_oem_read_descriptor *descriptor) {
+    classic_native_status_context state={descriptor};
     classic_original_status_io io={
         .context=&state,
-        .device_scheme=(const char *)&descriptor+0x50,
+        .device_scheme=(const char *)descriptor+0x50,
         .socket_fd=classic_original_socket,
         .resolved_uri_present=classic_original_resolved_uri!=NULL,
         .termination_flag=status_terminated,
@@ -357,7 +360,7 @@ int CheckPrinterStatus(classic_oem_read_descriptor descriptor) {
         .sleep_seconds=status_sleep,
         .job_size=&job_size,
         .last_error=status_errno,
-        .descriptor=(const unsigned char *)&descriptor,
+        .descriptor=(const unsigned char *)descriptor,
         .current_socket_fd=status_socket_now,
         .resolved_uri_is_present=status_resolved_now
     };

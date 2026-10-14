@@ -2,14 +2,16 @@
 #define ORIGINAL_RASTER_NATIVE_STATUS_ENTRY_H
 #include "original_read_page.h"
 
-/* Manufacturer macOS 5.1.465 _CheckPrinterStatus (0x100009190):
- * the original stack-param descriptor is a full 0x10a8-byte copy,
- * not a pointer-to-descriptor parameter. This definition recovers
- * the native x86_64 C by-value call surface and delegates the body's
- * already recovered status/error logic without duplicating it.
+/* Exact original x86_64 OEM _CheckPrinterStatus pointer call surface:
+ * 0x1000091a9: movq %rdi,-0x1100(%rbp)
+ * 0x1000091d7: movq -0x1100(%rbp),%rax
+ * 0x1000091de: addq $0x50,%rax (descriptor scheme)
+ * 0x10000922c: movq -0x1100(%rbp),%rdi
+ * 0x100009233: callq _ResolveDeviceURI
  *
- * Important: the original compiler's complete C++ ABI and undefined
- * socket/error branches remain unverified. Ordinary OEM raster jobs do
- * not call this dormant function. */
-int CheckPrinterStatus(classic_oem_read_descriptor descriptor);
+ * The argument is a pointer to a 0x10a8-byte descriptor. Do not
+ * substitute a by-value struct: the manufacturer uses a pointer.
+ * The status routine is dormant in ordinary OEM raster printing;
+ * this signature check does not prove its untested error branches. */
+int CheckPrinterStatus(classic_oem_read_descriptor *descriptor);
 #endif
