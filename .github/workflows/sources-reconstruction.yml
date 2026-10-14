@@ -115,6 +115,10 @@ jobs:
         run: |
           make -C reconstructions/macos-5.1.465-classic/raster2printer original_device_uri_test CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
           reconstructions/macos-5.1.465-classic/raster2printer/original_device_uri_test
+      - name: Verify original URI resolver TCP port behavior on loopback only
+        run: |
+          make -C reconstructions/macos-5.1.465-classic/raster2printer original_device_uri_loopback_test CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+          reconstructions/macos-5.1.465-classic/raster2printer/original_device_uri_loopback_test
       - name: Clean executable outputs
         run: |
           make -C reconstructions/macos-5.1.465-classic/command2leitz clean
