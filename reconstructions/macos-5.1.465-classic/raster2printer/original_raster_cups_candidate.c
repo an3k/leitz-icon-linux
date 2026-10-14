@@ -21,6 +21,7 @@
 #include "original_log_helpers.h"
 #include "classic_write_data.h"
 #include "original_device_uri.h"
+#include "original_raster_native_status_entry.h"
 #include "original_status_exchange.h"
 #include "original_read_page.h"
 #include <cups/cups.h>
@@ -333,11 +334,15 @@ int ReadPage(classic_oem_read_descriptor *descriptor,
         descriptor,header,pixels,requested_bytes,page_counter);
 }
 
-int CheckPrinterStatus(classic_oem_read_descriptor *descriptor) {
-    classic_native_status_context state={descriptor};
+/* The original _CheckPrinterStatus operates on an entire 0x10a8-byte
+ * C++ descriptor copied by value on the native x86_64 stack. Keep the
+ * callback-based original status body unchanged, but give the exported
+ * OEM-named entry the original-style by-value call surface. */
+int CheckPrinterStatus(classic_oem_read_descriptor descriptor) {
+    classic_native_status_context state={&descriptor};
     classic_original_status_io io={
         .context=&state,
-        .device_scheme=(const char *)descriptor+0x50,
+        .device_scheme=(const char *)&descriptor+0x50,
         .socket_fd=classic_original_socket,
         .resolved_uri_present=classic_original_resolved_uri!=NULL,
         .termination_flag=status_terminated,
@@ -352,7 +357,7 @@ int CheckPrinterStatus(classic_oem_read_descriptor *descriptor) {
         .sleep_seconds=status_sleep,
         .job_size=&job_size,
         .last_error=status_errno,
-        .descriptor=(const unsigned char *)descriptor,
+        .descriptor=(const unsigned char *)&descriptor,
         .current_socket_fd=status_socket_now,
         .resolved_uri_is_present=status_resolved_now
     };
