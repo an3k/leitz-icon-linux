@@ -62,3 +62,19 @@ if not direct_calls:
 for line in direct_calls:
     print(line)
 print("ORIGINAL_RASTER_ACTIVE_CALLS_END")
+
+# Manufacturer entry/exit functions are distinct from the job loop.
+# Recover complete defined _EndDocument before implementing a native
+# wrapper; the existing byte-only boundary C cannot model close/flush.
+print("ORIGINAL_RASTER_DOCUMENT_BOUNDARY_BEGIN")
+for name,begin,end in (
+    ("START_DOCUMENT",0x100006890,0x100006dd0),
+    ("END_DOCUMENT",0x100008ac0,0x100008cf0),
+):
+    subset=[line for address,line in asm if begin<=address<end]
+    if not subset:
+        raise RuntimeError("No disassembly for "+name)
+    print("OEM_DOCUMENT_FUNCTION",name,"instructions",len(subset))
+    for line in subset:
+        print(line)
+print("ORIGINAL_RASTER_DOCUMENT_BOUNDARY_END")
