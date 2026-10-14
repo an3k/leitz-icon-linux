@@ -10,7 +10,10 @@ test -x "$original" && test -x "$candidate" && test -f "$module" || exit 1
 errors=0
 for case in "ReportStatus READY" "ReportStatus NONE" "ReportStatus MEDIA_JAM" \
             "GetUnitedStatus NONE" "GetFirmwareVersion NONE" \
-            "GetUnitedStatus U_42"; do
+            "GetUnitedStatus U_42" \
+            "ReportStatus READ_ERROR" "ReportStatus MEDIA_EMPTY" \
+            "ReportStatus GENERAL_ERROR" "ReportStatus UNKNOWN_STATUS" \
+            "GetUnitedStatus READ_ERROR" "GetFirmwareVersion V_42"; do
   read -r command answer <<< "$case"
   printf '%s YES\n' "$command" > "$work/command-original-main.conf"
   PPD="$ppd" LEITZ_MOCK_REPLY="$answer" DYLD_INSERT_LIBRARIES="$module" \
