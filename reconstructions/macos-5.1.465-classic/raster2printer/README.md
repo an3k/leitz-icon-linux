@@ -468,3 +468,56 @@ Unlike the Linux 1.0.3 manufacturer source, this original macOS loop has **no sp
 The analysis-only callback structure exposes CUPS handles and the still-owned options array so a future full `_raster2printer` can continue with the original next call. It is not the OEM native ABI and is **not** connected to the active CUPS adapter. The OEM's incomplete cleanup in early return branches, unbuffered stderr, null-option logging, ignored `cupsMarkOptions` result, and early return values have been retained rather than hardened.
 
 Local GCC/Clang strict C11 builds and mock tests passed for normal fd/stdin routes, original callback order, conflicts and stderr, invalid argc, missing raster input, missing raster stream, and missing PPD. These tests exercise a reconstructed function with callback CUPS mocks, **not** the original Mach-O private function. CI will verify both Linux/macOS compilation and the pre-existing manufacturer comparisons; results must be checked before claiming success.
+
+## 2026-10-14 — Continuous original raster options startup integrated
+
+After confirming that `sources` already contains separately recovered
+`original_raster_preflight` and `original_raster_ppd_options`, the original
+raster2printer assembly was checked for the adjoining region
+`0x1000052d1..0x10000548e`.
+
+New `original_raster_option_initialization.[ch]` is an **isolated
+integration** of these two previously recovered functions into the
+manufacturer's original active startup sequence:
+
+1. Zero the complete `0x10a8`-byte original descriptor and set
+   `OptimizationLevel=1` **before** invoking the CUPS preflight.
+2. Execute `setbuf`, `argc` validation, `cupsRasterOpen`, `ppdOpenFile`,
+   `cupsParseOptions`, `ppdMarkDefaults`, per-option `ppdMarkOption`,
+   conflict diagnostics and `cupsMarkOptions` in the already-recovered
+   original order. An original early error exits immediately.
+3. Select exactly the six macOS manufacturer PPD choices in the same
+   original sequence, reusing `original_raster_ppd_options.c` without
+   duplicating the algorithms.
+4. Call `cupsFreeOptions`, then `ppdClose`; **only after these calls**
+   write the manufacturer's line 249 option diagnostic.
+5. Invoke `_OpenDebugFile` unconditionally, as the Mach-O does at
+   `0x100005418`, even if the debug-mode option is off.
+6. Set `__fd_stdout` to null when `PrintThroughPRN=ON`, or to stdout
+   otherwise. Prepare an independent **byte-for-byte copy** of the
+   original `0x10a8`-byte descriptor and call `_StartDocument`
+   exactly once at `0x10000548e`.
+
+The callback representation of the original CUPS handles,
+`__fd_stdout` pointer and by-value descriptor argument is newly
+authored analysis scaffolding, not the manufacturer's ABI. **The
+actual CUPS adapter, original vendor files, halftone logic and all
+existing successful reconstructed functions remain unchanged.**
+In particular, the core printer-page loop after `_StartDocument`
+has not been integrated and the new source is not a production
+driver.
+
+Local strict GCC and Clang tests passed, including full callback
+ordering, descriptor copy identity, deferred PRN/stdout selection,
+and early PPD failure which avoids all later calls. A separate test
+covers the initial CUPS errors and conflict diagnostics. The
+new integration remains to be compiled and checked by the
+macOS/GCC/Clang CI run; original binary execution equivalence is
+not yet claimed.
+
+Previous preflight commit `ea9f9f103e15d3aa1e75d1f73bf1694311b47f79`
+was verified by [run 38495904705](https://github.com/an3k/leitz-icon-linux/actions/runs/38495904705):
+**all three jobs completed successfully** (GCC, Clang, native macOS and
+the existing original-binary comparison suite). Those reference
+tests do not exercise the newly connected startup section inside
+the original Mach-O directly.

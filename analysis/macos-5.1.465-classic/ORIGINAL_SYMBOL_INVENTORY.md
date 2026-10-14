@@ -24,7 +24,7 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 | `_PrintPageDebugInfo` | 0x100003e50 | Seven original diagnostic calls recovered in `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_page_debug.c`; not linked into the active filter |
 | `__Z14signal_handleri` | 0x100004420 | Recovered original diagnostic + termination state in `original_raster_private_helpers.c`; C test-only function is not yet connected with active CUPS entry |
 | `_main` | 0x100004460 | OEM-defined call order and literal diagnostics reconstructed in `original_raster_main.c`; full native executable linkage still outstanding |
-| `_raster2printer` | 0x1000045a0 | Original early CUPS/PPD preflight (`original_raster_preflight.[ch]`) and six PPD choice branches (`original_raster_ppd_options.[ch]`) separately recovered; post-option print/job/error path and complete original ABI still incomplete |
+| `_raster2printer` | 0x1000045a0 | Original initialization from 0x1000045dc through `_StartDocument` at 0x10000548e now connects CUPS preflight, six PPD choices, PPD cleanup and original output setup via `original_raster_option_initialization.[ch]`; remaining raster-page execution and native ABI incomplete |
 | `_StartDocument` | 0x100006890 | Isolated recovered output |
 | `_DitherPage` | 0x100006dd0 | Full defined RGB24 path including OEM descriptor and diagnostics reconstructed in `original_dither_page.[ch]`, reusing the existing halftone loop; original global/undefined-case ABI pending |
 | `_StartPage` | 0x100007380 | Isolated output |
