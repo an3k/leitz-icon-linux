@@ -1142,3 +1142,7 @@ The original C++ calling ABI, untouched socket error paths, unresolved failure s
 ## Original C++ signal symbol (2026-10-14)
 
 The already reconstructed `signal_handler(int)` now exports the exact OEM Mach-O `__Z14signal_handleri` name on native macOS, through a single header declaration also shared with the isolated test. The original handler code, SIGTERM registration, error message and termination flag were not altered. [Run 38628189356](https://github.com/an3k/leitz-icon-linux/actions/runs/38628189356) passed the native `nm` symbol check, unit tests and all manufacturer comparisons. This establishes the defined one-argument signal function's native symbol name, **not** the general C++ ABI or global-memory equivalence.
+
+### URI TCP branch on macOS loopback (2026-10-14)
+
+The separately compiled `original_device_uri_loopback_test` now exercises the previously unverified IPP connection branch of `original_device_uri.c` against a listener bound only to 127.0.0.1:9100. The test proves the reconstructed function retains the URI descriptor's explicit port 4231 yet connects to the manufacturer's fixed TCP port 9100. [CI run 38628907264](https://github.com/an3k/leitz-icon-linux/actions/runs/38628907264) passed all jobs. This does **not** establish manufacturer Mach-O network parity, error-path fidelity or compatibility with a real printer. The normal CUPS raster output continues to use its original stdout path and has not been modified.

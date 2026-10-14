@@ -94,3 +94,7 @@ The already connected macOS `command2leitz` status main has six additional exact
 ### ShouldSend_ESC_A original CUPS command options (2026-10-14)
 
 The original PPD has `ShouldSend_ESC_A` values YES (default) and NO. `compare_connected_command_with_vendor.sh` independently checks both values for all three recovered command names with controlled backchannel responses and exact stdout/stderr/exit comparison. [Run 38627418640](https://github.com/an3k/leitz-icon-linux/actions/runs/38627418640) confirms **six new exact matches**, bringing the full original command suite to **25 defined cases**. The original-derived implementation was already correct, so no encoder or command source modification was needed.
+
+### Original-derived IPP URI resolver TCP loopback (2026-10-14)
+
+`reconstructions/macos-5.1.465-classic/raster2printer/original_device_uri_loopback_test.c` calls the actual recovered `classic_original_resolve_device_uri` through native libcups with `ipp://127.0.0.1:4231/printers/icon`. A listener bound only to 127.0.0.1:9100 confirms the implementation connects to **9100** while the original descriptor retains the **4231** URI port. [CI run 38628907264](https://github.com/an3k/leitz-icon-linux/actions/runs/38628907264) passed Linux/native builds and the full existing manufacturer regression. This test executes the reconstructed function, not the dormant corresponding manufacturer function; no remote service or printer was reached.
