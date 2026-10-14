@@ -53,9 +53,12 @@ print("ORIGINAL_RASTER_LOOP_SLOTS_END")
 # distinguish already reconstructed print helpers from still-unlinked
 # status, URI, and raw output helpers.
 print("ORIGINAL_RASTER_ACTIVE_CALLS_BEGIN")
-for address, line in asm:
-    if 0x1000045a0 <= address < 0x10000685a and (
-        "\\tcallq\\t" in line or "\\tcall\\t" in line
-    ):
-        print(line)
+direct_calls = [
+    line for address, line in asm
+    if 0x1000045a0 <= address < 0x10000685a and "callq" in line
+]
+if not direct_calls:
+    raise RuntimeError("No OEM call instructions matched; audit is invalid")
+for line in direct_calls:
+    print(line)
 print("ORIGINAL_RASTER_ACTIVE_CALLS_END")
