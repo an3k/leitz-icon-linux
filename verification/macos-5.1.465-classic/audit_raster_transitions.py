@@ -78,3 +78,18 @@ for name,begin,end in (
     for line in subset:
         print(line)
 print("ORIGINAL_RASTER_DOCUMENT_BOUNDARY_END")
+
+# Two previously byte-only original OEM page lifecycle functions.
+# Include all native instructions, no truncation, after SHA256-verification.
+print("ORIGINAL_RASTER_PAGE_BOUNDARIES_BEGIN")
+for name, begin, end in (
+    ("START_PAGE", 0x100007380, 0x100007560),
+    ("END_PAGE", 0x1000089b0, 0x100008ac0),
+):
+    instructions = [line for address, line in asm if begin <= address < end]
+    if not instructions:
+        raise RuntimeError("Original page boundary missing: " + name)
+    print("ORIGINAL_RASTER_PAGE_FUNCTION", name, "instructions", len(instructions))
+    for line in instructions:
+        print(line)
+print("ORIGINAL_RASTER_PAGE_BOUNDARIES_END")
