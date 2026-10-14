@@ -78,3 +78,9 @@ equivalence.
 ## Native OEM mode-1 RGB24 whole-job comparison (2026-10-14)
 
 `compare_mode1_rgb_with_vendor.sh` exercises the complete original-derived native macOS CUPS candidate and original manufacturer `raster2printer` with equal `rgbtailblank` raster inputs, genuine Bayer8x8 dithering, optimization mode 1, heights 33/80 raster rows and cutter ON/OFF. [CI 38611488870](https://github.com/an3k/leitz-icon-linux/actions/runs/38611488870) verified four exact stdout/stderr/exit matches. The last RGB row is white on purpose: the original mode-1 row copy reads four extra bytes after nonblank rows, so this input avoids undefined last-row behavior without changing the reconstructed OEM implementation. No hardware was connected.
+
+## Native connected RGB24 halftone and local IPP routing (2026-10-14)
+
+`compare_connected_halftones_with_vendor.sh` compares manufacturer Mach-O with the joined recovered OEM CUPS executable for all 13 original RGB24 quality matrices not previously exercised through the joined path, at 300/600 dpi, OEM modes 2/3. [Run 38623180688](https://github.com/an3k/leitz-icon-linux/actions/runs/38623180688) confirmed **52/52 exact stdout, stderr and exit matches**. The original Draft choice is a 1-bit mode, not an RGB24 table. No mode 0/1 memory-unsafe path is used here.
+
+`compare_connected_ipp_loopback.py` independently launches the manufacturer and joined reconstruction with `DEVICE_URI=ipp://127.0.0.1/ipp/print`, fresh **127.0.0.1-only TCP/9100 listeners**, and byte-comparison of four independent results: TCP payload, stdout, complete stderr, exit. [Run 38623604108](https://github.com/an3k/leitz-icon-linux/actions/runs/38623604108) confirmed manufacturer and candidate both used **stdout rather than TCP** for this CUPS raster case (3,620 stdout, 0 TCP, 9,404 stderr bytes, exit 0), and reconfirmed 52/52 RGB24 quality matches. No real printer or external network endpoint was accessed; socket/IPP printing remains unverified.

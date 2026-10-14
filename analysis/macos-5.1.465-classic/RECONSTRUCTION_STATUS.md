@@ -1737,3 +1737,19 @@ A still-unchecked whole-job combination was OEM optimization mode **1** with RGB
 [CI run 38611488870](https://github.com/an3k/leitz-icon-linux/actions/runs/38611488870) passed all three jobs: recovered C under GCC/Clang, native Apple CUPS compilation, and actual authenticated manufacturer binary comparisons. All four new cases emitted `OEM_CONNECTED_MODE1_RGB_PARITY=YES`. Existing monochrome, command, PRN, original modes 2/3 and startup comparisons remained successful.
 
 Commit: `1e330ac0ef862eafd7ab5b279d35bd38b1b542c5`. This establishes four more original-equivalent defined end-to-end scenarios, **not** complete mode-0/1 equivalence for nonblank final rows, native C++ binary ABI equivalence, network behavior or physical printer functionality. The productive driver, CUPS branch, and original binaries were not changed.
+
+## 2026-10-14 — all remaining RGB24 quality tables and CUPS IPP-route reference
+
+Live `sources` was checked at `b39862736a1dd06884dac249ebe847c33af177c0` before modifying any files. The original-derived connected macOS CUPS candidate and all 15 previously recovered PPD quality-name mappings already existed. The valid `Bayer8x8` RGB24 baseline and separate original `Draft` (1-bit input) handling had already been verified. The original quality matrix code was not rewritten.
+
+**Complete, independently executable manufacturer RGB24 comparison:**
+`verification/macos-5.1.465-classic/compare_connected_halftones_with_vendor.sh` uses separate SHA-256-verified original manufacturer and reconstructed macOS CUPS executables, identical two-page RGB24 input, actual PPD selections and USB-oriented `DEVICE_URI`. It compares **entire stdout bytes, entire stderr bytes and exit codes** in modes **2/3**, at **300/600 dpi**, for all **13 other non-Draft original quality names**:
+`Bayer8x8SuperCell1`, `Bayer8x8SuperCell2`, `SuperCell1`, `SuperCell2`, `SuperCell3`, `CUPSThresold64x64`, `SuperCell`, `Bayer4x4`, `Bayer14x14`, `Clustered8x8`, `Dispersed8x8`, `Nasik4x4`, `Dithering3x3`.
+[Run 38623180688](https://github.com/an3k/leitz-icon-linux/actions/runs/38623180688) confirmed **52/52 exact whole-job matches** and all three CI jobs successful. These were formerly only partly tested using the older standalone raster adapter, not the original-function-connected executable. No encoder correction was needed.
+
+**IPP scheme in a strictly local CUPS raster process:**
+`verification/macos-5.1.465-classic/compare_connected_ipp_loopback.py` executes the original manufacturer and joined reconstructed CUPS binaries separately with identical `DEVICE_URI=ipp://127.0.0.1/ipp/print`. For each process a new TCP listener binds only `127.0.0.1:9100`, and a synthetic `SKU:Ready;` response is provided only if a command actually arrives. This test never contacts remote hardware.
+
+[Run 38623604108](https://github.com/an3k/leitz-icon-linux/actions/runs/38623604108) matched original **stdout bytes (3,620), complete stderr bytes (9,404), exit status (0) and TCP bytes (0)** against the joined reconstruction. The **original itself used stdout**, despite the IPP URI; the reconstruction correctly preserved that route rather than inventing a TCP connection. That same run reconfirmed all 52 RGB24 comparisons and all other existing CI jobs.
+
+Limits: these experiments do **not** verify a real TCP/9100 printer connection, socket error/retry paths, the dormant `CheckPrinterStatus` function with a printer, the native C++ ABI or the original's undefined mode-0/final-row mode-1 overreads. They change neither installed Linux driver nor the original vendor binaries. Commits: `1d7c65c9f4859cd5e4eddb1c9fbc515461481cc5` (quality coverage) and `86d0f8e6622f1b956ffbd9d353876968d8427226` (local IPP-route comparison).
