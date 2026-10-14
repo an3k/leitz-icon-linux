@@ -176,6 +176,13 @@ jobs:
           "$work/cups-fixture" "$work/input.ras"
           bash verification/macos-5.1.465-classic/compare_with_vendor.sh \
             "$work" "$raster" "$ppd"
+          echo "Compile connected original-derived CUPS candidate for direct OEM comparison:"
+          make -C reconstructions/macos-5.1.465-classic/raster2printer \
+            original_raster2printer_cups_candidate CC=clang \
+            CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+          echo "Compare complete original-derived connected stdout against OEM modes 2/3:"
+          bash verification/macos-5.1.465-classic/compare_connected_with_vendor.sh \
+            "$work" "$raster" "$ppd"
           echo "Compare classic OEM command filter against recovered C:"
           bash verification/macos-5.1.465-classic/compare_command_with_vendor.sh \
             "$work" "$command" "$ppd"
