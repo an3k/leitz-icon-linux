@@ -27,29 +27,20 @@ static void emit(const classic_original_page_lifecycle_ops *ops,
                           sizeof by_value,ops->socket_fd);
 }
 
-/* OEM _ProcessPage 0x1000083fd..0x1000084b5 (source line 860):
- * During the mode-2 per-bit RLE count, a completed 128-one-bit run
- * has the byte value 0xff; the original emits its diagnostic BEFORE
- * handling that run and only when another bit is present to close it.
- * The trailing final run (0x100008533) bypasses this diagnostic.
- * The byte compressor remains unchanged and separate.
+/* Original OEM mode-2 bit-run initializer is:
+ *   0x10000825b: run_byte = 0xff (sentinel)
+ *   0x100008262: previous_bit = 0
+ * At 0x1000083e5..0x100008414 a DIFFERENT first bit causes the
+ * 0xff diagnostic. The current run is then reset at 0x1000084f7,
+ * and subsequent runs flush on 0x7f before ever reaching 0xff.
+ * Thus only the very first bit of a cropped nonblank row can log.
+ * This is not a trace of every completed 128-one-bit RLE run.
  */
-static void report_original_mode2_full_one_runs(const uint8_t *row,
-                                                 unsigned length) {
-    unsigned run=0,previous=0;
-    for (unsigned i=0;i<length;++i) {
-        for(int bit=7;bit>=0;--bit) {
-            unsigned current=(row[i] >> bit)&1u;
-            if(run && (previous!=current || run==128u)) {
-                if(previous && run==128u)
-                    fprintf(stderr,
-                        "\nraster2printer.c:860:ProcessPage(): first bit/byte. do not send 255");
-                run=0;
-            }
-            previous=current;
-            ++run;
-        }
-    }
+static void report_original_mode2_first_bit(const uint8_t *row,
+                                             unsigned length) {
+    if(length!=0 && (row[0]&0x80u)!=0)
+        fprintf(stderr,
+            "\nraster2printer.c:860:ProcessPage(): first bit/byte. do not send 255");
 }
 
 int classic_original_process_page_modes23(
@@ -92,7 +83,7 @@ int classic_original_process_page_modes23(
         if(nonwhite && mode==2u) {
             unsigned right=stride;
             while(right>left && row[right-1]==0) --right;
-            report_original_mode2_full_one_runs(row+left,right-left);
+            report_original_mode2_first_bit(row+left,right-left);
         }
         const size_t n=classic_mode23_row(&page,row,encoded);
         if (n!=0) {
