@@ -294,3 +294,50 @@ The manufacturer x86_64 Mach-O `_WriteData` routines were checked again at `comm
 The two preexisting, incomplete sink-choice C implementations were corrected **in place only on those differences**; no alternative implementations, retry loops, additional guards, or changes to the established good paths were introduced. The separate cross-executable test in `verification/macos-5.1.465-classic/original_write_data_semantics_test.c` checks signed -1, positive short sends, zero sends, zero/positive stdout writes, PRN-only output, zero-length writes, dump ordering, and complete OEM stderr bytes. Local GCC and Clang with AddressSanitizer/UndefinedBehaviorSanitizer passed. CI builds now run this cross-test on Linux GCC/Clang and macOS Clang.
 
 The test is based on the **verified original assembly**, not on executing the original internal `_WriteData` directly. This still does not establish exact original ABI, network/device behavior or full program equivalence.
+
+## Full original _ReadPage recovered as separate C function — 2026-10-14
+
+Reviewed the **unchanged, SHA-256-verified manufacturer's**
+`raster2printer` binary, function `_ReadPage` at
+`0x100008d20..0x10000918b`. The existing simplified
+`classic_read_page_core` and its callers were not modified.
+
+New `original_read_page.[ch]` reconstructs **all defined branches**
+of this original function: call to `cupsRasterReadHeader2`, incrementing
+the page counter before other work, original media-type/name diagnostic
+(line 1049), copying width and height into 16-bit descriptor fields,
+original 32-bit output-stride calculation with division and remainder,
+bits-per-pixel, bytes-per-line and color-space fields, unbounded original
+`strcpy` to media name, two original line-width diagnostics (1059 and
+1061), freeing a prior page buffer when a previous page exists,
+32-bit page byte count, `calloc(1,count)`, **one**
+`cupsRasterReadPixels` call per page, and the original outcome paths:
+
+- Header result zero: return zero without incrementing the counter.
+- **Any nonzero pixel count, including a short positive read:** report
+  received/requested sizes at line 1089 and return 1.
+- Pixel count zero: set requested byte count to zero, free the new
+  pixel buffer if non-null, and return zero. The original **leaves a
+  dangling pointer** without clearing it. This behavior is preserved
+  for source fidelity, not recommended for application use.
+
+The reconstructed descriptor uses exact manufacturer field offsets
+(`0x1c`, `0x1e`, `0x20`, `0x30`, `0x34`, `0x3c`,
+`0x1050`) with static layout assertions; unknown original fields
+remain opaque. This does **not** establish the original C++ global or
+binary ABI. No fixed label length, bounds hardening, short-read retry,
+allocation check, or other behavioral modification was introduced.
+
+Test-only CUPS declarations are isolated under
+`readpage-fixture/`, excluded from native compilation.
+GCC, Clang, and Clang ASan/UBSan tests passed locally with simulated
+successive pages, nonzero short reads, buffer replacement, zero read,
+EOF, geometry conversions and original stderr messages. Native
+macOS compilation with **real Apple CUPS headers** and the existing
+manufacturer comparison suite are configured in CI; their result must
+be checked for this commit. The original internal function has not
+been independently invoked within the OEM executable.
+
+**Scope:** Complete defined control flow of one function, separately
+reconstructed; full `raster2printer` integration and total functional
+equivalence of either executable remain incomplete.

@@ -31,7 +31,7 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 | `_ProcessPage` | 0x100007560 | Modes 0–3 recovered, full original control flow incomplete |
 | `_EndPage` | 0x1000089b0 | Isolated output |
 | `_EndDocument` | 0x100008ac0 | Isolated output |
-| `_ReadPage` | 0x100008d20 | Isolated core, OEM ABI incomplete |
+| `_ReadPage` | 0x100008d20 | Complete defined branch recovery and original field-offset descriptor in `original_read_page.[ch]`; C++ ABI and whole-executable integration incomplete |
 | `_CheckPrinterStatus` | 0x100009190 | Entry decision + reply classifier only; native I/O/retries incomplete |
 | `_ResolveDeviceURI` | 0x100009a30 | Independently recovered native resolver, integration incomplete |
 
