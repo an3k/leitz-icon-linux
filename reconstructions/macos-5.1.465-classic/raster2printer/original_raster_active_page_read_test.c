@@ -34,6 +34,12 @@ unsigned cupsRasterReadPixels(cups_raster_t *r,unsigned char *data,unsigned len)
     return 0; /* no dither allocation; original page buffer remains live */
 }
 int main(void) {
+    /* SHA256-verified OEM _raster2printer disassembly contains
+     * unsigned divl at 0x1000057eb and signed idivl at 0x100005800.
+     * The exported _ReadPage uses the same pair of operations.
+     * These are calculation-only tests; no huge allocation. */
+    assert(classic_oem_read_page_packed_stride(0x80000008u,24u)==89478485u);
+    assert(classic_oem_read_page_packed_stride(0x80000010u,24u)==89478487u);
     classic_oem_read_descriptor d={0};
     d.cups_raster=&raster;
     cups_page_header2_t h={0};

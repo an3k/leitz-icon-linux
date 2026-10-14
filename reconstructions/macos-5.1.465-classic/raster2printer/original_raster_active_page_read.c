@@ -30,9 +30,12 @@ int classic_original_raster_active_page_read(
     descriptor->cups_width=(uint16_t)header->cupsWidth;
     descriptor->cups_height=(uint16_t)header->cupsHeight;
     descriptor->cups_bytes_per_line=header->cupsBytesPerLine;
-    descriptor->packed_bytes_per_line=
-        header->cupsBytesPerLine/header->cupsBitsPerPixel+
-        (header->cupsBytesPerLine%header->cupsBitsPerPixel != 0);
+    /* OEM active inline reader 0x1000057eb divl (unsigned quotient)
+     * and 0x100005800 idivl (signed remainder): the exact same
+     * original arithmetic as the separate exported _ReadPage.
+     * Reuse its already tested recovered rule, not an unsigned ceil. */
+    descriptor->packed_bytes_per_line=classic_oem_read_page_packed_stride(
+        header->cupsBytesPerLine,header->cupsBitsPerPixel);
     descriptor->cups_bits_per_pixel=header->cupsBitsPerPixel;
     descriptor->cups_color_space=header->cupsColorSpace;
     strcpy(descriptor->cups_page_size_name,header->cupsPageSizeName);
