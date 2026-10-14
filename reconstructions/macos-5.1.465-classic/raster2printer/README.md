@@ -1055,3 +1055,50 @@ remain outside the defined normal-case model.
 The next stage is to connect modes 0/1 and 2/3 dispatch to the
 already joined raster page coordinator without changing original
 row encoders or adding a fixed media length.
+
+## 2026-10-14 — Connect actual reconstructed ProcessPage modes to raster job
+
+Following the successful [standalone mode-2/3 reconstruction run
+38556728807](https://github.com/an3k/leitz-icon-linux/actions/runs/38556728807),
+the existing connected `original_raster_document_bridge_test`
+was inspected and extended, **not replaced**. It previously used a
+mock `_ProcessPage` even though the original document, page-start
+and page-end functions had already been joined and tested.
+
+New `original_raster_process_page_adapter.[ch]` is a small
+source-level callback dispatcher that reuses the **existing**
+`original_raster_process_page_modes01` and
+`original_raster_process_page_modes23` entry points. It owns a
+per-job width cache for modes 2/3, selects the original PPD option
+at descriptor offset `0x40`, passes through the original page
+index and cancellation state and refuses unreachable nonzero
+reprint and unknown optimization selections with a documented
+**reconstruction-only -2** status. No row compression logic,
+bit-ordering, halftone or OEM command bytes were duplicated.
+
+The joined CUPS document-bridge integration test now additionally
+runs a complete normal one-page `OptimizationLevel=2` and
+`OptimizationLevel=3` job through the actual recovered
+`_StartDocument`, `_StartPage`, mode-specific `_ProcessPage`
+loop, `_EndPage`, `_EndDocument`, and final job epilogue.
+The former standalone mock-ProcessPage tests for existing
+PPD, 600-dpi, cutter, cancellation and early errors remain
+unchanged. Each additional scenario checks exact resulting
+command byte stream, independent `_WriteData` call sizes,
+global job size, separate flushes and a single CUPS raster
+stream close.
+
+Important outstanding original behavior: Modes 0/1 read
+four bytes after each raw scanline, including after the last
+scanline. A caller supplying only the original exact-sized
+page pixel buffer invokes an OEM **undefined overread**.
+The new adapter preserves the original encoder and documents
+the required readable padding instead of silently replacing
+undefined original memory bytes with invented data. Only
+modes 2/3 are executed via this adapter from the joined
+one-page raster test in this change.
+
+The above is an analytical C ABI and CUPS fixture, not yet a
+working, whole-original macOS executable or an actual Leitz
+hardware run. The original vendor sources and the live Linux
+driver have not been modified.

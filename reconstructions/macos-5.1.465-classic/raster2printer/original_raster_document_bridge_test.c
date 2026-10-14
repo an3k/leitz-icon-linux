@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "original_raster_document_bridge.h"
 #include "original_raster_page_lifecycle.h"
+#include "original_raster_process_page_adapter.h"
 #include "original_raster_connected_job.h"
 #include <assert.h>
 #include <stdint.h>
@@ -13,13 +14,15 @@ struct cups_raster_s {unsigned header_calls,pixel_calls;};
 typedef struct {
     classic_original_raster_document_bridge bridge; /* MUST BE FIRST */
     classic_original_page_lifecycle_ops page_io;
+    classic_original_process_page_adapter process_io;
     struct cups_raster_s raster;
     char events[128];unsigned events_len;
     uint8_t payload[512];size_t bytes;
-    unsigned write_lengths[8],write_calls,close_calls,flush_calls;
+    unsigned write_lengths[20],write_calls,close_calls,flush_calls;
     unsigned pages,queries;
     uint32_t job_size;
     int terminated,high_res,cut,ppd_fails,process_error;
+    unsigned optimization_mode;
 } mock;
 static mock *active;
 static void event(mock*m,char c) {
@@ -67,6 +70,10 @@ static const char *choice(void*c,void*p,const char*name){
     ++m->queries;
     if(!strcmp(name,"Resolution")&&m->high_res)return "600dpi";
     if(!strcmp(name,"LabelCutter")&&m->cut)return "ON";
+    if(!strcmp(name,"OptimizationLevel")){
+        if(m->optimization_mode==2)return "2";
+        if(m->optimization_mode==3)return "3";
+    }
     return NULL;
 }
 static void freeopts(void*c,int n,classic_oem_cups_option*o){
@@ -85,6 +92,9 @@ static int process(void*c,classic_oem_read_descriptor*d,const uint8_t*buf,
                    unsigned i,int reprint) {
     mock*m=c;event(m,'Y');assert(d->cups_raster==&m->raster);
     assert(buf[0]==0x5a&&i==0&&!reprint);++m->pages;
+    if(m->optimization_mode==2 || m->optimization_mode==3)
+        return classic_original_process_page_callback(
+            &m->process_io,d,buf,i,reprint);
     return m->process_error;
 }
 static void endpage(void*c,const void*desc,size_t n) {
@@ -97,7 +107,7 @@ static int terminated(void*c){return ((mock*)c)->terminated;}
 static int doc_write(void*c,const uint8_t*buf,size_t n,
                      const void*d,size_t ds,int sock){
     mock*m=c;event(m,'W');assert(ds==0x10a8&&sock==-1);
-    assert(m->write_calls<8&&m->bytes+n<=sizeof m->payload);
+    assert(m->write_calls<20&&m->bytes+n<=sizeof m->payload);
     void *handle=NULL;memcpy(&handle,d,sizeof handle);
     assert(handle==&m->raster); /* OEM handle visible before StartDocument */
     m->write_lengths[m->write_calls++]=(unsigned)n;
@@ -126,6 +136,8 @@ static classic_original_raster_connected_io setup(mock*m) {
         m,doc_write,doc_flush,doc_close,&m->job_size,-1,terminated};
     m->bridge.original=doc;
     m->page_io=(classic_original_page_lifecycle_ops){m,doc_write,doc_flush,&m->job_size,-1};
+    classic_original_process_page_adapter_initialize(
+        &m->process_io,m->page_io,terminated,m);
     io.initialization=init;io.page_output=page;
     io.finish=finish;io.is_terminated=terminated;io.termination_context=m;
     io.job_size=&m->job_size;io.socket_fd=-1;return io;
@@ -186,6 +198,37 @@ int main(void) {
     reset(&m);io=setup(&m);
     assert(classic_original_raster_connected_job(&io,4,argv,&descriptor,&page,&index)==1);
     assert(m.events_len==0&&m.write_calls==0&&m.close_calls==0);
+
+
+    /* End-to-end original normal ProcessPage mode 2 (raw-byte branch):
+     * the command encoder, separate OEM WriteData calls and page/document
+     * lifecycle now execute in one joined C job. */
+    reset(&m);m.optimization_mode=2;io=setup(&m);
+    assert(classic_original_raster_connected_job(&io,6,argv,&descriptor,&page,&index)==0);
+    assert(index==1 && m.pages==1 && m.close_calls==1);
+    assert(m.write_calls==9 && m.job_size==149 && m.bytes==149);
+    assert(m.flush_calls==2 && m.process_io.cache.mode2_previous_width==1);
+    assert(m.write_lengths[0]==122 && m.write_lengths[1]==11);
+    assert(m.write_lengths[2]==3 && m.write_lengths[3]==3);
+    assert(m.write_lengths[4]==1 && m.write_lengths[5]==1);
+    assert(m.write_lengths[6]==2 && m.write_lengths[7]==2 &&
+           m.write_lengths[8]==4);
+    assert(!memcmp(m.payload+133,"\033B\0\033D\001\026\132",8));
+    assert(!memcmp(m.payload+141,"\033G\033E\033@\033Z",8));
+
+    /* Mode 3: no ESC B when left offset starts at zero; the original
+     * raw marker and its one data byte are a SINGLE WriteData call. */
+    reset(&m);m.optimization_mode=3;io=setup(&m);
+    assert(classic_original_raster_connected_job(&io,6,argv,&descriptor,&page,&index)==0);
+    assert(index==1 && m.pages==1 && m.close_calls==1);
+    assert(m.write_calls==7 && m.job_size==146 && m.bytes==146);
+    assert(m.flush_calls==2 && m.process_io.cache.mode3_previous_width==1);
+    assert(m.write_lengths[0]==122 && m.write_lengths[1]==11);
+    assert(m.write_lengths[2]==3 && m.write_lengths[3]==2);
+    assert(m.write_lengths[4]==2 && m.write_lengths[5]==2 &&
+           m.write_lengths[6]==4);
+    assert(!memcmp(m.payload+133,"\033D\001\026\132",5));
+    assert(!memcmp(m.payload+138,"\033G\033E\033@\033Z",8));
 
     assert(fflush(stderr)==0);
     assert(dup2(fd,fileno(stderr))>=0);close(fd);fclose(f);
