@@ -210,6 +210,9 @@ jobs:
 
           echo "Compare original RGB24 dithering against recovered raster output:"
           "$work/cups-fixture" "$work/rgb.ras" rgb
+          echo "Check original startup error paths against joined native CUPS reconstruction:"
+          bash verification/macos-5.1.465-classic/compare_connected_startup_errors_with_vendor.sh \
+            "$work" "$raster" "$ppd"
           echo "Compare complete original-derived connected stdout against OEM modes 2/3:"
           bash verification/macos-5.1.465-classic/compare_connected_with_vendor.sh \
             "$work" "$raster" "$ppd"
