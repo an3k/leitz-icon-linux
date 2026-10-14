@@ -87,3 +87,39 @@ The audit now also lists every **direct native function call** in
 this active function to identify genuine remaining integrations,
 rather than inventing reprint behavior which the manufacturer does not
 activate normally.
+
+## Original function call inventory
+
+[GitHub Actions run 38547714269](https://github.com/an3k/leitz-icon-linux/actions/runs/38547714269)
+verified the manufacturer Mach-O SHA-256 and collected **153 direct
+`callq` instructions** from `_raster2printer`,
+`0x1000045a0..0x10000685a`. Every such instruction was
+inspected, not just known print-command symbols.
+
+| Original instruction | Direct target |
+|---|---|
+| `0x10000548e` | `_StartDocument` |
+| `0x1000056d1` | `cupsRasterReadHeader2` |
+| `0x100005bfc` | `cupsRasterReadPixels` |
+| `0x100005fb9` | `_DitherPage` |
+| `0x100005fc5` | `_StartPage` |
+| `0x100006011` | `_ProcessPage` (ordinary branch) |
+| `0x10000605e` | `_EndPage` (ordinary branch) |
+| `0x100006189` | `_ProcessPage` (unactivated reprint branch) |
+| `0x1000061d6` | `_EndPage` (unactivated reprint branch) |
+| `0x10000632d` | `_EndDocument` |
+| `0x10000662b`, `0x1000066e4` | `_WriteData` (epilogue) |
+
+**No direct call** to `_CheckPrinterStatus` or `_ResolveDeviceURI`
+occurs in this original function. Thus, inserting an extra status
+query into the connected page loop would be **unsupported** by this
+manufacturer code. Either function may still be used indirectly by
+`_StartDocument`, `_StartPage`, `_ProcessPage` or other functions;
+this audit does **not** determine those callee bodies. The existing
+separate status/URI reconstructions are therefore preserved, not
+arbitrarily spliced into the page loop.
+
+The reprint-only pair of direct calls is present in the original
+binary but conditioned on the compiler-local byte that has only the
+documented direct zero assignment. Its observed native code is
+not evidence that normal execution activates reprinting.

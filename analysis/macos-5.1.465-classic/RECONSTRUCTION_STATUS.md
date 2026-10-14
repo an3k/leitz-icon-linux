@@ -951,3 +951,29 @@ An additional native audit of compiler-local reprint/has-page
 flags has been added to the original vendor verification script;
 verify its results before claiming any conclusion about reprint
 reachability. There is no claim of whole-binary equivalence.
+
+## 2026-10-14 — original raster flag/call inventory confirmed
+
+After the corrected native audit in
+[run 38547714269](https://github.com/an3k/leitz-icon-linux/actions/runs/38547714269)
+(**all three jobs successful**), the following now have direct
+manufacturer-machine-code evidence:
+
+- The `-0x7c05(%rbp)` reprint flag is initialized to **0** exactly once
+  (`0x100005603`), then only read at six instruction addresses, with no
+  direct store of a nonzero value or direct address escape within the
+  complete original `_raster2printer`. Therefore the ordinary
+  defined control flow does **not activate** the compiled reprint path.
+- `_raster2printer` makes **153** original direct machine-code calls,
+  with no direct `_CheckPrinterStatus` or `_ResolveDeviceURI` call.
+  Consequently status/URI logic must not be invented inside the active
+  page loop; potential use by other manufacturer functions remains
+  to be inspected.
+
+Exact instructions are tabulated in
+`analysis/macos-5.1.465-classic/RASTER_LOOP_NATIVE_AUDIT.md`.
+The connected C reconstitution continues to execute the normal
+no-reprint branch. Its two OEM start diagnostics and per-iteration
+page-index log have separately passed Linux GCC/Clang and native
+macOS tests and the existing manufacturer comparison suite.
+These results do **not** prove whole-program or hardware equality.
