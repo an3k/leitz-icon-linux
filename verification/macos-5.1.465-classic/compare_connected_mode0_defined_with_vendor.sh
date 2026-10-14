@@ -24,7 +24,8 @@ for format in mono rgb; do
       if [[ "$rc_oem" == "$rc_joined" ]] &&
          cmp -s "$work/mode0-oem.err" "$work/mode0-joined.err" &&
          python3 verification/macos-5.1.465-classic/compare_defined_bytes.py \
-           "$work/mode0-oem.out" "$work/mode0-joined.out"; then
+           "$work/mode0-oem.out" "$work/mode0-joined.out" \
+           $([[ "$cutter" == "OFF" ]] && printf '%s' '--cutter-off'); then
         echo "OEM_CONNECTED_MODE0_DEFINED_PARITY=YES FORMAT=$format ROWS=$height CUTTER=$cutter EXIT=$rc_oem"
         matched=$((matched+1))
       else
