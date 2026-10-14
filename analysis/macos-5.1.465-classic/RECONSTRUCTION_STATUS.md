@@ -1409,3 +1409,32 @@ The above is an analytical C ABI and CUPS fixture, not yet a
 working, whole-original macOS executable or an actual Leitz
 hardware run. The original vendor sources and the live Linux
 driver have not been modified.
+
+## Native ProcessPage modes 2/3 and joined printer path: final CI proof
+
+- Standalone source reconstruction commit
+  `1c93e65ef448ef36a6ae74a2db6e60a8ba47e925` passed
+  [run 38556728807](https://github.com/an3k/leitz-icon-linux/actions/runs/38556728807):
+  all three jobs successful. GCC, Clang and native macOS compiled and
+  ran the new modes-2/3 control test. Original manufacturer SHA-256
+  checks and existing binary fixture comparisons also passed.
+- Joined normal-page C job commit
+  `7dbae212115bbb4940e3335c83f35fc251ab067d` passed
+  [run 38557369026](https://github.com/an3k/leitz-icon-linux/actions/runs/38557369026):
+  all three jobs successful. The pre-existing whole-job fixture now
+  executes genuine recovered mode-2 and mode-3 ProcessPage loops
+  (not mocked ProcessPage) between the previously recovered page and
+  document boundaries. The actual compiler logs confirm successful
+  execution on both Linux compilers, native macOS and the unchanged
+  manufacturer original comparison suite.
+
+**Precise status:** Defined normal-case source-level command and
+call boundaries for all four ProcessPage optimization modes now have
+separate standalone C implementations, and modes 2/3 are also wired
+into the joined multi-function job. The native executable's C++ ABI,
+OEM out-of-bounds four-byte tail behavior in modes 0/1, exact mode-2/3
+unknown-state/error behavior, and real device transport are NOT
+yet completely reconstructed or proved equivalent. Existing 5.1.465
+OEM reference fixture comparisons do not invoke the private native
+ProcessPage with matching injected callbacks; they are regression
+checks, not a complete parity claim.
