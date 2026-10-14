@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
+#include "original_raster_private_helpers.h"
 #include <assert.h>
 #include <signal.h>
 #include <stdio.h>
