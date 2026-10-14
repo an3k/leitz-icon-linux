@@ -87,6 +87,39 @@ int main(void) {
   assert(s.count==4 && s.flushes==2 && s.messages==0 && s.notified==0);
   reset(&s);
   assert(classic_command_dispatch(&io,"unknown","",0)==0 && s.count==0);
-  puts("command2leitz active-path reconstruction checks passed");
+
+  /* The original Mach-O exported _GetPrinterStatus, _GetUnitedStatus,
+   * _GetFirmvareVersion, _GetStatus and _EndOfJob individually.
+   * These are source-level entry-point tests, not native C++ ABI tests.
+   */
+  reset(&s);
+  s.response[0]=0x03;
+  assert(GetPrinterStatus(&io,0,7.0)==1);
+  assert(s.count==4 && !memcmp(s.stream,"\033A\033Z",4));
+  assert(s.messages==2 && !strcmp(s.lines[1],"STATE: +com.leitz.ready"));
+
+  reset(&s);
+  s.length=0;
+  assert(GetUnitedStatus(&io,0,7.0)==0);
+  assert(s.count==2 && !memcmp(s.stream,"\033U",2));
+  assert(s.messages==1 && !strcmp(s.lines[0],"ATTR: marker-message=NoData"));
+
+  reset(&s);
+  memcpy(s.response,"4.5",3);s.length=3;
+  assert(GetFirmvareVersion(&io,1,7.0)==1);
+  assert(s.count==4 && !memcmp(s.stream,"\033V\033Z",4));
+  assert(!strcmp(s.log_text,"FIRMWARE_VERSION_4.5"));
+
+  reset(&s);
+  s.response[0]=0x03;
+  assert(GetStatus(&io,'A',"PRINTER_STATUS_",0,7.0)==1);
+  assert(s.count==4 && !memcmp(s.stream,"\033A\033Z",4));
+
+  reset(&s);
+  EndOfJob(&io,0);
+  assert(s.count==2 && !memcmp(s.stream,"\033Z",2));
+  assert(s.flushes==1);
+
+  puts("command2leitz active-path and original-named entry-point checks passed");
   return 0;
 }
