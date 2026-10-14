@@ -626,3 +626,27 @@ was verified by [run 38495904705](https://github.com/an3k/leitz-icon-linux/actio
 the existing original-binary comparison suite). Those reference
 tests do not exercise the newly connected startup section inside
 the original Mach-O directly.
+
+## Verified CUPS startup reconstruction builds — 2026-10-14
+
+The new macOS classic CUPS preflight and early error/PPD-option
+processing at commit `ea9f9f103e15d3aa1e75d1f73bf1694311b47f79`
+was validated by [run 38495904705](https://github.com/an3k/leitz-icon-linux/actions/runs/38495904705),
+**all three jobs successful**. This included GCC/Clang C tests, native
+macOS build/tests, and the prior manufacturer-original comparison suite.
+
+The subsequent integration at commit `99f6cc7c4b137e4b6f9c80c6eef4d539c4f5fbef`,
+joining the recovered CUPS preflight, six original PPD choices, option
+free/PPD close, diagnostic, debug-file opening, stdout/PRN route and
+by-value descriptor transfer to `_StartDocument`, was validated by
+[run 38496310468](https://github.com/an3k/leitz-icon-linux/actions/runs/38496310468):
+**all three jobs successful**, including GCC, Clang, native macOS and
+the existing original-vendor comparison suite. The newly joined call
+order and memory copying have been tested under mocked CUPS callbacks;
+these specific internal manufacturer branches have **not** been directly
+invoked inside the native original executable.
+
+No changes to `originals/`, `enhancements/`, the active Linux/Unraid
+driver, or previously recovered C implementations were made. The original
+native job/page-processing body after `_StartDocument`, its precise
+ABI and complete hardware behavior still require reconstruction.
