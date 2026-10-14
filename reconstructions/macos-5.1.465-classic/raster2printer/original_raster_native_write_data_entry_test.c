@@ -2,10 +2,11 @@
  * and PRN behavior are verified by the existing authenticated
  * manufacturer-versus-CUPS full-program comparisons. */
 #include "original_raster_native_write_data_entry.h"
+#include "original_device_uri.h"
 #include <stddef.h>
 _Static_assert(sizeof(classic_oem_read_descriptor)==0x10a8u,
                "OEM 0x215 x 8 descriptor size");
-_Static_assert(offsetof(classic_oem_read_descriptor,scheme)==0x50u,
+_Static_assert(offsetof(classic_original_raster_descriptor,scheme)==0x50u,
                "OEM scheme offset");
 typedef int (*oem_native_write_data)(
     const uint8_t *,size_t,int,classic_oem_read_descriptor);
