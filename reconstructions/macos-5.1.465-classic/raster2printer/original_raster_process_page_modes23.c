@@ -27,6 +27,31 @@ static void emit(const classic_original_page_lifecycle_ops *ops,
                           sizeof by_value,ops->socket_fd);
 }
 
+/* OEM _ProcessPage 0x1000083fd..0x1000084b5 (source line 860):
+ * During the mode-2 per-bit RLE count, a completed 128-one-bit run
+ * has the byte value 0xff; the original emits its diagnostic BEFORE
+ * handling that run and only when another bit is present to close it.
+ * The trailing final run (0x100008533) bypasses this diagnostic.
+ * The byte compressor remains unchanged and separate.
+ */
+static void report_original_mode2_full_one_runs(const uint8_t *row,
+                                                 unsigned length) {
+    unsigned run=0,previous=0;
+    for (unsigned i=0;i<length;++i) {
+        for(int bit=7;bit>=0;--bit) {
+            unsigned current=(row[i] >> bit)&1u;
+            if(run && (previous!=current || run==128u)) {
+                if(previous && run==128u)
+                    fprintf(stderr,
+                        "\nraster2printer.c:860:ProcessPage(): first bit/byte. do not send 255");
+                run=0;
+            }
+            previous=current;
+            ++run;
+        }
+    }
+}
+
 int classic_original_process_page_modes23(
     const classic_original_process_modes23_io *io,
     const classic_oem_read_descriptor *descriptor,
@@ -64,6 +89,11 @@ int classic_original_process_page_modes23(
         const int first_nonblank=page.first_nonblank;
         const int reprint=page.reprint;
 
+        if(nonwhite && mode==2u) {
+            unsigned right=stride;
+            while(right>left && row[right-1]==0) --right;
+            report_original_mode2_full_one_runs(row+left,right-left);
+        }
         const size_t n=classic_mode23_row(&page,row,encoded);
         if (n!=0) {
             /* Manufacturer emits command fragments with distinct

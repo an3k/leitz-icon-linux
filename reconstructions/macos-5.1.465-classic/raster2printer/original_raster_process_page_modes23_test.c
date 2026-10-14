@@ -135,6 +135,16 @@ int main(void){
     assert(classic_original_process_page_modes23(&io,&m.descriptor,white,0)==0);
     assert(m.calls==0);
 
+    /* Exactly one fully completed 128-bit black run with more bits:
+     * OEM source line 860 logs the resulting 0xff RLE byte once.
+     * This must not change any of the emitted output bytes. */
+    begin(&m,2,17,1);io=setup(&m);
+    uint8_t full_ones[17];
+    memset(full_ones,0xff,sizeof full_ones);
+    assert(classic_original_process_page_modes23(
+        &io,&m.descriptor,full_ones,0)==0);
+    assert(m.job_size==9 && m.calls==4);
+
     begin(&m,1,4,1);io=setup(&m);
     assert(classic_original_process_page_modes23(&io,&m.descriptor,pixels,0)==-2);
     assert(m.calls==0 && m.job_size==0);
@@ -144,6 +154,8 @@ int main(void){
     rewind(capture);
     char logs[4096]={0};size_t n=fread(logs,1,sizeof logs-1,capture);
     logs[n]=0;assert(fclose(capture)==0);
+    assert(strstr(logs,
+      "\nras" "ter2printer.c:860:ProcessPage(): first bit/byte. do not send 255"));
     assert(strstr(logs,"\nINFO: Printing page 1, 0% complete..."));
     assert(strstr(logs,"\nINFO: Printing page 1, 50% complete..."));
     assert(strstr(logs,"\nATTR: job-media-progress=50"));
