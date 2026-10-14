@@ -770,3 +770,59 @@ An additional native audit of compiler-local reprint/has-page
 flags has been added to the original vendor verification script;
 verify its results before claiming any conclusion about reprint
 reachability. There is no claim of whole-binary equivalence.
+
+## 2026-10-14 — Full native StartDocument and EndDocument side effects
+
+Before changing source files, branch `sources` was confirmed unchanged
+after commit `cfd70273c5beeb21e3cbf4e2d8c528138f36b7d4`.
+The original Leitz 5.1.465 macOS raster2printer executable
+(SHA-256 `72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13`)
+was disassembled at both original function bodies in
+[run 38549177080](https://github.com/an3k/leitz-icon-linux/actions/runs/38549177080).
+**All three jobs succeeded**. The `_StartDocument` region
+`0x100006890..0x100006dbb` has 327 OEM machine instructions, including
+121 explicit ESC-byte stores, and `_EndDocument`
+`0x100008ac0..0x100008cdc` has 105 instructions.
+
+**New original function recovery:**
+`original_raster_document_lifecycle.[ch]` models the full **defined**
+native output/state sequence, reusing the previously tested command
+builders from `raster2printer_boundaries_recovered.c` **without
+duplicating or overwriting them**.
+
+- `_StartDocument` unconditionally sends the original 122-byte
+  prefix (121 ESC followed by `@`), incrementing `job_size` by 122.
+  Only when descriptor `+0x14` indicates high resolution does it
+  make a **second, separate** `_WriteData` call for `ESC i` and
+  increment `job_size` by 2. No flush is performed here. Two sends
+  rather than one combined 124-byte write are a native behavior that
+  the earlier byte-only model could not demonstrate.
+- `_EndDocument` checks original cutter field at `+0x10`
+  and global termination flag. **Only if both are zero**, it sends
+  `ESC E`, increments `job_size` by 2 and immediately calls
+  `_FlushDataStreams`. It always writes `ESC @ ESC Z` as a
+  **separate four-byte** command and increments `job_size` by 4,
+  with **no second flush**.
+- Immediately after the final command, it unconditionally invokes
+  `cupsRasterClose(descriptor->cupsRaster)` using the pointer at
+  original descriptor `+0x00` and sets that pointer to NULL. It
+  does **not** close the input file descriptor here; that belongs
+  to the surrounding `_raster2printer` epilogue.
+- All `_WriteData` results are ignored and the manufacturer function
+  is `void`. Each write receives its own independent 0x10a8-byte
+  by-value descriptor copy and the original socket descriptor.
+
+A standalone C test checks normal 300dpi, high-res 600dpi,
+cutter-on, terminated, and NULL CUPS-pointer branches, **separate**
+write calls, call order, precise payloads, job_size increments,
+ignored negative send results, conditional flush, CUPS close and
+descriptor pointer reset. No arbitrary paper-length limit is used.
+
+The test ABI uses injected `_WriteData`, `_FlushDataStreams`
+and `cupsRasterClose` callbacks because the complete OEM global /
+C++-linker ABI is not yet recovered. The original binaries themselves
+were disassembled and matched to source behavior; direct invocation
+of their private functions with injected side effects remains
+unverified. The new source is not wired into a live CUPS filter,
+and no real printer has been used. Recovered active driver output
+and manufacturer original files remain unchanged.
