@@ -2,6 +2,7 @@
 #include "original_raster_document_bridge.h"
 #include "original_raster_page_lifecycle.h"
 #include "original_raster_process_page_adapter.h"
+#include "original_raster_dither_bridge.h"
 #include "original_raster_connected_job.h"
 #include <assert.h>
 #include <stdint.h>
@@ -21,8 +22,8 @@ typedef struct {
     unsigned write_lengths[20],write_calls,close_calls,flush_calls;
     unsigned pages,queries;
     uint32_t job_size;
-    int terminated,high_res,cut,ppd_fails,process_error;
-    unsigned optimization_mode;
+    int terminated,high_res,cut,ppd_fails,process_error,rgb;
+    unsigned optimization_mode,dither_calls;
 } mock;
 static mock *active;
 static void event(mock*m,char c) {
@@ -34,13 +35,18 @@ unsigned cupsRasterReadHeader2(cups_raster_t *r,cups_page_header2_t *h) {
     ++m->raster.header_calls;
     if(m->raster.header_calls>1)return 0;
     memset(h,0,sizeof *h);h->cupsWidth=8;h->cupsHeight=1;
-    h->cupsBytesPerLine=1;h->cupsBitsPerPixel=1;
-    h->cupsColorSpace=0;strcpy(h->cupsPageSizeName,"OEM_MEDIA");
+    h->cupsBytesPerLine=m->rgb?24u:1u;
+    h->cupsBitsPerPixel=m->rgb?24u:1u;
+    h->cupsColorSpace=m->rgb?1u:0u;
+    strcpy(h->cupsPageSizeName,"OEM_MEDIA");
     return 1;
 }
 unsigned cupsRasterReadPixels(cups_raster_t *r,unsigned char *dst,unsigned n) {
-    mock*m=active;assert(r==&m->raster && dst && n==1);
-    event(m,'X');++m->raster.pixel_calls;dst[0]=0x5a;return 1;
+    mock*m=active;assert(r==&m->raster && dst && n==(m->rgb?24u:1u));
+    event(m,'X');++m->raster.pixel_calls;
+    if(m->rgb) memset(dst,0,24); /* RGB24 black -> OEM 0xff packed row */
+    else dst[0]=0x5a;
+    return n;
 }
 static int file_open(void*c,const char*n,int f){(void)c;(void)n;(void)f;assert(0);return -1;}
 static void snooze(void*c,unsigned n){(void)c;(void)n;assert(0);}
@@ -69,6 +75,7 @@ static const char *choice(void*c,void*p,const char*name){
     assert(m->queries<6 && !strcmp(name,names[m->queries]));
     ++m->queries;
     if(!strcmp(name,"Resolution")&&m->high_res)return "600dpi";
+    if(!strcmp(name,"PrintQuality")&&m->rgb)return "Bayer8x8";
     if(!strcmp(name,"LabelCutter")&&m->cut)return "ON";
     if(!strcmp(name,"OptimizationLevel")){
         if(m->optimization_mode==2)return "2";
@@ -83,7 +90,13 @@ static void closeppd(void*c,void*p){mock*m=c;event(m,'p');assert(p==m);}
 static void opendebug(void*c){event(c,'B');}
 static void stdout_enable(void*c,int on){assert(on==1);event(c,'T');}
 static void dither(void*c,classic_oem_read_descriptor*d,const uint8_t*in,
-                   uint8_t*out,unsigned q){(void)c;(void)d;(void)in;(void)out;(void)q;assert(0);}
+                   uint8_t*out,unsigned q){
+    mock*m=c;event(m,'d');assert(m->rgb&&d->cups_color_space==1);
+    assert(d->cups_bytes_per_line==24 && q==0);
+    ++m->dither_calls;
+    classic_original_raster_dither_bridge(c,d,in,out,q);
+    assert(out[0]==0xff);
+}
 static void startpage(void*c,classic_oem_read_descriptor*d){
     mock*m=c;event(m,'G');assert(d->cups_raster==&m->raster);
     classic_original_start_page(&m->page_io,d);
@@ -91,7 +104,7 @@ static void startpage(void*c,classic_oem_read_descriptor*d){
 static int process(void*c,classic_oem_read_descriptor*d,const uint8_t*buf,
                    unsigned i,int reprint) {
     mock*m=c;event(m,'Y');assert(d->cups_raster==&m->raster);
-    assert(buf[0]==0x5a&&i==0&&!reprint);++m->pages;
+    assert(buf[0]==(m->rgb?0xff:0x5a)&&i==0&&!reprint);++m->pages;
     if(m->optimization_mode==2 || m->optimization_mode==3)
         return classic_original_process_page_callback(
             &m->process_io,d,buf,i,reprint);
@@ -229,6 +242,22 @@ int main(void) {
            m.write_lengths[6]==4);
     assert(!memcmp(m.payload+133,"\033D\001\026\132",5));
     assert(!memcmp(m.payload+138,"\033G\033E\033@\033Z",8));
+
+    /* RGB24 native path: actual OEM _DitherPage, followed by recovered
+     * mode-2 _ProcessPage and all original page/document boundaries.
+     * No independently invented RGB converter is used. */
+    reset(&m);m.rgb=1;m.optimization_mode=2;io=setup(&m);
+    assert(classic_original_raster_connected_job(&io,6,argv,&descriptor,&page,&index)==0);
+    assert(index==1 && m.pages==1 && m.dither_calls==1);
+    assert(m.raster.pixel_calls==1 && m.close_calls==1);
+    assert(m.write_calls==9 && m.job_size==149 && m.bytes==149);
+    assert(m.flush_calls==2 && descriptor.cups_color_space==1);
+    assert(descriptor.packed_bytes_per_line==1);
+    assert(m.write_lengths[2]==3 && m.write_lengths[3]==3);
+    assert(m.write_lengths[4]==1 && m.write_lengths[5]==1);
+    assert(!memcmp(m.payload+133,"\033B\0\033D\001\026\377",8));
+    assert(!memcmp(m.payload+141,"\033G\033E\033@\033Z",8));
+    assert(strstr(m.events,"XdG")!=NULL);
 
     assert(fflush(stderr)==0);
     assert(dup2(fd,fileno(stderr))>=0);close(fd);fclose(f);
