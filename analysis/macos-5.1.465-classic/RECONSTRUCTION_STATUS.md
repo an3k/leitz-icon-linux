@@ -1672,3 +1672,13 @@ The original comparison script `verification/macos-5.1.465-classic/compare_conne
 **Verified:** [GitHub Actions 38593969771](https://github.com/an3k/leitz-icon-linux/actions/runs/38593969771) completed all three native/Linux CI jobs successfully and confirmed four original-vs-connected two-page jobs (monochrome + RGB24, modes 2/3) with **exact stdout bytes, complete stderr bytes, and identical exit status**. The existing four variable-raster-height, original PRN, and 13 connected command-response comparisons also remained byte-identical. A separate mode-2 unit-test assertion additionally checks the number of original sentinel diagnostics against independent synthetic rows.
 
 The manufacturer x86_64 binary ABI, modes 0/1 undefined final-row reads, live hardware/network communication and unexamined error cases remain incomplete. Neither the Linux driver nor the OEM originals were changed.
+
+## 2026-10-14 — original raster utility symbol linkage in joined macOS CUPS candidate
+
+The actual `sources` HEAD `ae1a7b00e9e20e7320609f9f3051cebcf519477e` and prior successful OEM comparisons were inspected before writing. The OEM model implementations already existed and were **not rewritten**. The newly connected C source is `reconstructions/macos-5.1.465-classic/raster2printer/original_raster_cups_candidate.c`.
+
+**Reconstructed original-named function boundaries:** `OpenDebugFile`, `CloseDebugFile`, `WriteDebugBuffer`, `SendDebugFileToPrinter`, `FlushDataStreams`, `is_bit_set` and `WriteData`. Existing named `OpenLogFile` and `CloseLogFile` remain connected. The named functions reuse the existing OEM-derived PRN, log, byte-output and x86 bit-test implementations, preserving the original fixed debug paths and output choices. Active joined-job callbacks now dispatch through these named boundaries. The `WriteData` boundary receives the already copied **0x10a8-byte descriptor** and selects exactly the original single socket write versus stdout and optional PRN write; it is a source-level C bridge, **not** the manufacturer's binary-compatible C++ signature.
+
+The native macOS CI job now checks actual exported symbols with `nm`; the independent Linux test suite continues compiling/running the original-derived helpers. Code commits: `9c6533e786fd8a0685f368c7727d9224cc065be3` and `93946f2a5e861ab4bba8c01f2def9d4b4b8dde0f`.
+
+These entry points do **not** assert reproduction of the original private C++ symbol ABI, global memory layout, unchecked socket failure paths, OEM mode-0/1 last-row overread or physical hardware behavior. This branch is reference reconstruction only; no productive `driver`, `cups` or manufacturer-original sources were edited.

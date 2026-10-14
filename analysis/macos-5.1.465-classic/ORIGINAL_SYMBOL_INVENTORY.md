@@ -10,19 +10,19 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 | OEM symbol | Original macOS offset | Current reconstructed scope |
 |---|---|---|
 | `start` | 0x100001410 | Not recovered independently |
-| `_WriteData` | 0x100001450 | Partial, sink decisions |
-| `_FlushDataStreams` | 0x1000015f0 | OEM stdout + conditional PRN dump flush recovered in `classic_original_raster_flush_streams` and linked into the native CUPS raster candidate; exact original global ABI remains open |
-| `_is_bit_set` | 0x100001630 | Isolated recovered helper |
-| `_OpenDebugFile` | 0x100001660 | Isolated PRN helper |
+| `_WriteData` | 0x100001450 | Recovered socket/stdout/PRN sink decisions and error messages via `classic_write_data_core`; now exposed as named `WriteData` in the joined OEM-derived macOS CUPS executable, with full 0x10a8 descriptor-byte input; original C++ by-value calling ABI still incomplete |
+| `_FlushDataStreams` | 0x1000015f0 | Recovered stdout/optional PRN flush and connected via named `FlushDataStreams` entry to joined CUPS output lifecycle; exact native C++ global-state ABI remains open |
+| `_is_bit_set` | 0x100001630 | Recovered OEM 32-bit bit-test helper exposed as named `is_bit_set` entry in joined raster executable; encoder still uses independently verified identical bit arithmetic |
+| `_OpenDebugFile` | 0x100001660 | Recovered OEM PRN/debug file opening now linked through named `OpenDebugFile` and used by the joined raster job |
 | `_OpenLogFile` | 0x100001910 | Isolated file helper |
-| `_SendDebugFileToPrinter` | 0x100001b40 | Isolated PRN helper, one verified runtime |
-| `_CloseDebugFile` | 0x100001e10 | Isolated helper |
+| `_SendDebugFileToPrinter` | 0x100001b40 | Original byte-at-a-time PRN transfer connected via named `SendDebugFileToPrinter` to joined raster job; exact OEM PRN output externally compared |
+| `_CloseDebugFile` | 0x100001e10 | Recovered original PRN close/clear, connected via named `CloseDebugFile` to joined job cleanup |
 | `_CloseLogFile` | 0x100001e50 | Isolated helper |
-| `_WriteDebugBuffer` | 0x100001e90 | Isolated helper |
+| `_WriteDebugBuffer` | 0x100001e90 | Original conditional `fwrite` PRN action linked through named `WriteDebugBuffer` into joined `_WriteData` sink path |
 | `_output_cups_info` | 0x100001ef0 | Function body recovered and cross-checked with original Linux 1.0.3 source; see `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_output_cups_info.c` |
 | `_test_raster` | 0x100003c60 | Reconstructed from original assembly in `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_test_raster.c`; dormant function, not called by normal printing |
 | `_PrintPageDebugInfo` | 0x100003e50 | Seven original diagnostic calls recovered in `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_page_debug.c`; not linked into the active filter |
-| `__Z14signal_handleri` | 0x100004420 | Recovered original diagnostic + termination state in `original_raster_private_helpers.c`; C test-only function is not yet connected with active CUPS entry |
+| `__Z14signal_handleri` | 0x100004420 | OEM diagnostic and termination-state update recovered; source-level C signal handler is linked into joined raster `_main` and registered for SIGTERM; C++ mangled ABI and unrelated signal states not asserted |
 | `_main` | 0x100004460 | OEM-derived C entry now linked into `original_raster2printer_cups_candidate` with actual Apple CUPS SDK; OEM symbol ABI and every original error/global case remain incomplete |
 | `_raster2printer` | 0x1000045a0 | Source-level joined C job executes original document/page lifecycle, the normal `_ProcessPage` modes 2/3 and the recovered RGB24 `_DitherPage` through its new callback bridge; mode 0/1 full-page integration still has an OEM four-byte overread, and full native CUPS/device ABI remains incomplete |
 | `_StartDocument` | 0x100006890 | Complete defined output/write-count sequence reconstructed in `original_raster_document_lifecycle.[ch]`; reusable original command bytes retained |
