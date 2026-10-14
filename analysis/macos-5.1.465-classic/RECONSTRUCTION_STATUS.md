@@ -1185,3 +1185,32 @@ transport and a new C ABI; full Mach-O process-global, C++ calling
 convention, `_ProcessPage` and device transport integration are NOT
 established. The active Unraid driver and manufacturer original
 files remain untouched.
+
+## OEM native page functions integrated and CI-verified — 2026-10-14
+
+At commit `ae84c68a09640d8049958c40c3a9afd2a5b0c04c`,
+[Sources - Reconstruction Compile run 38553514817](https://github.com/an3k/leitz-icon-linux/actions/runs/38553514817)
+completed with **all three GitHub Actions jobs successful**. This was
+verified from the per-job conclusions and actual compiler logs:
+
+- Linux GCC and Clang compiled and executed the independent
+  `original_raster_page_lifecycle_test`, checking native OEM command
+  bytes, per-command job-size increments, unconditional end-page flush,
+  separate by-value descriptor, negative WriteData result ignored,
+  cutter, both resolutions and 16-bit overflow arithmetic at height
+  `65535`.
+- The previously complete document/startup/page-loop/epilogue test now
+  executes **actual recovered StartPage and EndPage routines**, rather
+  than just recording their calls, and validates resulting combined
+  counters and payloads. Both GCC and Clang passed.
+- Native macOS Clang built these sources against the real Apple CUPS
+  headers and executed both tests successfully. The established
+  SHA-256-verified original manufacturer execution comparison suite
+  also completed successfully, with no regressions.
+
+The isolated lifecycle implementations are derived from complete
+original `_StartPage` and `_EndPage` machine instruction coverage
+in [run 38552792069](https://github.com/an3k/leitz-icon-linux/actions/runs/38552792069).
+A complete original private-function invocation under injected inputs
+or real Leitz hardware has **not** occurred. `_ProcessPage` remains
+the primary still-incomplete native-function reconstruction.
