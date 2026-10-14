@@ -14,9 +14,20 @@ for case in "ReportStatus READY" "ReportStatus NONE" "ReportStatus MEDIA_JAM" \
             "ReportStatus READ_ERROR" "ReportStatus MEDIA_EMPTY" \
             "ReportStatus GENERAL_ERROR" "ReportStatus UNKNOWN_STATUS" \
             "GetUnitedStatus READ_ERROR" "GetFirmwareVersion READ_ERROR" \
-            "GetFirmwareVersion V_42"; do
+            "GetFirmwareVersion V_42" \
+            "Sequence_UV READY" "Sequence_VU READY" \
+            "Sequence_U_Report READY" "Sequence_Report_U READY" \
+            "Sequence_Case READY" "Sequence_Unknown READY"; do
   read -r command answer <<< "$case"
-  printf '%s YES\n' "$command" > "$work/command-original-main.conf"
+  case "$command" in
+    Sequence_UV) printf 'GetUnitedStatus YES\nGetFirmwareVersion YES\n' > "$work/command-original-main.conf" ;;
+    Sequence_VU) printf 'GetFirmwareVersion YES\nGetUnitedStatus YES\n' > "$work/command-original-main.conf" ;;
+    Sequence_U_Report) printf 'GetUnitedStatus YES\nReportStatus YES\nGetFirmwareVersion YES\n' > "$work/command-original-main.conf" ;;
+    Sequence_Report_U) printf 'ReportStatus YES\nGetUnitedStatus YES\n' > "$work/command-original-main.conf" ;;
+    Sequence_Case) printf 'getunitedstatus YES\nGETFIRMWAREVERSION YES\n' > "$work/command-original-main.conf" ;;
+    Sequence_Unknown) printf 'ReportState YES\nGetUnitedStatus YES\n' > "$work/command-original-main.conf" ;;
+    *) printf '%s YES\n' "$command" > "$work/command-original-main.conf" ;;
+  esac
   PPD="$ppd" LEITZ_MOCK_REPLY="$answer" DYLD_INSERT_LIBRARIES="$module" \
     "$original" 201 testuser Classic 1 "" "$work/command-original-main.conf" \
     > "$work/command-main-vendor.out" 2> "$work/command-main-vendor.err"
