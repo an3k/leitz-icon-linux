@@ -20,9 +20,13 @@
 #include "original_prn_helpers.h"
 #include "original_log_helpers.h"
 #include "classic_write_data.h"
+#include "original_device_uri.h"
+#include "original_status_exchange.h"
 #include <cups/cups.h>
 #include <cups/ppd.h>
 #include <cups/raster.h>
+#include <cups/backend.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -201,6 +205,100 @@ static int write_data(void *ctx,const uint8_t *bytes,size_t size,
 static void flush_data_streams(void *ctx) {
     (void)ctx;
     FlushDataStreams();
+}
+
+/* Original macOS _ResolveDeviceURI 0x100009a30: the implementation
+ * already exists in original_device_uri.c, including the OEM TCP/9100
+ * behavior and error/undefined paths. This named entry is NOT
+ * triggered by the ordinary CUPS raster job.
+ */
+int ResolveDeviceURI(classic_original_raster_descriptor *descriptor) {
+    return classic_original_resolve_device_uri(descriptor);
+}
+
+/* Original _CheckPrinterStatus 0x100009190:
+ * connect existing _CheckPrinterStatus control flow and resolver to
+ * Apple's actual backchannel/socket entry points and OEM WriteData.
+ * Only tested defined cases have original-semantic parity; this code
+ * deliberately preserves the recovered -2 analysis marker for native
+ * undefined cases. The manufacturer ABI is not recovered here.
+ * The ordinary raster job does NOT call this function.
+ */
+typedef struct {
+    classic_oem_read_descriptor *descriptor;
+} classic_native_status_context;
+static int status_terminated(void *unused) {
+    (void)unused;
+    return terminate_flag!=0;
+}
+static int status_resolve(void *ctx) {
+    classic_native_status_context *state=ctx;
+    return ResolveDeviceURI(
+        (classic_original_raster_descriptor *)state->descriptor);
+}
+static ssize_t status_send(void *unused,int fd,const void *buf,size_t length,
+                           int flags) {
+    (void)unused;
+    return send(fd,buf,length,flags);
+}
+static ssize_t status_recv(void *unused,int fd,void *buf,size_t length,
+                           int flags) {
+    (void)unused;
+    return recv(fd,buf,length,flags);
+}
+static int status_putchar(void *unused,int ch) {
+    (void)unused;
+    return putchar(ch);
+}
+static int status_flush(void *unused) {
+    (void)unused;
+    return fflush(stdout);
+}
+static ssize_t status_backchannel(void *unused,void *buf,size_t length,
+                                  double timeout) {
+    (void)unused;
+    return cupsBackChannelRead((char *)buf,(int)length,timeout);
+}
+static void status_message(void *unused,const char *line) {
+    (void)unused;
+    (void)fputs(line,stderr);
+}
+static int status_write_data(void *unused,const uint8_t *buf,size_t length,
+                             const void *descriptor,size_t descriptor_size,
+                             int fd) {
+    (void)unused;
+    return WriteData(buf,length,descriptor,descriptor_size,fd);
+}
+static void status_sleep(void *unused,unsigned seconds) {
+    (void)unused;
+    (void)sleep(seconds);
+}
+static int status_errno(void *unused) {
+    (void)unused;
+    return errno;
+}
+int CheckPrinterStatus(classic_oem_read_descriptor *descriptor) {
+    classic_native_status_context state={descriptor};
+    classic_original_status_io io={
+        .context=&state,
+        .device_scheme=(const char *)descriptor+0x50,
+        .socket_fd=classic_original_socket,
+        .resolved_uri_present=classic_original_resolved_uri!=NULL,
+        .termination_flag=status_terminated,
+        .resolve_device_uri=status_resolve,
+        .send_once=status_send,
+        .recv_once=status_recv,
+        .put_character=status_putchar,
+        .flush_stdout=status_flush,
+        .read_backchannel=status_backchannel,
+        .report=status_message,
+        .write_data=status_write_data,
+        .sleep_seconds=status_sleep,
+        .job_size=&job_size,
+        .last_error=status_errno,
+        .descriptor=(const unsigned char *)descriptor
+    };
+    return classic_original_check_status(&io);
 }
 static void close_raster(void *unused,void *raster) {
     (void)unused;
