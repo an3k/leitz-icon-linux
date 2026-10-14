@@ -154,8 +154,7 @@ static int write_data(void *ctx,const uint8_t *bytes,size_t size,
 }
 static void flush_data_streams(void *ctx) {
     classic_cups_context *c=ctx;
-    (void)fflush(stdout);
-    if(c->prn.dump) (void)fflush(c->prn.dump);
+    classic_original_raster_flush_streams(&c->prn,stdout);
 }
 static void close_raster(void *unused,void *raster) {
     (void)unused;

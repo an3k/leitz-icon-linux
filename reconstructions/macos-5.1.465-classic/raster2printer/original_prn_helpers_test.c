@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 int main(void) {
@@ -31,13 +32,25 @@ int main(void) {
   state.dump=tmpfile();
   assert(state.dump!=NULL);
   classic_original_prn_write_buffer(&state,expected,sizeof expected);
-  assert(fflush(state.dump)==0);
+  FILE *stdout_fixture=tmpfile();
+  assert(stdout_fixture!=NULL);
+  assert(fwrite(expected,sizeof expected,1,stdout_fixture)==1);
+  /* Check the manufacturer's two unconditional/conditional flush calls
+   * through actual OS-level file sizes (not just C stdio buffer reads). */
+  classic_original_raster_flush_streams(&state,stdout_fixture);
+  struct stat sb={0};
+  assert(fstat(fileno(stdout_fixture),&sb)==0);
+  assert(sb.st_size==(off_t)sizeof expected);
+  assert(fstat(fileno(state.dump),&sb)==0);
+  assert(sb.st_size==(off_t)sizeof expected);
   assert(fseek(state.dump,0,SEEK_SET)==0);
   unsigned char fromdump[sizeof expected]={0};
   assert(fread(fromdump,1,sizeof fromdump,state.dump)==sizeof expected);
   assert(memcmp(fromdump,expected,sizeof expected)==0);
   classic_original_prn_close(&state);
   assert(state.dump==NULL);
+  classic_original_raster_flush_streams(&state,stdout_fixture);
+  assert(fclose(stdout_fixture)==0);
   /* Never invoke OpenDebugFile here: its original fixed path is global. */
   return 0;
 }

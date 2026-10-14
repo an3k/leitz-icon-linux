@@ -19,6 +19,14 @@ typedef struct {
 void classic_original_prn_open(classic_original_prn_state *state);
 void classic_original_prn_close(classic_original_prn_state *state);
 
+/* OEM raster2printer _FlushDataStreams 0x1000015f0: flush stdout,
+ * then the optional original debug stream. The FILE* parameter is
+ * analysis-only test scaffolding, not the original global-symbol ABI.
+ * Original Linux 1.0.3 raster_c_functions.c confirms both calls.
+ */
+void classic_original_raster_flush_streams(
+    const classic_original_prn_state *state,FILE *stdout_stream);
+
 /* _WriteDebugBuffer, OEM 0x100001e90..0x100001ee8: writes exactly one
  * element of length size, and ignores the fwrite result. */
 void classic_original_prn_write_buffer(classic_original_prn_state *state,

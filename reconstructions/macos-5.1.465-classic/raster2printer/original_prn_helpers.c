@@ -30,6 +30,13 @@ void classic_original_prn_open(classic_original_prn_state *state) {
   }
 }
 
+void classic_original_raster_flush_streams(
+    const classic_original_prn_state *state,FILE *stdout_stream) {
+  /* _FlushDataStreams: ignored flush results are manufacturer behavior. */
+  (void)fflush(stdout_stream);
+  if(state->dump) (void)fflush(state->dump);
+}
+
 void classic_original_prn_close(classic_original_prn_state *state) {
   /* _CloseDebugFile 0x100001e10..0x100001e45, directly checked
    * against original machine instructions: fclose then clear pointer. */
