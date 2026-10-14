@@ -754,3 +754,10 @@ No existing reconstruction, original manufacturer file, PPD, or
 compilation are configured via the existing workflow. The source
 compiles/behavioral assertions and the pre-existing original-Mach-O
 comparison must both succeed before the result is reported as verified.
+
+## Verified native builds and OEM comparison for active raster page fragments
+
+- [Run 38497080066](https://github.com/an3k/leitz-icon-linux/actions/runs/38497080066), commit `363f07b30f854d2762a05e198f1877f54cf2b38d`: **all three GitHub Actions jobs successful**. Isolated original inline raster page acquisition compiled and passed behavioral checks under GCC/Clang, native Apple macOS SDK compilation, and the existing original OEM execution comparisons. The original private inline page-read branch was not directly invoked with injected inputs.
+- [Run 38497491545](https://github.com/an3k/leitz-icon-linux/actions/runs/38497491545), commit `379983dcadd7c74f08d4ca1aab8decaa418be901`: **all three jobs successful**. Isolated normal page dispatch, calls to the separately reconstructed OEM page functions, by-value `_EndPage` descriptor and original CUPS-status/buffer cleanup were checked under GCC/Clang, native macOS build, and the unchanged OEM reference suite.
+
+Both new modules remain **source-level reconstruction components**. They do not fully connect the original `_raster2printer` startup, the active raster acquisition, normal page dispatch, reprint/cancellation, device status, or `_EndDocument` into a single manufacturer-equivalent executable. The existing OEM execution comparisons cover their established reference scenarios, not a direct side-by-side invocation of these newly reconstructed private-function branches.
