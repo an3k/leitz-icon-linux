@@ -27,9 +27,9 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 | `_raster2printer` | 0x1000045a0 | Source-level joined C job now also executes original `_StartDocument`/`_EndDocument` bytes, counters, conditional flush and raster close via `original_raster_document_bridge.[ch]`; real CUPS/backend ABI and full OEM equality still missing |
 | `_StartDocument` | 0x100006890 | Complete defined output/write-count sequence reconstructed in `original_raster_document_lifecycle.[ch]`; reusable original command bytes retained |
 | `_DitherPage` | 0x100006dd0 | Full defined RGB24 path including OEM descriptor and diagnostics reconstructed in `original_dither_page.[ch]`, reusing the existing halftone loop; original global/undefined-case ABI pending |
-| `_StartPage` | 0x100007380 | Isolated output |
+| `_StartPage` | 0x100007380 | Native call sequence including 11-byte `_WriteData`, job counter, original 16-bit height arithmetic and descriptor by-value transfer recovered in `original_raster_page_lifecycle.[ch]` |
 | `_ProcessPage` | 0x100007560 | Modes 0–3 recovered, full original control flow incomplete |
-| `_EndPage` | 0x1000089b0 | Isolated output |
+| `_EndPage` | 0x1000089b0 | Native 2/4-byte `_WriteData`, counter and unconditional `_FlushDataStreams` recovered in `original_raster_page_lifecycle.[ch]` |
 | `_EndDocument` | 0x100008ac0 | Complete defined ESC E / conditional flush, ESC @ ESC Z, job size, CUPS close and stream-pointer reset recovered in `original_raster_document_lifecycle.[ch]` |
 | `_ReadPage` | 0x100008d20 | Complete defined branch recovery and original field-offset descriptor in `original_read_page.[ch]`; C++ ABI and whole-executable integration incomplete |
 | `_CheckPrinterStatus` | 0x100009190 | Entry decision + reply classifier only; native I/O/retries incomplete |

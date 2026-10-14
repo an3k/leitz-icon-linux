@@ -14,6 +14,10 @@ int main(void) {
   assert(n==11 && memcmp(output,"\033L\000\202\033w\002\300\033B\000",11)==0);
   n=classic_raster_start_page(704,100,1,output);
   assert(n==11 && output[2]==0 && output[3]==80);
+  n=classic_raster_start_page(704,65535,0,output);
+  assert(n==11 && output[2]==0 && output[3]==29);
+  n=classic_raster_start_page(704,65535,1,output);
+  assert(n==11 && output[2]==0 && output[3]==29);
   n=classic_raster_end_page(0,output);
   assert(n==2 && !memcmp(output,"\033G",n));
   n=classic_raster_end_page(1,output);

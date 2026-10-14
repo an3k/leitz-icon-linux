@@ -1,5 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include "original_raster_document_bridge.h"
+#include "original_raster_page_lifecycle.h"
 #include "original_raster_connected_job.h"
 #include <assert.h>
 #include <stdint.h>
@@ -11,6 +12,7 @@
 struct cups_raster_s {unsigned header_calls,pixel_calls;};
 typedef struct {
     classic_original_raster_document_bridge bridge; /* MUST BE FIRST */
+    classic_original_page_lifecycle_ops page_io;
     struct cups_raster_s raster;
     char events[128];unsigned events_len;
     uint8_t payload[512];size_t bytes;
@@ -77,6 +79,7 @@ static void dither(void*c,classic_oem_read_descriptor*d,const uint8_t*in,
                    uint8_t*out,unsigned q){(void)c;(void)d;(void)in;(void)out;(void)q;assert(0);}
 static void startpage(void*c,classic_oem_read_descriptor*d){
     mock*m=c;event(m,'G');assert(d->cups_raster==&m->raster);
+    classic_original_start_page(&m->page_io,d);
 }
 static int process(void*c,classic_oem_read_descriptor*d,const uint8_t*buf,
                    unsigned i,int reprint) {
@@ -88,6 +91,7 @@ static void endpage(void*c,const void*desc,size_t n) {
     mock*m=c;event(m,'E');assert(n==0x10a8);
     const classic_oem_read_descriptor*d=desc;
     assert(d->cups_raster==&m->raster);
+    classic_original_end_page(&m->page_io,d);
 }
 static int terminated(void*c){return ((mock*)c)->terminated;}
 static int doc_write(void*c,const uint8_t*buf,size_t n,
@@ -120,7 +124,9 @@ static classic_original_raster_connected_io setup(mock*m) {
         send_prn,doc_write};
     classic_original_document_ops doc={
         m,doc_write,doc_flush,doc_close,&m->job_size,-1,terminated};
-    m->bridge.original=doc;io.initialization=init;io.page_output=page;
+    m->bridge.original=doc;
+    m->page_io=(classic_original_page_lifecycle_ops){m,doc_write,doc_flush,&m->job_size,-1};
+    io.initialization=init;io.page_output=page;
     io.finish=finish;io.is_terminated=terminated;io.termination_context=m;
     io.job_size=&m->job_size;io.socket_fd=-1;return io;
 }
@@ -139,28 +145,30 @@ int main(void) {
     classic_original_raster_connected_io io=setup(&m);
     assert(classic_original_raster_connected_job(&io,6,argv,&descriptor,&page,&index)==0);
     assert(index==1 && m.pages==1 && m.raster.header_calls==2);
-    assert(m.raster.pixel_calls==1 && m.write_calls==4);
-    assert(m.write_lengths[0]==122&&m.write_lengths[1]==2);
-    assert(m.write_lengths[2]==4 && m.write_lengths[3]==1);
-    assert(m.job_size==128 && m.bytes==129 && m.flush_calls==1);
+    assert(m.raster.pixel_calls==1 && m.write_calls==5);
+    assert(m.write_lengths[0]==122 && m.write_lengths[1]==11);
+    assert(m.write_lengths[2]==2 && m.write_lengths[3]==2 && m.write_lengths[4]==4);
+    assert(m.job_size==141 && m.bytes==141 && m.flush_calls==2);
     assert(m.close_calls==1 && descriptor.cups_raster==&m.raster);
     assert(!page.page_buffer&&!page.dithered_page);
     for(unsigned i=0;i<121;i++)assert(m.payload[i]==0x1b);
     assert(m.payload[121]=='@');
-    assert(!memcmp(m.payload+122,"\033E\033@\033Z\033",7));
-    assert(strstr(m.events,"WGH")==NULL); /* header must precede page */
-    assert(strstr(m.events,"WGH")==NULL);
-    assert(strstr(m.events,"GYEH")!=NULL);
+    assert(!memcmp(m.payload+122,"\033L\0\037\033w\0\010\033B\0",11));
+    assert(!memcmp(m.payload+133,"\033G",2));
+    assert(!memcmp(m.payload+135,"\033E\033@\033Z",6));
+    assert(strstr(m.events,"GWYEWUH")!=NULL); /* page flush before EOF read */
     assert(strstr(m.events,"WUW")!=NULL); /* conditional EndDocument flush */
-    assert(m.events[m.events_len-1]=='W'); /* extra ESC after closing debug */
+    assert(m.events[m.events_len-1]=='b'); /* no extra ESC at job size 141 */
 
     reset(&m);m.high_res=1;m.cut=1;io=setup(&m);
     assert(classic_original_raster_connected_job(&io,6,argv,&descriptor,&page,&index)==0);
-    assert(m.write_calls==4 && m.write_lengths[0]==122);
-    assert(m.write_lengths[1]==2 && m.write_lengths[2]==4 && m.write_lengths[3]==1);
+    assert(m.write_calls==5 && m.write_lengths[0]==122);
+    assert(m.write_lengths[1]==2 && m.write_lengths[2]==11);
+    assert(m.write_lengths[3]==4 && m.write_lengths[4]==4);
     assert(m.payload[122]==0x1b && m.payload[123]=='i');
-    assert(!memcmp(m.payload+124,"\033@\033Z\033",5));
-    assert(m.job_size==128 && m.flush_calls==0 && m.close_calls==1);
+    assert(!memcmp(m.payload+124,"\033L\0\036\033w\0\010\033B\0",11));
+    assert(!memcmp(m.payload+135,"\033G\033E\033@\033Z",8));
+    assert(m.job_size==143 && m.bytes==143 && m.flush_calls==1 && m.close_calls==1);
 
     reset(&m);m.terminated=1;io=setup(&m);
     assert(classic_original_raster_connected_job(&io,6,argv,&descriptor,&page,&index)==0);
@@ -181,6 +189,6 @@ int main(void) {
 
     assert(fflush(stderr)==0);
     assert(dup2(fd,fileno(stderr))>=0);close(fd);fclose(f);
-    puts("Connected OEM document lifecycle, raster pages and job epilogue passed");
+    puts("Connected OEM document and page lifecycle, raster output, flush and epilogue passed");
     return 0;
 }

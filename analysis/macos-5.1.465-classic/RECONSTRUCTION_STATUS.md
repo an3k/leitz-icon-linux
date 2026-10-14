@@ -1133,3 +1133,55 @@ Remaining: Direct OEM ABI reconstruction and integration of authentic
 `_ProcessPage` and original device/IPP transport, error and status
 branches. No Leitz Icon hardware test or change to the active Linux
 driver occurred.
+
+## 2026-10-14 — Full native StartPage/EndPage side effects recovered
+
+Branch `sources` was verified before modifications, including the prior
+`_StartDocument`/`_EndDocument` integration and successful CI
+[38550981146](https://github.com/an3k/leitz-icon-linux/actions/runs/38550981146).
+The original manufacturer's SHA-256-verified 5.1.465 `raster2printer`
+Mach-O was then examined under native macOS:
+[run 38552792069](https://github.com/an3k/leitz-icon-linux/actions/runs/38552792069),
+**all three jobs successful**. The new audit captures all 100 instructions of
+`_StartPage` at `0x100007380..0x10000755d` and all 55 instructions
+of `_EndPage` at `0x1000089b0..0x100008ab9`.
+
+New `original_raster_page_lifecycle.[ch]` translates the **defined full
+manufacturer page boundary call and state sequence**, and reuses existing
+original command-byte builders rather than implementing them again:
+
+- `_StartPage` reads width/height as **16-bit** fields at descriptor
+  `+0x1e`/`+0x1c`, high resolution at `+0x14`, emits exactly
+  **one 11-byte** `_WriteData` call with `ESC L`, `ESC w`,
+  `ESC B 00` and increments the original global job counter by 11,
+  independent of the write return value.
+- Verified **original 16-bit arithmetic**: add 30 rows (low resolution)
+  or 60 rows (high resolution), *truncate this sum to 16 bits*, then
+  divide by two only for high resolution. The existing byte-builder
+  formerly computed the sum with wider arithmetic and could disagree
+  for heights near `65535`. Only that evidenced calculation has been
+  corrected. Original paper widths and variable lengths are retained.
+- `_EndPage` reads the original cutter field at `+0x10` and sends
+  **one** `_WriteData` of two bytes `ESC G` if cutting is off, or
+  four bytes `ESC G ESC E` if on. It increments the job counter by the
+  full command length, ignores the write's return value and calls
+  `_FlushDataStreams` **unconditionally after writing**, regardless
+  of cutter option.
+- Every `_WriteData` receives the manufacturer's full independent
+  `0x10a8`-byte descriptor copy and original socket descriptor.
+  `_StartPage` receives a descriptor pointer, whereas `_EndPage`
+  receives its own by-value descriptor at the manufacturer call site.
+
+A new test checks manufacturer payload bytes, counter increments,
+16-bit height wraparound at `65535`, high/low resolution, cutter
+on/off, the ignored negative write result, the by-value copy and the
+unconditional page flush. The existing document bridge integration
+test now invokes these native-derived page functions rather than
+only simulated page start/end callbacks, verifying their combined
+effects with the previously recovered document lifecycle.
+
+These remain source-level OEM reconstructions with injected callback
+transport and a new C ABI; full Mach-O process-global, C++ calling
+convention, `_ProcessPage` and device transport integration are NOT
+established. The active Unraid driver and manufacturer original
+files remain untouched.

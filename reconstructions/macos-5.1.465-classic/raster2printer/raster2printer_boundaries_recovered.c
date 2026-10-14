@@ -14,8 +14,12 @@ size_t classic_raster_start_document(int high_resolution, uint8_t out[124]) {
  * header; no fixed length is imposed. */
 size_t classic_raster_start_page(uint16_t width, uint16_t height,
                                 int high_resolution, uint8_t out[11]) {
-  unsigned length = ((unsigned)height + (high_resolution ? 60u : 30u)) /
-                    (high_resolution ? 2u : 1u);
+  /* Native 0x1000073d6..0x100007405 stores the sum as uint16_t
+   * BEFORE the optional divide-by-two. Ordinary media are unaffected;
+   * 16-bit overflow must match the original manufacturer code. */
+  uint16_t length = (uint16_t)((unsigned)height +
+                                (high_resolution ? 60u : 30u));
+  if (high_resolution) length = (uint16_t)(length / 2u);
   out[0]=0x1b;out[1]='L';out[2]=(uint8_t)(length >> 8);out[3]=(uint8_t)length;
   out[4]=0x1b;out[5]='w';out[6]=(uint8_t)(width >> 8);out[7]=(uint8_t)width;
   out[8]=0x1b;out[9]='B';out[10]=0;
