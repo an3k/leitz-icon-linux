@@ -1107,3 +1107,29 @@ CUPS calls, page printing and `_WriteData` are injected locally.
 These tests do not prove native whole-executable equivalence or real
 device operation. The active Linux/Unraid driver, vendor original
 sources and all original command-byte encoders remain unchanged.
+
+## 2026-10-14 — connected OEM document lifecycle CI verified
+
+The implementation at
+`f2074dad8ac23b27bd905bd9745c3b43c47efe5e` passed
+[Sources - Reconstruction Compile run 38550981146](https://github.com/an3k/leitz-icon-linux/actions/runs/38550981146):
+**all three jobs completed successfully**. Linux GCC and Clang both
+compiled and executed `original_raster_document_bridge_test`;
+the native macOS Clang job compiled and ran the combined test and
+the new bridge against the actual Apple CUPS SDK. The unchanged
+manufacturer Mach-O execution comparisons also passed.
+
+The combined test confirms the OEM raster descriptor's opened CUPS
+handle is available before `_StartDocument`; connected one-page
+print/EOF; separate 122-byte start, optional 2-byte 600dpi
+command, 2-byte final `ESC E`, conditional flush and 4-byte
+document end; one CUPS stream close; by-value descriptor ownership;
+signed job counter / extra `ESC`; early termination and missing
+PPD/invalid argc behavior. These are source-level reconstruction
+and injected callback tests, not direct execution of the
+original private document functions under mock inputs.
+
+Remaining: Direct OEM ABI reconstruction and integration of authentic
+`_ProcessPage` and original device/IPP transport, error and status
+branches. No Leitz Icon hardware test or change to the active Linux
+driver occurred.
