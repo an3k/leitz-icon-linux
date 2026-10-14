@@ -37,7 +37,8 @@ int classic_original_raster_connected_job(
     fprintf(stderr,
         "\nraster2printer.c:258:raster2printer(): started printing pages");
 
-    descriptor->cups_raster=(cups_raster_t *)input.raster;
+    /* CUPS raster was already copied into the OEM descriptor before
+     * _StartDocument by original_raster_option_initialization.c. */
     memset(page_state,0,sizeof *page_state);
     *page_index=0;
     int process_result=0;

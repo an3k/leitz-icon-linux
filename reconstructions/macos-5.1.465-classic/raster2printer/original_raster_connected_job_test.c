@@ -67,7 +67,8 @@ static void close_ppd(void*ctx,void*ppd){mock*m=ctx;assert(ppd==m);mark(m,'C');}
 static void debug_open(void*ctx){mark(ctx,'B');}
 static void choose_stdout(void*ctx,int enabled){assert(enabled==1);mark(ctx,'T');}
 static void startdoc(void*ctx,const unsigned char *bytes,unsigned n){
-    mock*m=ctx;mark(m,'S');assert(n==0x10a8);assert(bytes[0]==0); /* descriptor initially zero */
+    mock*m=ctx;mark(m,'S');assert(n==0x10a8);void *ptr=NULL;memcpy(&ptr,bytes,sizeof(ptr));
+    assert(ptr==&m->source); /* OEM CUPS handle precedes _StartDocument */
 }
 static void dither(void*ctx,classic_oem_read_descriptor*d,const uint8_t*src,uint8_t*out,unsigned q){
     mock*m=ctx;mark(m,'I');assert(d&&src&&out&&q==0);assert(src[0]==0x53);

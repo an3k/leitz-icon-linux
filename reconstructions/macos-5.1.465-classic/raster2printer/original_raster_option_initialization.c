@@ -19,9 +19,14 @@ int classic_original_raster_initialize_job(
     int argc,char **argv,unsigned char descriptor[OEM_DESCRIPTOR_SIZE],
     classic_oem_preflight_state *state,int *early_return) {
     classic_original_raster_initialize_options(descriptor);
-    if (!classic_original_raster_preflight(&io->preflight,argc,argv,
-                                           state,early_return))
-        return 0;
+    /* The original cupRasterOpen result already resides at descriptor
+     * offset 0 before _StartDocument receives the descriptor by value.
+     * Keep that original pointer even if later PPD handling returns -1. */
+    int ready=classic_original_raster_preflight(&io->preflight,argc,argv,
+                                                 state,early_return);
+    if (state->raster)
+        memcpy(descriptor,&state->raster,sizeof(state->raster));
+    if (!ready) return 0;
     marked_state m={io,state->ppd};
     classic_original_ppd_options_io picks={&m,choice};
     classic_original_raster_select_options(descriptor,&picks);

@@ -1053,3 +1053,57 @@ controlled CUPS/write mocks were NOT performed. Original Linux source,
 macOS manufacturer files and the active Unraid driver are unchanged.
 The newly recovered functions still have to be bound to the full
 native executable.
+
+## 2026-10-14 — original document lifecycle connected to complete raster C job
+
+The actual branch `sources` was checked at
+`6f340d5888b9e400341a35bba7503e9f98573161` before making any changes.
+The recovered `_StartDocument` and `_EndDocument` functions, native
+manufacturer disassemblies, byte encoders, previously integrated
+`_raster2printer` job and successful CI tests were already present:
+**none has been reimplemented**.
+
+A real control/data-flow mismatch was found in the previously joined
+analysis source: `original_raster_option_initialization.c` supplied
+the original OEM `0x10a8` descriptor to `_StartDocument` **before**
+copying the `cupsRasterOpen` result to its offset `+0x00`.
+The genuine OEM stores the handle in that descriptor during the CUPS
+preflight, before `_StartDocument`. The pointer is now copied
+immediately after the preflight and retained on a PPD-open failure,
+as in the original. The later redundant descriptor assignment in
+`original_raster_connected_job.c` was removed. Existing tests were
+updated to assert the correct handle at `_StartDocument`, rather
+than re-running or replacing completed stages.
+
+New `original_raster_document_bridge.[ch]` binds the **already recovered**
+`original_raster_document_lifecycle.c` functions directly to the
+existing callbacks at the actual `_StartDocument` and
+`_EndDocument` invocation points. The manufacturer passes each
+`0x10a8`-byte descriptor by value. Thus `_EndDocument`
+calls `cupsRasterClose` and zeros the pointer in its **local copy**;
+it does not reset the original caller's descriptor. The bridge
+deliberately preserves that difference, rather than modifying
+the manufacturer's memory ownership model.
+
+New `original_raster_document_bridge_test.c` links all existing
+source-level modules together, not just isolated stand-ins, and tests:
+
+- a complete one-page CUPS print with the exact 122-byte
+  `_StartDocument` write, conditional 2-byte `ESC E`, flush,
+  4-byte `ESC @ ESC Z`, raster close and the OEM one-byte trailing
+  `ESC` on a 128-byte job-size boundary;
+- 600dpi `ESC i` on a **separate** second start write and
+  cutter-on `_EndDocument` without a flush;
+- early SIGTERM, the genuine six-byte reset/end abort write and
+  no raster page read;
+- PPD opening failure and invalid argc with no document start/end;
+- the original CUPS stream handle present during startup,
+  a single close at job end, and the unchanged by-value caller
+  descriptor after `_EndDocument`.
+
+The new bridge retains the callback interface of the existing
+source-level reconstruction, **not** the original C++ Mach-O ABI.
+CUPS calls, page printing and `_WriteData` are injected locally.
+These tests do not prove native whole-executable equivalence or real
+device operation. The active Linux/Unraid driver, vendor original
+sources and all original command-byte encoders remain unchanged.

@@ -47,6 +47,9 @@ int main(void){
     assert(classic_original_raster_option_u32(d,OEM_OPTIMIZATION_OFFSET)==1);
     assert(classic_original_raster_option_u32(d,OEM_PRINT_THROUGH_PRN_OFFSET)==1);
     assert(memcmp(d,m.seen_descriptor,sizeof d)==0);
+    void *handle=NULL;
+    memcpy(&handle,d,sizeof handle);
+    assert(handle==&m); /* manufacturer's raster handle set before StartDocument */
     /* Missing PPD must return before accessing choices or opening debug. */
     memset(&m,0,sizeof m);m.ppd_present=0;io=setup(&m);
     assert(classic_original_raster_initialize_job(&io,6,argv,d,&state,&rc)==0);
