@@ -216,6 +216,9 @@ jobs:
           echo "Compare complete original-derived connected stdout against OEM modes 2/3:"
           bash verification/macos-5.1.465-classic/compare_connected_with_vendor.sh \
             "$work" "$raster" "$ppd"
+          echo "Compare joined native original RGB24 halftones across all remaining quality matrices:"
+          bash verification/macos-5.1.465-classic/compare_connected_halftones_with_vendor.sh \
+            "$work" "$raster" "$ppd"
           bash verification/macos-5.1.465-classic/compare_rgb_with_vendor.sh \
             "$work" "$raster" "$ppd" \
             "Bayer8x8SuperCell1 Bayer8x8SuperCell2 SuperCell1 SuperCell3 CUPSThresold64x64 SuperCell Bayer14x14 Clustered8x8 Dispersed8x8 Nasik4x4"
