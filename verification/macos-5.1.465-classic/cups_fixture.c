@@ -7,9 +7,10 @@
 #include <unistd.h>
 int main(int argc,char **argv) {
  if(argc<2 || argc>4)return 2;
- int rgb=argc>=3 && !strcmp(argv[2],"rgb");
+ int rgb=argc>=3 && (!strcmp(argv[2],"rgb") || !strcmp(argv[2],"rgbtailblank"));
  int blank=argc>=3 && !strcmp(argv[2],"blank");
  int last_blank=argc>=3 && !strcmp(argv[2],"tailblank");
+ int rgb_last_blank=argc>=3 && !strcmp(argv[2],"rgbtailblank");
  unsigned height=argc==4 ? (unsigned)strtoul(argv[3],NULL,10) : 80u;
  if(height==0 || height>1024)return 2;
  int fd=open(argv[1],O_CREAT|O_TRUNC|O_WRONLY,0600);
@@ -36,6 +37,8 @@ int main(int argc,char **argv) {
       row[x*3u+1u]=(uint8_t)((seed+47u)%256u);
       row[x*3u+2u]=(uint8_t)((seed+113u)%256u);
     }
+    if(rgb_last_blank && y+1u==h.cupsHeight)
+      memset(row,0xff,2112); /* white RGB -> blank monochrome final row */
     if(cupsRasterWritePixels(r,row,2112)!=2112)return 6;
     continue;
    }
