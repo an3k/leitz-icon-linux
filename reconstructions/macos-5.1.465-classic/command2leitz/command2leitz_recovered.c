@@ -46,15 +46,15 @@ int classic_command_get_status(const classic_command_io *io, char command,
   switch (command) {
     case 'A':
       fprintf(stderr,
-        "\ncommand2leitz.c:123:GetPrinterStatus(): send command GetPrinterStatus");
+        "\ncommand2leitz.c:123:GetPrinterStatus(): send command GetPrinterStatus\n");
       break;
     case 'U':
       fprintf(stderr,
-        "\ncommand2leitz.c:132:GetUnitedStatus(): send command GetUnitedStatus");
+        "\ncommand2leitz.c:132:GetUnitedStatus(): send command GetUnitedStatus\n");
       break;
     case 'V':
       fprintf(stderr,
-        "\ncommand2leitz.c:141:GetFirmvareVersion(): send command GetFirmvareVersion");
+        "\ncommand2leitz.c:141:GetFirmvareVersion(): send command GetFirmvareVersion\n");
       break;
     default:
       break;
@@ -69,7 +69,7 @@ int classic_command_get_status(const classic_command_io *io, char command,
   received = (int)io->read_backchannel(io->context, reply, 1024, timeout);
   if (received == -1 || received == 0) {
     if (received == 0)
-      fprintf(stderr,"\ncommand2leitz.c:172:GetStatus(): empty back channel data");
+      fprintf(stderr,"\ncommand2leitz.c:172:GetStatus(): empty back channel data\n");
     io->message(io->context, "ATTR: marker-message=NoData");
     return 0;
   }
