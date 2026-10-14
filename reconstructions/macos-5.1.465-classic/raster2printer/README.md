@@ -1120,3 +1120,7 @@ executable files under macOS; it does not infer correctness from
 shared C helpers. Mode 0/1 last-row overread, network/IPP globals
 and untested error paths remain unresolved. **Do not install** the
 candidate for regular printing or run it on printer hardware.
+
+## 2026-10-14 — connected OEM FlushDataStreams and complete PRN reference
+
+The reconstructed `_FlushDataStreams` (macOS original 0x1000015f0) now resides in `original_prn_helpers.c` as `classic_original_raster_flush_streams` and is invoked by the joined macOS CUPS candidate, rather than duplicating its body. Its unconditional stdout and conditional debug-file flush order is also present in the native original Linux 1.0.3 source. File-backed unit tests cover both output streams and the missing-debug-file branch. [Run 38574758345](https://github.com/an3k/leitz-icon-linux/actions/runs/38574758345) passed GCC/Clang, native macOS, 13 command and 9 joined raster OEM parity cases. The five new raster cases include 33/127 CUPS rows without cutting and an original PRN file and stdout transfer; no hardware verification is claimed.

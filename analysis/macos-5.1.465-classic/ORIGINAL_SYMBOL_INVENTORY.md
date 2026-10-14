@@ -11,7 +11,7 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 |---|---|---|
 | `start` | 0x100001410 | Not recovered independently |
 | `_WriteData` | 0x100001450 | Partial, sink decisions |
-| `_FlushDataStreams` | 0x1000015f0 | Isolated branch |
+| `_FlushDataStreams` | 0x1000015f0 | OEM stdout + conditional PRN dump flush recovered in `classic_original_raster_flush_streams` and linked into the native CUPS raster candidate; exact original global ABI remains open |
 | `_is_bit_set` | 0x100001630 | Isolated recovered helper |
 | `_OpenDebugFile` | 0x100001660 | Isolated PRN helper |
 | `_OpenLogFile` | 0x100001910 | Isolated file helper |

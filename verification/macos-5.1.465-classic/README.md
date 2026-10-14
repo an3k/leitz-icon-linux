@@ -62,3 +62,7 @@ status and error-response cases, including native diagnostic
 line endings and log-file errors. No printer is connected; these
 specific scenarios are not proof of complete native binary
 equivalence.
+
+## Joined native original variable-length and PRN comparison (2026-10-14)
+
+`compare_connected_extended_with_vendor.sh` checks complete byte output and exit status of the original Mach-O vs the joined native CUPS reconstruction: 33 and 127 CUPS raster rows, cutter OFF, modes 2/3, plus a separate original PRN transfer with full stdout and PRN-file comparison. All five cases passed in [run 38574138676](https://github.com/an3k/leitz-icon-linux/actions/runs/38574138676), and the results were maintained following `_FlushDataStreams` integration in [run 38574758345](https://github.com/an3k/leitz-icon-linux/actions/runs/38574758345). No real printer was involved.

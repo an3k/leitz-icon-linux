@@ -1636,3 +1636,26 @@ Code commit:
 `a1c33f3686fd4e24c15982db7f9cd17edaa4d210`.
 The original C++ executable ABI, untested failure paths, and
 device-side behavior remain beyond this increment.
+
+## 2026-10-14 — connected OEM variable-length, PRN and FlushDataStreams
+
+The current `sources` branch was checked at `81eb0a6422bd0d41cba2b5920e9bfdc2f7d42aec` before changes.
+The existing native CUPS raster reconstruction, original PRN helpers and normal-case encoder paths were already present and were not replaced.
+
+**Previously unverified complete output paths:** The separate `compare_connected_extended_with_vendor.sh` executes both the SHA-256-verified manufacturer Mach-O and the reconstructed joined macOS CUPS filter with identical two-page raster data. [Run 38574138676](https://github.com/an3k/leitz-icon-linux/actions/runs/38574138676) verified:
+- 33 raster rows, `LabelCutter=OFF`, optimization 2: 1,616 identical bytes.
+- 33 raster rows, cutter OFF, optimization 3: 3,313 identical bytes.
+- 127 raster rows, cutter OFF, optimization 2: 5,738 identical bytes.
+- 127 raster rows, cutter OFF, optimization 3: 11,855 identical bytes.
+- `PrintThroughPRN=ON`, cutter ON, optimization 2: 3,620 identical stdout bytes **and** 3,620 identical PRN-file bytes.
+
+These heights are CUPS **raster rows**, not physical millimeters. No fixed media length or printer hardware performance is inferred.
+The manufacturer PRN directory is used only in disposable macOS CI, after the pre-existing original PRN test prepares it.
+
+**Original-derived C code:** `_FlushDataStreams` (original macOS address `0x1000015f0`) was recovered from the verified original behavior, also independently confirmed by the supplied original Linux 1.0.3 `raster_c_functions.c`. `classic_original_raster_flush_streams` first flushes stdout and then flushes the optional PRN dump. It ignores both return values, as the OEM did. The joined macOS CUPS candidate now calls this reconstructed routine instead of an inline duplicate. Standalone tests verify both flushed file descriptors and the missing-dump branch.
+
+[Full original comparison and compiler run 38574758345](https://github.com/an3k/leitz-icon-linux/actions/runs/38574758345): three successful CI jobs, 13/13 existing full-command cases and 9/9 native joined-raster output cases still byte-identical.
+
+Implementation commits: `0c8373a083473442a6c0bb72b4e38c11f5da1eeb` (additional original comparisons), `a278e0e0f683aa94381d342b7b5deef26e6b624c` (OEM flush function integration).
+
+The original native global ABI, untested memory/error/network branches and real printer/cutter operation remain outside the proof. The Linux driver, CUPS branch, originals and enhancements were unchanged.
