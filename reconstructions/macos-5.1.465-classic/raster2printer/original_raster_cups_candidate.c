@@ -35,6 +35,10 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+/* Apple's CUPS backend declaration is not exported by all macOS SDK
+ * headers. This is the original libcups ABI already verified in the
+ * existing reconstructed command2leitz CUPS candidate. */
+ssize_t cupsBackChannelRead(char *,int,double);
 
 /* Symbols expected by the independently reconstructed OEM _main. */
 extern int terminate_flag;
