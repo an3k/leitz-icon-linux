@@ -5,9 +5,11 @@
 /* Manufacturer _CheckPrinterStatus, disassembled from original macOS 5.1.465
  * Mach-O 0x100009190..0x100009a2e. Preserves the observed request paths,
  * message strings, unbounded original retry loop and 7-second CUPS timeout.
- * Native descriptor/globals, undefined cases, and _WriteData's original
- * full by-value descriptor ABI have NOT been restored. This standalone
- * callback helper must not be linked to the live print filter.
+ * The original status reset's full by-value 0x10a8-byte descriptor,
+ * socket argument, and send/recv flags are now represented. This remains a
+ * separate callback-based reconstruction, not the vendor's native ABI;
+ * its undefined cases and global device state are not recovered. It must
+ * not be linked to the live print filter.
  */
 static int ipp_scheme(const classic_original_status_io *io) {
     return strstr(io->device_scheme,"ipp") != NULL;
@@ -29,9 +31,9 @@ int classic_original_check_status(const classic_original_status_io *io) {
         ssize_t received;
         if (ipp_scheme(io) && io->resolved_uri_present && io->socket_fd!=-1) {
             const unsigned char req[2]={0x1b,'U'};
-            ssize_t written=io->send_once(io->context,io->socket_fd,req,2);
+            ssize_t written=io->send_once(io->context,io->socket_fd,req,2,0);
             if (written==2) {
-                received=io->recv_once(io->context,io->socket_fd,reply,64);
+                received=io->recv_once(io->context,io->socket_fd,reply,64,0);
                 if (received==-1) {
                     char line[128];
                     snprintf(line,sizeof line,
@@ -84,7 +86,15 @@ int classic_original_check_status(const classic_original_status_io *io) {
             report(io,"\nSTATE: +com.leitz.out-of-paper-error\n");
             report(io,"\nINFO: Out of labels, will retry in 5 seconds.\n");
             *io->job_size += 4u;
-            io->write_data(io->context,reset_end,4);
+            /* _CheckPrinterStatus 0x1000096d2..0x100009797:
+             * copy all 0x10a8 bytes BEFORE calling _WriteData; the
+             * manufacturer ignores the return, including a failed send.
+             * Its original descriptor is passed by value in the ABI.
+             */
+            unsigned char original_copy[CLASSIC_OEM_DOCUMENT_DESCRIPTOR_SIZE];
+            memcpy(original_copy,io->descriptor,sizeof original_copy);
+            (void)io->write_data(io->context,reset_end,4,original_copy,
+                                 sizeof original_copy,io->socket_fd);
             had_waiting_media=1;
             io->sleep_seconds(io->context,5);
         } else if (strstr(reply,"SKU:Door Open;")) {

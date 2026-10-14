@@ -1,5 +1,6 @@
 #include "original_status_exchange.h"
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -12,6 +13,8 @@ typedef struct {
     char reports[4096];
     unsigned char outbound[16];
     size_t out_count;
+    unsigned char descriptor[CLASSIC_OEM_DOCUMENT_DESCRIPTOR_SIZE];
+    int last_write_fd;
 } mock;
 static int term(void *p) {mock *m=p;return m->terminate || (m->stop_after_reads && m->read_index>=m->stop_after_reads);}
 static int resolve(void *p){((mock*)p)->resolve_count++;return 1;}
@@ -24,11 +27,11 @@ static ssize_t consume(mock *m,void *dst,size_t capacity){
     return n;
 }
 static ssize_t back(void *p,void *dst,size_t sz,double t){assert(t==7.0);return consume(p,dst,sz);}
-static ssize_t sendv(void *p,int fd,const void *src,size_t sz){
-    mock *m=p;assert(fd==9 && sz==2 && !memcmp(src,"\033U",2));
+static ssize_t sendv(void *p,int fd,const void *src,size_t sz,int flags){
+    mock *m=p;assert(fd==9 && flags==0 && sz==2 && !memcmp(src,"\033U",2));
     m->write_calls++;return 2;
 }
-static ssize_t recvv(void *p,int fd,void *dst,size_t sz){assert(fd==9);return consume(p,dst,sz);}
+static ssize_t recvv(void *p,int fd,void *dst,size_t sz,int flags){assert(fd==9 && flags==0);return consume(p,dst,sz);}
 static int put(void *p,int ch){mock *m=p;m->outbound[m->out_count++]=(unsigned char)ch;return ch;}
 static int flush(void *p){((mock*)p)->calls++;return 0;}
 static void note(void *p,const char *s){
@@ -36,15 +39,25 @@ static void note(void *p,const char *s){
     assert(used+strlen(s)+1<sizeof m->reports);
     strcat(m->reports,s);m->report_count++;
 }
-static void write_job(void *p,const void *data,size_t n){
-    mock *m=p;assert(n==4 && !memcmp(data,"\033@\033Z",4));m->reset_calls++;
+static int write_job(void *p,const uint8_t *data,size_t n,
+                     const void *descriptor,size_t descriptor_size,int socket_fd){
+    mock *m=p;
+    assert(n==4 && !memcmp(data,"\033@\033Z",4));
+    assert(descriptor_size==CLASSIC_OEM_DOCUMENT_DESCRIPTOR_SIZE);
+    assert(descriptor!=m->descriptor);
+    assert(!memcmp(descriptor,m->descriptor,descriptor_size));
+    m->last_write_fd=socket_fd;
+    ++m->reset_calls;
+    return -1; /* Original ignores failed _WriteData on reset. */
 }
 static void sleepv(void *p,unsigned seconds){mock *m=p;assert(seconds==5);m->sleep_calls++;}
 static int last_error(void *p){return ((mock*)p)->last_errno;}
 static classic_original_status_io setup(mock *m,unsigned *size,const char *uri,int socket,int resolved){
+    for(size_t i=0;i<sizeof m->descriptor;++i)
+        m->descriptor[i]=(unsigned char)(i*37u+11u);
     classic_original_status_io io={m,uri,socket,resolved,term,resolve,
                                    sendv,recvv,put,flush,back,note,
-                                   write_job,sleepv,size,last_error};
+                                   write_job,sleepv,size,last_error,m->descriptor};
     return io;
 }
 static void response(mock *m,unsigned i,const char *text){
@@ -63,7 +76,7 @@ int main(void){
     response(&m,0,"USED:-1");response(&m,1,"SKU:OK;");
     assert(classic_original_check_status(&io)==1);
     assert(m.sleep_calls==1 && m.reset_calls==1 && size==15);
-    assert(m.read_index==2 && m.out_count==4);
+    assert(m.last_write_fd==-1 && m.read_index==2 && m.out_count==4);
 
     memset(&m,0,sizeof m);io=setup(&m,&size,"usb://leitz",-1,0);
     response(&m,0,"SKU:Door Open;");response(&m,1,"SKU:No Cartridge;");
@@ -86,6 +99,15 @@ int main(void){
     memset(&m,0,sizeof m);io=setup(&m,&size,"ipp://leitz",9,1);
     response(&m,0,"SKU:OK;");assert(classic_original_check_status(&io)==0);
     assert(m.write_calls==1 && m.out_count==0 && m.read_index==1);
+
+    /* OEM IPP reset passes the same by-value descriptor and native fd
+     * after a two-byte ESC U socket send and 64-byte recv. */
+    memset(&m,0,sizeof m);io=setup(&m,&size,"ipp://leitz",9,1);
+    response(&m,0,"SKU:Load Error;");response(&m,1,"SKU:OK;");
+    assert(classic_original_check_status(&io)==1);
+    assert(m.write_calls==2 && m.reset_calls==1 && m.last_write_fd==9);
+    assert(m.sleep_calls==1 && size==19 && m.read_index==2);
+    assert(m.out_count==0);
 
     memset(&m,0,sizeof m);io=setup(&m,&size,"usb://leitz",-1,0);
     m.received_sizes[0]=64;
