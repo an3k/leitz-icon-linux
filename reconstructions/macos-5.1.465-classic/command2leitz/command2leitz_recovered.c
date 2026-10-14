@@ -14,7 +14,10 @@ static const char notification_domain[] = "com.xyron.Leitz-Icon-Software";
 
 void EndOfJob(const classic_command_io *io,
               int should_send_esc_a) {
-  /* Vendor _EndOfJob ignores its only input argument. */
+  /* Vendor _EndOfJob ignores its only input argument. This was
+   * confirmed end-to-end for explicit ShouldSend_ESC_A=YES and NO on
+   * all three commands against the original macOS 5.1.465 binary in
+   * GitHub Actions 38627418640; do not invent extra ESC A writes. */
   (void)should_send_esc_a;
   io->put_character(io->context, 0x1b);
   io->put_character(io->context, 'Z');
