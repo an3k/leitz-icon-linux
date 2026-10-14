@@ -93,6 +93,9 @@ jobs:
           clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
             -c reconstructions/macos-5.1.465-classic/raster2printer/original_dither_page.c \
             -o "$RUNNER_TEMP/classic_original_dither_page.o"
+      - name: Compile joined OEM raster CUPS candidate against native Apple SDK
+        run: |
+          make -C reconstructions/macos-5.1.465-classic/raster2printer original_raster2printer_cups_candidate CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
       - name: Build and execute OEM-derived URI resolver without a network connection
         run: |
           make -C reconstructions/macos-5.1.465-classic/raster2printer original_device_uri_test CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
