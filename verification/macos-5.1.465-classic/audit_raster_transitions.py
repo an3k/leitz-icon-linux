@@ -93,3 +93,19 @@ for name, begin, end in (
     for line in instructions:
         print(line)
 print("ORIGINAL_RASTER_PAGE_BOUNDARIES_END")
+
+# Complete OEM _ProcessPage setup, row-boundary, return/termination regions.
+# Capture every native instruction in the selected regions; other row
+# encoding branches are already represented in the modes_01/modes_23 files.
+print("ORIGINAL_PROCESS_PAGE_CONTROL_BEGIN")
+for name, begin, end in (
+    ("ENTRY_OPTIONS_AND_SETUP", 0x100007560, 0x1000078eb),
+    ("OUTPUT_AND_PAGE_EXIT", 0x100008850, 0x1000089b0),
+):
+    region = [line for address, line in asm if begin <= address < end]
+    if not region:
+        raise RuntimeError("No original _ProcessPage instructions for "+name)
+    print("OEM_PROCESS_CONTROL", name, "instructions", len(region))
+    for line in region:
+        print(line)
+print("ORIGINAL_PROCESS_PAGE_CONTROL_END")
