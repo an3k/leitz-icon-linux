@@ -358,3 +358,19 @@ The manufacturer x86_64 Mach-O `_WriteData` routines were checked again at `comm
 The two preexisting, incomplete sink-choice C implementations were corrected **in place only on those differences**; no alternative implementations, retry loops, additional guards, or changes to the established good paths were introduced. The separate cross-executable test in `verification/macos-5.1.465-classic/original_write_data_semantics_test.c` checks signed -1, positive short sends, zero sends, zero/positive stdout writes, PRN-only output, zero-length writes, dump ordering, and complete OEM stderr bytes. Local GCC and Clang with AddressSanitizer/UndefinedBehaviorSanitizer passed. CI builds now run this cross-test on Linux GCC/Clang and macOS Clang.
 
 The test is based on the **verified original assembly**, not on executing the original internal `_WriteData` directly. This still does not establish exact original ABI, network/device behavior or full program equivalence.
+
+## Original WriteData comparison build verified — 2026-10-14
+
+Commit `89c8034fbe5e589d7e65d2b19d2203f203485d36` was validated by
+[Sources - Reconstruction Compile, run 38491401611](https://github.com/an3k/leitz-icon-linux/actions/runs/38491401611).
+**All three jobs completed successfully**: GCC and Clang compiled and
+ran the new cross-executable `_WriteData` regression test,
+macOS Clang compiled and ran that same test, and the original manufacturer
+runtime comparison suite completed successfully against SHA-256-verified
+macOS binaries.
+
+The signed -1 socket case and exact OEM error message are supported by
+the original **disassembly** and verified with isolated C tests, not by
+calling the original private `_WriteData` routine with an injected failed
+socket. The ordinary OEM output cases were checked by the existing runtime
+comparison suite. Whole-executable functional equivalence remains open.
