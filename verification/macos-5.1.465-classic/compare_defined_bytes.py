@@ -17,7 +17,8 @@ b = Path(sys.argv[2]).read_bytes()
 # selects the real original command, not a heuristic offset skip.
 footer = bytes([0x1B, 0x47]) if sys.argv[3:] == ["--cutter-off"] else bytes([0x1B, 0x47, 0x1B, 0x45])
 def footers(data):
-    return [i for i in range(len(data) - 3) if data[i:i+4] == footer]
+    return [i for i in range(len(data) - len(footer) + 1)
+            if data[i:i + len(footer)] == footer]
 if len(a) != len(b):
     print("DEFINED_BYTES=NO LENGTH_MISMATCH", len(a), len(b))
     sys.exit(1)
