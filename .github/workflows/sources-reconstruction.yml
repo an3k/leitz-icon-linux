@@ -119,7 +119,7 @@ jobs:
           make -C reconstructions/macos-5.1.465-classic/command2leitz command2leitz_original_main_candidate CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
           binary="reconstructions/macos-5.1.465-classic/command2leitz/command2leitz_original_main_candidate"
           nm -g "$binary" > "$RUNNER_TEMP/oem-command-linked-symbols.txt"
-          for name in _output_cups_info _test_raster _PrintPageDebugInfo _GetStatus _GetPrinterStatus _GetUnitedStatus _GetFirmvareVersion _EndOfJob _WriteData; do
+          for name in _output_cups_info _test_raster _PrintPageDebugInfo _GetStatus _GetPrinterStatus _GetUnitedStatus _GetFirmvareVersion _EndOfJob _WriteData __fd_stdout __fd_dump __fd_log; do
             grep -Eq "[[:space:]]$name$" "$RUNNER_TEMP/oem-command-linked-symbols.txt"
           done
       - name: Build and execute OEM-derived URI resolver without a network connection

@@ -16,6 +16,7 @@
 
 FILE *__fd_dump = NULL;
 FILE *__fd_log = NULL;
+FILE *__fd_stdout = NULL;
 char dbgprn_filename[1024];
 char log_filename[1024];
 

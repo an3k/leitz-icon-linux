@@ -7,6 +7,9 @@
  * This independent reconstruction is NOT linked into production filters. */
 extern FILE *__fd_dump;
 extern FILE *__fd_log;
+/* Original _WriteData reads this global FILE* at 0x100001b28.
+ * It is distinct from stdout; a NULL slot disables direct writing. */
+extern FILE *__fd_stdout;
 extern char dbgprn_filename[1024];
 extern char log_filename[1024];
 void OpenDebugFile(void);

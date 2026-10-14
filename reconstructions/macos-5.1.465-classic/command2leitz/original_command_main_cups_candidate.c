@@ -5,6 +5,7 @@
 #include "command2leitz_recovered.h"
 #include "original_command_file_helpers.h"
 #include "classic_command_write_data.h"
+#include "original_command_native_write_data.h"
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -104,13 +105,10 @@ static int query(void *ctx,char command,const char*prefix,int send,double timeou
   return 0; /* not reachable from the OEM command-main routing table */
 }
 
-/* Original _WriteData (0x100001a80) is dormant in this status-only
- * filter path. Expose the already reconstructed output/sink decision
- * as a named function for source-level reconstruction and ABI study.
- * It does not create any new output in normal status processing. */
-int WriteData(const classic_command_output *io,const void *data,size_t size){
-  return classic_command_write_data(io,data,size);
-}
+/* Original _WriteData is linked separately with its original-style
+ * x86_64 by-value descriptor call surface, rather than accepting our
+ * formerly invented callback-pointer argument. Normal OEM commands
+ * do not call this dormant output helper. */
 static int query_a(void*ctx,int flag,double timeout){return query(ctx,'A',"PRINTER_STATUS_",flag,timeout);}
 static int query_u(void*ctx,int flag,double timeout){return query(ctx,'U',"UNITED_STATUS_",flag,timeout);}
 static int query_v(void*ctx,int flag,double timeout){return query(ctx,'V',"FIRMWARE_VERSION_",flag,timeout);}
