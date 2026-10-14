@@ -39,5 +39,5 @@ command2leitz_recovered_cups: command2leitz_cups.c command2leitz_recovered.c com
 
 # Separate OEM _main/CUPS candidate; the earlier command2leitz_recovered_cups
 # stays unchanged. This candidate is for native manufacturer comparison only.
-command2leitz_original_main_candidate: original_command_main_cups_candidate.c original_command_main_flow.c original_command_main_flow.h command2leitz_recovered.c command2leitz_recovered.h original_command_file_helpers.c original_command_file_helpers.h classic_command_original_utils.c classic_command_original_utils.h
-	$(CC) $(CFLAGS) -o $@ original_command_main_cups_candidate.c original_command_main_flow.c command2leitz_recovered.c original_command_file_helpers.c classic_command_original_utils.c $(CUPS_LINK)
+command2leitz_original_main_candidate: original_command_main_cups_candidate.c original_command_main_flow.c original_command_main_flow.h command2leitz_recovered.c command2leitz_recovered.h original_command_file_helpers.c original_command_file_helpers.h classic_command_original_utils.c classic_command_original_utils.h ../shared/diagnostics/original_test_raster.c ../shared/diagnostics/original_page_debug.c ../shared/diagnostics/original_output_cups_info.c
+	$(CC) $(CFLAGS) -Wno-format-zero-length -o $@ original_command_main_cups_candidate.c original_command_main_flow.c command2leitz_recovered.c original_command_file_helpers.c classic_command_original_utils.c ../shared/diagnostics/original_test_raster.c ../shared/diagnostics/original_page_debug.c ../shared/diagnostics/original_output_cups_info.c $(CUPS_LINK)

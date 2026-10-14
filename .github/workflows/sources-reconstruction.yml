@@ -100,8 +100,16 @@ jobs:
         run: |
           binary="reconstructions/macos-5.1.465-classic/raster2printer/original_raster2printer_cups_candidate"
           nm -g "$binary" > "$RUNNER_TEMP/oem-raster-linked-symbols.txt"
-          for name in _OpenLogFile _CloseLogFile _OpenDebugFile _CloseDebugFile _FlushDataStreams _is_bit_set _WriteDebugBuffer _SendDebugFileToPrinter _WriteData; do
+          for name in _OpenLogFile _CloseLogFile _OpenDebugFile _CloseDebugFile _FlushDataStreams _is_bit_set _WriteDebugBuffer _SendDebugFileToPrinter _WriteData _output_cups_info _test_raster _PrintPageDebugInfo; do
             grep -Eq "[[:space:]]$name$" "$RUNNER_TEMP/oem-raster-linked-symbols.txt"
+          done
+      - name: Confirm dormant OEM diagnostics are linked in command executable
+        run: |
+          make -C reconstructions/macos-5.1.465-classic/command2leitz command2leitz_original_main_candidate CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+          binary="reconstructions/macos-5.1.465-classic/command2leitz/command2leitz_original_main_candidate"
+          nm -g "$binary" > "$RUNNER_TEMP/oem-command-linked-symbols.txt"
+          for name in _output_cups_info _test_raster _PrintPageDebugInfo; do
+            grep -Eq "[[:space:]]$name$" "$RUNNER_TEMP/oem-command-linked-symbols.txt"
           done
       - name: Build and execute OEM-derived URI resolver without a network connection
         run: |
