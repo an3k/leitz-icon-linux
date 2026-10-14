@@ -21,7 +21,7 @@ sections = (
 )
 asm = []
 for line in result.splitlines():
-    match = re.match(r"^\\s*(?:0x)?([0-9a-f]{10,16})\\s+(.+)$", line)
+    match = re.match(r"^\s*(?:0x)?([0-9a-f]{10,16})\s+(.+)$", line)
     if match:
         asm.append((int(match.group(1), 16), line))
 for name, begin, end in sections:
