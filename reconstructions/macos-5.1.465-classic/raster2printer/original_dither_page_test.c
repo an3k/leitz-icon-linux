@@ -16,6 +16,7 @@ void classic_raster_dither_rgb24_recovered(unsigned quality,
 int main(void) {
     classic_oem_read_descriptor d={0};
     d.cups_height=7;d.cups_bytes_per_line=27;
+    d.packed_bytes_per_line=2;
     unsigned char rgb[27]={0x33},bw[8]={0};
     FILE *f=tmpfile();assert(f);
     int saved=dup(fileno(stderr));assert(saved>=0);
@@ -29,7 +30,7 @@ int main(void) {
     assert(fclose(f)==0);
     assert(strcmp(msg,
            "\nraster2printer.c:593:DitherPage(): Height = 7"
-           "\nraster2printer.c:594:DitherPage(): Bytes per line = 27")==0);
+           "\nraster2printer.c:594:DitherPage(): Bytes per line = 2")==0);
     puts("Classic OEM DitherPage geometry and exact diagnostic checks passed");
     return 0;
 }

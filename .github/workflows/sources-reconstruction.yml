@@ -162,6 +162,8 @@ jobs:
             show && /^_[A-Za-z0-9_.$]+:$/ { show=0 }
             show && count++ < 480 {print}
           '
+          echo "Original mode-2 first-bit diagnostic callsite and guards:"
+          otool -tvV "$raster" | grep -C 40 -F "first bit/byte. do not send 255" || true
           echo "Inspect original raster job-loop transitions before comparison:"
           python3 verification/macos-5.1.465-classic/audit_raster_transitions.py "$raster"
           echo "Compare OEM stdout with reconstructed raster output:"

@@ -4,6 +4,9 @@
  * actual descriptor argument layout. The RGB24 pixel loop and matrix choice
  * were reconstructed earlier in raster2printer_dither_recovered.c; reuse
  * that exact code instead of introducing a second implementation.
+ * The OEM diagnostic prints the 1-bit PACKED output row stride, not the
+ * RGB24 input stride passed to the pixel conversion loop. This was
+ * independently confirmed by native full-program stderr comparison.
  * Original invalid quality and malformed pixels can produce undefined
  * memory access: the recovered function introduces no fallback behavior.
  */
@@ -18,7 +21,7 @@ void classic_original_dither_page(classic_oem_read_descriptor *descriptor,
     fprintf(stderr,"\nraster2printer.c:593:DitherPage(): Height = %i",
             (int)descriptor->cups_height);
     fprintf(stderr,"\nraster2printer.c:594:DitherPage(): Bytes per line = %i",
-            (int)descriptor->cups_bytes_per_line);
+            (int)descriptor->packed_bytes_per_line);
     classic_raster_dither_rgb24_recovered(quality,rgb,descriptor->cups_height,
                                            descriptor->cups_bytes_per_line,
                                            monochrome);
