@@ -162,6 +162,8 @@ jobs:
             show && /^_[A-Za-z0-9_.$]+:$/ { show=0 }
             show && count++ < 480 {print}
           '
+          echo "Original mode-2 bit counter setup and transition before source line 860:"
+          otool -tvV "$raster" | grep -E '^0000000100008(1[bcdef][0-9a-f]|2[0-9a-f][0-9a-f]|3[0-3][0-9a-f])' || true
           echo "Original mode-2 first-bit diagnostic callsite and guards:"
           # OEM source line 860 is decimal 860 = 0x35c, passed in ECX
           # to the LLog fprintf sequence; display its actual native guard.
