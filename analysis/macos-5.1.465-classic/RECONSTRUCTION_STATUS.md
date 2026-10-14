@@ -336,3 +336,17 @@ Remaining: native error/undefined branches outside these defined
 tests, direct comparison of genuine status calls, original global
 and C++ ABI and full original executable behavior. No enhancement
 is introduced into manufacturer-derived routines.
+
+## Verified original _main entry parity — 2026-10-14
+
+[Sources - Reconstruction Compile, run 38490145631](https://github.com/an3k/leitz-icon-linux/actions/runs/38490145631) **completed successfully in all three jobs** for commit `8f305a55c181b7d6590bf0df4e2191b1e8712ba9`. Besides GCC/Clang offline mock tests and macOS native compilation, the macOS vendor-reference job executed the SHA-256-verified original `command2leitz` and the separate CUPS candidate implementing `original_command_main_flow`.
+
+The direct comparison logged **EXACT_EXIT_STDOUT_STDERR_PARITY=YES** in all four defined cases:
+- `file_unknown` — valid PPD and command file containing an unrecognized command;
+- `stdin_unknown` — input read through stdin with valid PPD;
+- `missing_file` — failed command-file open;
+- `missing_ppd` — failed PPD open.
+
+No changes were made to existing vendor comparison scripts, original Linux sources, experimental enhancements or the older CUPS adapter.
+
+**Scope of evidence:** the original entry's non-device pre-status path, defined errors, exact printed diagnostics and those four scenarios. Status callbacks, actual device exchange, undefined OEM memory cases and whole-program equivalence remain incomplete.
