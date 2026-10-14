@@ -507,3 +507,11 @@ it does **not** establish full private-function or executable parity.
 The active `_raster2printer` function remains an important
 unfinished reconstruction. The new `_main` is not yet a complete
 runnable substitute for the manufacturer binary.
+
+## 2026-10-14 — verified source builds for recovered ReadPage, DitherPage and raster main
+
+- [Run 38492343344](https://github.com/an3k/leitz-icon-linux/actions/runs/38492343344), commit `f1cb4cae81b51499c37c2d4dbda4d93ffb56395f`: **all three jobs successful** for the additional original `_ReadPage` function, native macOS CUPS compilation and existing full vendor comparison suite.
+- [Run 38492636976](https://github.com/an3k/leitz-icon-linux/actions/runs/38492636976), commit `dc0c92aa680d7bd26eea60e40f5615467d4de069`: **all three jobs successful** for the `_DitherPage` OEM wrapper and existing halftone core, with native macOS CUPS compilation and vendor suite.
+- [Run 38492882650](https://github.com/an3k/leitz-icon-linux/actions/runs/38492882650), commit `66a89e4f23b9f14db20aee69ba20ab136d0e9094`: **all three jobs successful** for the original `_main` call order / signal / diagnostics tests, native macOS and vendor suite.
+
+These tests prove that the new source builds on both operating systems, its defined isolated behaviors match the recovered disassembly, and **pre-existing** original manufacturer printing scenarios continue to pass. They do **not** directly execute OEM private `_ReadPage`, `_DitherPage` or `_main` against matching injected inputs. The complete native `_raster2printer` body, device communication state, additional error paths and integrated manufacturer ABI remain unfinished. No code from `originals/`, the older active CUPS adapter or `enhancements/` was altered by these changes.
