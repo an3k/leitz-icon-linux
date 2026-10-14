@@ -32,6 +32,13 @@ typedef struct {
     unsigned *job_size;
     int (*last_error)(void *);
     const unsigned char *descriptor; /* original 0x10a8-byte descriptor */
+    /* Optional live readers of OEM __ZL4sock and __ZL12resolved_uri.
+     * The actual Mach-O loads these globals at each status-loop check,
+     * send, recv and media-reset WriteData. The legacy static fields
+     * above remain for isolated callback fixtures without live globals.
+     * Append-only so prior positional initializers remain valid. */
+    int (*current_socket_fd)(void *);
+    int (*resolved_uri_is_present)(void *);
 } classic_original_status_io;
 
 /* Return 0/1 as the OEM for the defined read paths. Analysis-only -2 marks

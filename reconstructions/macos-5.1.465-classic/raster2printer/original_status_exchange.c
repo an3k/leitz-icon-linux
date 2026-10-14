@@ -18,23 +18,35 @@ static int ipp_scheme(const classic_original_status_io *io) {
 static void report(const classic_original_status_io *io,const char *line) {
     io->report(io->context,line);
 }
+/* OEM _CheckPrinterStatus at 0x1000091fb, 0x100009285, 0x100009293,
+ * 0x1000092d2 and 0x1000093d7 independently loads its private
+ * socket/URI globals rather than copying them once at function entry.
+ * The original per-write descriptor remains passed by value. */
+static int socket_now(const classic_original_status_io *io) {
+    return io->current_socket_fd ?
+           io->current_socket_fd(io->context) : io->socket_fd;
+}
+static int resolved_now(const classic_original_status_io *io) {
+    return io->resolved_uri_is_present ?
+           io->resolved_uri_is_present(io->context) : io->resolved_uri_present;
+}
 int classic_original_check_status(const classic_original_status_io *io) {
     int had_waiting_media=0;
     char reply[64];
     const unsigned char reset_end[4]={0x1b,'@',0x1b,'Z'};
     for (;;) {
         if (io->termination_flag(io->context) ||
-            (ipp_scheme(io) && io->socket_fd == -1)) {
+            (ipp_scheme(io) && socket_now(io) == -1)) {
             if (ipp_scheme(io)) io->resolve_device_uri(io->context);
             return had_waiting_media;
         }
         report(io,"\nINFO: Update printer status...\n");
         ssize_t received;
-        if (ipp_scheme(io) && io->resolved_uri_present && io->socket_fd!=-1) {
+        if (ipp_scheme(io) && resolved_now(io) && socket_now(io)!=-1) {
             const unsigned char req[2]={0x1b,'U'};
-            ssize_t written=io->send_once(io->context,io->socket_fd,req,2,0);
+            ssize_t written=io->send_once(io->context,socket_now(io),req,2,0);
             if (written==2) {
-                received=io->recv_once(io->context,io->socket_fd,reply,64,0);
+                received=io->recv_once(io->context,socket_now(io),reply,64,0);
                 if (received==-1) {
                     char line[128];
                     snprintf(line,sizeof line,
@@ -95,7 +107,7 @@ int classic_original_check_status(const classic_original_status_io *io) {
             unsigned char original_copy[CLASSIC_OEM_DOCUMENT_DESCRIPTOR_SIZE];
             memcpy(original_copy,io->descriptor,sizeof original_copy);
             (void)io->write_data(io->context,reset_end,4,original_copy,
-                                 sizeof original_copy,io->socket_fd);
+                                 sizeof original_copy,socket_now(io));
             had_waiting_media=1;
             io->sleep_seconds(io->context,5);
         } else if (strstr(reply,"SKU:Door Open;")) {

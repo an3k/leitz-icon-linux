@@ -236,6 +236,14 @@ static int status_terminated(void *unused) {
     (void)unused;
     return terminate_flag!=0;
 }
+static int status_socket_now(void *unused) {
+    (void)unused;
+    return classic_original_socket;
+}
+static int status_resolved_now(void *unused) {
+    (void)unused;
+    return classic_original_resolved_uri != NULL;
+}
 static int status_resolve(void *ctx) {
     classic_native_status_context *state=ctx;
     return ResolveDeviceURI(
@@ -314,7 +322,9 @@ int CheckPrinterStatus(classic_oem_read_descriptor *descriptor) {
         .sleep_seconds=status_sleep,
         .job_size=&job_size,
         .last_error=status_errno,
-        .descriptor=(const unsigned char *)descriptor
+        .descriptor=(const unsigned char *)descriptor,
+        .current_socket_fd=status_socket_now,
+        .resolved_uri_is_present=status_resolved_now
     };
     return classic_original_check_status(&io);
 }
