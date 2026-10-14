@@ -254,3 +254,6 @@ jobs:
           echo "Probe original macOS network channel on 127.0.0.1 only:"
           python3 verification/macos-5.1.465-classic/loopback_original_ipp.py \
             "$work" "$raster" "$ppd"
+          echo "Compare original and joined native CUPS IPP-environment channels on loopback only:"
+          python3 verification/macos-5.1.465-classic/compare_connected_ipp_loopback.py \
+            "$work" "$raster" "$ppd"
