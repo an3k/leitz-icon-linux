@@ -163,7 +163,13 @@ jobs:
             show && count++ < 480 {print}
           '
           echo "Original mode-2 first-bit diagnostic callsite and guards:"
-          otool -tvV "$raster" | grep -C 40 -F "first bit/byte. do not send 255" || true
+          # OEM source line 860 is decimal 860 = 0x35c, passed in ECX
+          # to the LLog fprintf sequence; display its actual native guard.
+          otool -tvV "$raster" | awk '
+            /^_ProcessPage:$/ { show=1; next }
+            show && /^_[A-Za-z0-9_.$]+:$/ { show=0 }
+            show { print }
+          ' | grep -C 65 -E 'movl[[:space:]]+\\$0x35c' || true
           echo "Inspect original raster job-loop transitions before comparison:"
           python3 verification/macos-5.1.465-classic/audit_raster_transitions.py "$raster"
           echo "Compare OEM stdout with reconstructed raster output:"
