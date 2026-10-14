@@ -10,6 +10,7 @@
  * ignoring chmod/IO errors and byte-wise PRN transfer is retained.
  */
 #include "original_command_file_helpers.h"
+#include "classic_command_original_utils.h"
 #include <string.h>
 #include <sys/stat.h>
 
@@ -92,4 +93,26 @@ void WriteDebugBuffer(const unsigned char *data,size_t length) {
     if (__fd_dump && data && length) {
         fwrite(data,length,1,__fd_dump);
     }
+}
+
+/* The four native global functions below were already recovered as
+ * isolated original-semantic helpers. Connect the genuine manufacturer
+ * global FILE* slots without changing their effects or error handling.
+ * Verified original command2leitz disassembly:
+ * _FlushDataStreams 0x100001c20..0x100001c5c,
+ * _is_bit_set       0x100001c60..0x100001c86,
+ * _CloseDebugFile   0x100002440..0x100002475,
+ * _CloseLogFile     0x100002480..0x1000024b5.
+ */
+void FlushDataStreams(void) {
+    classic_command_original_flush(stdout,__fd_dump);
+}
+int is_bit_set(int value,int bit) {
+    return classic_command_original_is_bit_set((unsigned)value,(unsigned)bit);
+}
+void CloseDebugFile(void) {
+    classic_command_original_close_debug(&__fd_dump);
+}
+void CloseLogFile(void) {
+    classic_command_original_close_log(&__fd_log);
 }

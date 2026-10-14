@@ -17,17 +17,25 @@ int main(void) {
     assert(__fd_dump && __fd_log);
     OpenDebugFile(); OpenLogFile();
     assert(__fd_dump && __fd_log);
+    /* Original 32-bit shift instruction masks count to low five bits. */
+    assert(is_bit_set((int)0x80000000u,31)==1);
+    assert(is_bit_set((int)0x80000000u,63)==1);
+    assert(is_bit_set(1,32)==1 && is_bit_set(1,1)==0);
+    assert(is_bit_set(0,31)==0);
     const unsigned char contents[]={0,'\n',0x80,0xff,1};
     WriteDebugBuffer(contents,sizeof(contents));
-    assert(fflush(__fd_dump)==0);
+    /* OEM _FlushDataStreams flushes both stdout and nonnull __fd_dump. */
+    FlushDataStreams();
     rewind(__fd_dump);
     unsigned char observed[5];
     assert(fread(observed,1,5,__fd_dump)==5);
     assert(memcmp(contents,observed,5)==0);
     WriteDebugBuffer(NULL,sizeof contents);
     WriteDebugBuffer(contents,0);
-    assert(fclose(__fd_dump)==0);__fd_dump=NULL;
-    assert(fclose(__fd_log)==0);__fd_log=NULL;
+    CloseDebugFile();CloseLogFile();
+    assert(__fd_dump==NULL && __fd_log==NULL);
+    CloseDebugFile();CloseLogFile(); /* OEM null-pointer branches. */
+    FlushDataStreams(); /* OEM still flushes stdout without a dump. */
     char filename[]="/tmp/leitz-prn-reconstruction-XXXXXX";
     int fd=mkstemp(filename);assert(fd>=0);
     assert(write(fd,contents,sizeof contents)==(ssize_t)sizeof contents);

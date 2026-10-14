@@ -3,6 +3,7 @@
  * Deliberately keeps the original argc and PPD error semantics. */
 #include "original_command_main_flow.h"
 #include "command2leitz_recovered.h"
+#include "original_command_file_helpers.h"
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -47,7 +48,7 @@ static void free_opts(void *ctx,int n,void *opts){(void)ctx;cupsFreeOptions(n,(c
 static void close_ppd(void *ctx,void*ppd){(void)ctx;ppdClose((ppd_file_t*)ppd);}
 static const char *get_conf(void *ctx,void*file,char *name,size_t sz,char **value,int *ln){(void)ctx;return cupsFileGetConf((cups_file_t*)file,name,sz,value,ln);}
 static int out_char(void *ctx,int ch){(void)ctx;return putchar(ch);}
-static int out_flush(void *ctx){(void)ctx;return fflush(stdout);}
+static int out_flush(void *ctx){(void)ctx;FlushDataStreams();return 0;}
 static ssize_t back(void *ctx,char *buf,int max,double seconds){(void)ctx;return cupsBackChannelRead(buf,max,seconds);}
 static void msg(void *ctx,const char*s){
   (void)ctx;

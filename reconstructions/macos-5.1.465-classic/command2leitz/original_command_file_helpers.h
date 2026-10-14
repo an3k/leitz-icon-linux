@@ -13,4 +13,10 @@ void OpenDebugFile(void);
 void OpenLogFile(void);
 int SendDebugFileToPrinter(void);
 void WriteDebugBuffer(const unsigned char *data, size_t length);
+/* Native-original call surface using original global stream pointers.
+ * The defined body operations reuse existing recovered OEM helpers. */
+void FlushDataStreams(void);
+int is_bit_set(int data,int bit);
+void CloseDebugFile(void);
+void CloseLogFile(void);
 #endif
