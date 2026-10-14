@@ -74,3 +74,7 @@ equivalence.
 ## Original joined raster startup/error verification (2026-10-14)
 
 `compare_connected_startup_errors_with_vendor.sh` compares entire stdout, entire stderr, and exit codes from verified original macOS 5.1.465 `raster2printer` and its independently compiled original-derived native CUPS candidate for six deterministic cases: invalid argument counts 5/8; absent input file; absent PPD; zero-byte raster file; empty stdin. [Run 38605605549](https://github.com/an3k/leitz-icon-linux/actions/runs/38605605549) established **6/6 exact parity**. [Run 38606149312](https://github.com/an3k/leitz-icon-linux/actions/runs/38606149312) reconfirmed the same six plus all previous normal raster, variable-row, PRN and command cases after original status/URI symbols were linked. Real network/USB communication is not part of this proof.
+
+## Native OEM mode-1 RGB24 whole-job comparison (2026-10-14)
+
+`compare_mode1_rgb_with_vendor.sh` exercises the complete original-derived native macOS CUPS candidate and original manufacturer `raster2printer` with equal `rgbtailblank` raster inputs, genuine Bayer8x8 dithering, optimization mode 1, heights 33/80 raster rows and cutter ON/OFF. [CI 38611488870](https://github.com/an3k/leitz-icon-linux/actions/runs/38611488870) verified four exact stdout/stderr/exit matches. The last RGB row is white on purpose: the original mode-1 row copy reads four extra bytes after nonblank rows, so this input avoids undefined last-row behavior without changing the reconstructed OEM implementation. No hardware was connected.

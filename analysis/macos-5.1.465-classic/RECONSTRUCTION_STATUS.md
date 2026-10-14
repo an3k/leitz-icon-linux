@@ -1718,3 +1718,22 @@ This establishes those six defined original startup/error behaviors with no furt
 **Verification:** [GitHub Actions 38606149312](https://github.com/an3k/leitz-icon-linux/actions/runs/38606149312) passed all three jobs: Linux GCC/Clang tests, native Apple CUPS compile and symbol checks for both function entries, and SHA-256-authenticated OEM comparison. It retained **6/6 startup/error**, **13/13 command**, **4/4 whole-raster stdout+stderr**, **4/4 variable-length stdout** and **1/1 PRN-file** exact comparisons with the manufacturer. No physical printer, USB or TCP device was contacted by these new tests.
 
 Code commits: `bc9dd2a910e0d31b4abb773dbe99db195a9ab7cc` (start/error OEM comparisons), `f7a1dfcb01d4fc8002435423c0ea1acdb04b5d93` (OEM status/URI linkage) and `155a5b2e94418938e6bf22124869d04eb0ce6918` (native CUPS declaration). The two original 5.1.465 executables, `driver` and `cups` remain unchanged.
+
+## 2026-10-14 — native RGB24 mode-1 original parity with defined final-row data
+
+The current sources HEAD `17d4a2d14809477f23ba405836adeb9546ca5d77` was inspected before this increment. The previous commits already connected original-named CUPS document/page/dither and `ProcessPage` entry points and established original manufacturer mode-1 parity for all-blank and mixed monochrome rows. None of those functions were rewritten.
+
+A still-unchecked whole-job combination was OEM optimization mode **1** with RGB24 input and original `_DitherPage`. The already existing CUPS fixture generator gained a separate `rgbtailblank` input mode: normal original RGB gradient content in all but the last row and a completely white RGB final row. This preserves the original mode-1 +4-byte lookahead semantics while avoiding a last-row allocation overread during actual vendor execution. The normal `rgb` and `tailblank` fixtures remain unchanged.
+
+`verification/macos-5.1.465-classic/compare_mode1_rgb_with_vendor.sh` now runs the independently compiled reconstructed joined CUPS executable and SHA-256-verified original macOS Mach-O on identical two-page RGB24 raster jobs. It checks **all stdout bytes, all stderr bytes and exit code**, independently for two heights and two cutter settings:
+
+| Raster height (rows, not millimeters) | Cutter | Original stdout bytes | Result |
+|---|---|---:|---|
+| 33 | ON | 6,052 | Exact match |
+| 33 | OFF | 6,050 | Exact match |
+| 80 | ON | 14,700 | Exact match |
+| 80 | OFF | 14,698 | Exact match |
+
+[CI run 38611488870](https://github.com/an3k/leitz-icon-linux/actions/runs/38611488870) passed all three jobs: recovered C under GCC/Clang, native Apple CUPS compilation, and actual authenticated manufacturer binary comparisons. All four new cases emitted `OEM_CONNECTED_MODE1_RGB_PARITY=YES`. Existing monochrome, command, PRN, original modes 2/3 and startup comparisons remained successful.
+
+Commit: `1e330ac0ef862eafd7ab5b279d35bd38b1b542c5`. This establishes four more original-equivalent defined end-to-end scenarios, **not** complete mode-0/1 equivalence for nonblank final rows, native C++ binary ABI equivalence, network behavior or physical printer functionality. The productive driver, CUPS branch, and original binaries were not changed.
