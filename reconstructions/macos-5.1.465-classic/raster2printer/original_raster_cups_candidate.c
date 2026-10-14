@@ -43,8 +43,15 @@ ssize_t cupsBackChannelRead(char *,int,double);
 
 /* Symbols expected by the independently reconstructed OEM _main. */
 extern int terminate_flag;
-extern unsigned int job_size;
+/* OEM _CheckPrinterStatus 0x100009713..0x10000971f directly mutates
+ * the original file-private 32-bit __ZL8job_size; all recovered page
+ * and document functions share this single job-size counter.
+ * Recover the native Mach-O name only, without changing job sizing. */
+#if defined(__APPLE__)
+unsigned int job_size __asm__("__ZL8job_size");
+#else
 unsigned int job_size;
+#endif
 
 _Static_assert(sizeof(job_size)==4,"OEM 32-bit job counter");
 _Static_assert(sizeof(classic_oem_cups_option)==sizeof(cups_option_t),
