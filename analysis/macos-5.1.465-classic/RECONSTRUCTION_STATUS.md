@@ -1438,3 +1438,40 @@ yet completely reconstructed or proved equivalent. Existing 5.1.465
 OEM reference fixture comparisons do not invoke the private native
 ProcessPage with matching injected callbacks; they are regression
 checks, not a complete parity claim.
+
+
+## 2026-10-14 — recovered OEM RGB24 DitherPage connected to the normal raster job
+
+Branch `sources` was checked at `4cb0cc1adcf2b030abc91ce001339ae1ce408a11`
+before modifying any code. The actual `_DitherPage` reconstruction,
+manufacturer halftone tables, four isolated `_ProcessPage` modes and
+connected normal-case mode-2/3 job were already present. None was
+reimplemented, modified, or replaced.
+
+`original_raster_dither_bridge.[ch]` now connects the existing
+`classic_original_dither_page` to the existing active-page
+`dither_page` callback. The connected raster job fixture additionally
+executes a complete **8-pixel, 24-byte RGB24 black-row** raster input,
+using the OEM `Bayer8x8` choice and recovered halftone matrix
+selection. Its eight generated monochrome bits are passed into the
+real reconstructed mode-2 `_ProcessPage` (not a mock), followed by
+the existing recovered `_EndPage`, `_EndDocument` and job
+epilogue. Tests check the exact output call partition, 149-byte
+combined stream, page/document flush order and raster close.
+An obsolete test-only quality selector was removed to link the
+existing OEM-derived selector instead.
+
+**Verified**: [Sources - Reconstruction Compile run 38559047681](https://github.com/an3k/leitz-icon-linux/actions/runs/38559047681)
+completed successfully in all **three jobs**: Linux GCC and Clang,
+native Intel macOS Clang, and the independent authenticated original
+Mach-O comparison suite. The vendor comparisons are separate
+regression tests and do **not** directly invoke OEM private
+`_DitherPage` or `_ProcessPage` with the test's injected callbacks.
+The bridge establishes source-level C integration for defined RGB24
+input, not the entire manufacturer native ABI, arbitrary pixel
+geometry, undefined cases, or hardware equivalence. It has not been
+installed as a printer filter; the active Linux driver is untouched.
+
+Commits: `a1665fbe018452676ff4045aaf861c13a9a23a31` (integration)
+and `75f30a367e3dd3390247f46df64338c8cccebc36` (remove obsolete
+duplicate test selector after CI identified symbol collision).
