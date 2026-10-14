@@ -133,3 +133,9 @@ including unchanged complete stdout/stderr/exit matching for
 functions are linked and unit-tested but not necessarily
 executed by those 13 OEM command scenarios. Full native
 binary ABI and original hardware status behavior remain open.
+
+## 2026-10-14 — original-named command entry points and previously isolated functions
+
+`GetStatus`, `GetPrinterStatus`, `GetUnitedStatus`, `GetFirmvareVersion`, `EndOfJob`, and `WriteData` are now present as named C function boundaries in the joined original-derived command CUPS executable. The existing original query body and original `_WriteData` sink-selection code are reused, and command main now selects the original named per-command query entry. None of this changes the actual command bytes, statuses, diagnostics or original unchecked error semantics. `WriteData` remains dormant in normal status processing.
+
+The three earlier reconstructed dormant OEM helpers in `../shared/diagnostics/`—`output_cups_info`, `test_raster`, and `PrintPageDebugInfo`—are linked from their existing single shared C sources. Normal status processing does not call them. [Native full validation run 38604431098](https://github.com/an3k/leitz-icon-linux/actions/runs/38604431098) compiled every function against native macOS CUPS, checked actual linked symbols, ran unit tests, and preserved all 13 exact original-command stdout/stderr/exit comparisons. The wrapper callback signatures are **not** asserted to match the OEM's binary ABI, and this candidate is not an installable driver.

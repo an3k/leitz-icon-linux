@@ -14,14 +14,14 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 | `_FlushDataStreams` | 0x1000015f0 | Recovered stdout/optional PRN flush and connected via named `FlushDataStreams` entry to joined CUPS output lifecycle; exact native C++ global-state ABI remains open |
 | `_is_bit_set` | 0x100001630 | Recovered OEM 32-bit bit-test helper exposed as named `is_bit_set` entry in joined raster executable; encoder still uses independently verified identical bit arithmetic |
 | `_OpenDebugFile` | 0x100001660 | Recovered OEM PRN/debug file opening now linked through named `OpenDebugFile` and used by the joined raster job |
-| `_OpenLogFile` | 0x100001910 | Isolated file helper |
+| `_OpenLogFile` | 0x100001910 | Original log helper already linked as named `OpenLogFile` into joined macOS raster main; original private global layout remains a C reconstruction |
 | `_SendDebugFileToPrinter` | 0x100001b40 | Original byte-at-a-time PRN transfer connected via named `SendDebugFileToPrinter` to joined raster job; exact OEM PRN output externally compared |
 | `_CloseDebugFile` | 0x100001e10 | Recovered original PRN close/clear, connected via named `CloseDebugFile` to joined job cleanup |
-| `_CloseLogFile` | 0x100001e50 | Isolated helper |
+| `_CloseLogFile` | 0x100001e50 | Original log closure already linked as named `CloseLogFile` into joined macOS raster main |
 | `_WriteDebugBuffer` | 0x100001e90 | Original conditional `fwrite` PRN action linked through named `WriteDebugBuffer` into joined `_WriteData` sink path |
-| `_output_cups_info` | 0x100001ef0 | Function body recovered and cross-checked with original Linux 1.0.3 source; see `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_output_cups_info.c` |
-| `_test_raster` | 0x100003c60 | Reconstructed from original assembly in `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_test_raster.c`; dormant function, not called by normal printing |
-| `_PrintPageDebugInfo` | 0x100003e50 | Seven original diagnostic calls recovered in `reconstructions/macos-5.1.465-classic/shared/diagnostics/original_page_debug.c`; not linked into the active filter |
+| `_output_cups_info` | 0x100001ef0 | Manufacturer Linux C body and macOS diagnostics reconstructed earlier; now linked as dormant `output_cups_info` into the native joined raster candidate; original invalid-PPD behavior retained |
+| `_test_raster` | 0x100003c60 | Earlier assembly-derived `test_raster` function now linked into joined native raster CUPS candidate; stays dormant in normal printing |
+| `_PrintPageDebugInfo` | 0x100003e50 | Seven original diagnostic calls reconstructed earlier; `PrintPageDebugInfo` now linked as dormant native raster executable symbol, without adding new calls to normal printing |
 | `__Z14signal_handleri` | 0x100004420 | OEM diagnostic and termination-state update recovered; source-level C signal handler is linked into joined raster `_main` and registered for SIGTERM; C++ mangled ABI and unrelated signal states not asserted |
 | `_main` | 0x100004460 | OEM-derived C entry now linked into `original_raster2printer_cups_candidate` with actual Apple CUPS SDK; OEM symbol ABI and every original error/global case remain incomplete |
 | `_raster2printer` | 0x1000045a0 | Source-level joined C job executes original document/page lifecycle, the normal `_ProcessPage` modes 2/3 and the recovered RGB24 `_DitherPage` through its new callback bridge; mode 0/1 full-page integration still has an OEM four-byte overread, and full native CUPS/device ABI remains incomplete |
@@ -43,12 +43,12 @@ Other symbol entries: `__mh_execute_header` at 0, `__ZL7strrchrUa9enable_ifIXLb1
 |---|---|---|
 | `start` | 0x100000ad0 | Not recovered independently |
 | `_main` | 0x100000b10 | Full defined control-flow reconstruction in `original_command_main_flow.c`; exact original diagnostic sites; isolated test/candidate, original ABI and boundary cases not yet certified |
-| `_GetPrinterStatus` | 0x1000011d0 | Recovered active ESC A query, original source-line 123 diagnostic, native reference parity for seven defined replies |
-| `_GetUnitedStatus` | 0x1000012a0 | Recovered active ESC U query, source-line 132 diagnostic, native reference parity for three defined replies |
-| `_GetFirmvareVersion` | 0x100001370 | Recovered active ESC V query and line-141 diagnostic, source spelling retained, three defined replies parity-verified |
-| `_GetStatus` | 0x100001440 | Normal status requests, read errors, empty replies and file-failure diagnostics parity-verified across 13 full connected OEM entry cases; native ABI and untested side effects incomplete |
-| `_EndOfJob` | 0x100001a30 | ESC Z recovered |
-| `_WriteData` | 0x100001a80 | Original-specific implementation incomplete |
+| `_GetPrinterStatus` | 0x1000011d0 | Recovered ESC A query and source-line 123 diagnostic; now exposed as native executable function name `GetPrinterStatus`, called by reconstructed OEM main, seven defined responses original-verified; native ABI differs |
+| `_GetUnitedStatus` | 0x1000012a0 | Recovered ESC U query and source-line 132 diagnostic; now exposed as `GetUnitedStatus` and called from OEM main, three responses verified |
+| `_GetFirmvareVersion` | 0x100001370 | Original spelling preserved; now exposed as `GetFirmvareVersion` and called by OEM main, three ESC V response cases original-verified |
+| `_GetStatus` | 0x100001440 | Original status/error body now exposed as named `GetStatus`, shared by the three active OEM query functions and original-verified across 13 defined cases; C callback ABI and unchecked failures incomplete |
+| `_EndOfJob` | 0x100001a30 | Original ESC Z and flush now exposed as `EndOfJob`, invoked by `GetStatus` and unit-tested independently |
+| `_WriteData` | 0x100001a80 | OEM socket/stdout/PRN sink and signed-return behavior previously reconstructed in `classic_command_write_data.c`, now compiled into native command executable with named `WriteData` entry; not invoked by normal status processing, original ABI not proven |
 | `_FlushDataStreams` | 0x100001c20 | OEM-defined stdout / optional global `__fd_dump` flush behavior now exposed through the original symbol-level C call surface, reusing the prior recovered utility; linked into command candidate |
 | `_is_bit_set` | 0x100001c60 | Recovered 32-bit masked x86 shift and bit test; now exposed with OEM-compatible global function signature in command helper module |
 | `_OpenDebugFile` | 0x100001c90 | Isolated original C body recovered in `command2leitz/original_command_file_helpers.c`; active integration pending |
@@ -57,9 +57,9 @@ Other symbol entries: `__mh_execute_header` at 0, `__ZL7strrchrUa9enable_ifIXLb1
 | `_CloseDebugFile` | 0x100002440 | Original global `__fd_dump`: conditional fclose then reset to NULL, using existing recovered implementation; unit-tested |
 | `_CloseLogFile` | 0x100002480 | Original global `__fd_log`: conditional fclose then reset to NULL, using existing recovered implementation; unit-tested |
 | `_WriteDebugBuffer` | 0x1000024c0 | Original non-null tests and `fwrite(data,length,1,stream)` recovered |
-| `_output_cups_info` | 0x100002520 | Same independently disassembled OEM function; shared recovered C source, not connected to live command entry |
-| `_test_raster` | 0x100004290 | Same C behavior independently verified against original command binary disassembly; shared reconstructed source under `reconstructions/macos-5.1.465-classic/shared/diagnostics/` |
-| `_PrintPageDebugInfo` | 0x100004480 | Same seven OEM calls independently established from this Mach-O; shared standalone reconstruction, dormant |
+| `_output_cups_info` | 0x100002520 | Existing recovered `output_cups_info` from shared diagnostics now linked into native command candidate; dormant in normal status path |
+| `_test_raster` | 0x100004290 | Shared reconstructed `test_raster` linked into native command candidate; remains dormant and not invoked by normal command file |
+| `_PrintPageDebugInfo` | 0x100004480 | Seven original OEM diagnostic calls retained in shared reconstructed `PrintPageDebugInfo`, now linked into native command candidate; stays dormant |
 
 Other entry: `__mh_execute_header` at zero.
 

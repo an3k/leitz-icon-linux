@@ -29,3 +29,7 @@ The two original macOS implementations are fully aligned at the function level w
 This is a **dormant diagnostic function**, not part of the normal printing path. Original behaviors including unchecked PPD pointers, fixed `sprintf` offsets, unusual concatenated formatting, and potential string-buffer overflows remain intentionally unchanged. Do not run it on untrusted PPD files. `ppd-fixture/` is only an offline mock of the CUPS data structures and is not shipped as a system header.
 
 Offline compilation is tested with GCC and Clang. macOS native compilation against actual Apple CUPS headers is in `Sources - Reconstruction Compile`; this tests the source but does not execute the original private function directly or establish complete executable equivalence.
+
+## 2026-10-14 — linked to both reconstructed native macOS executables
+
+The existing `original_output_cups_info.c`, `original_test_raster.c`, and `original_page_debug.c` are now compiled and linked into both `original_raster2printer_cups_candidate` and `command2leitz_original_main_candidate` without copying or modifying their original-semantic bodies. These helpers remain dormant unless explicitly called, matching ordinary OEM command/print control flow. [CI run 38604431098](https://github.com/an3k/leitz-icon-linux/actions/runs/38604431098) verified their presence using native macOS `nm`, all three jobs, and the existing byte-for-byte whole-program reference checks. Their potential unsafe original PPD and raster behaviors remain intentionally unchanged.
