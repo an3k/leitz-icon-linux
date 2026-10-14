@@ -49,13 +49,13 @@ Other symbol entries: `__mh_execute_header` at 0, `__ZL7strrchrUa9enable_ifIXLb1
 | `_GetStatus` | 0x100001440 | Normal status requests, read errors, empty replies and file-failure diagnostics parity-verified across 13 full connected OEM entry cases; native ABI and untested side effects incomplete |
 | `_EndOfJob` | 0x100001a30 | ESC Z recovered |
 | `_WriteData` | 0x100001a80 | Original-specific implementation incomplete |
-| `_FlushDataStreams` | 0x100001c20 | Original-specific implementation incomplete |
-| `_is_bit_set` | 0x100001c60 | Helper not separately recovered for this executable |
+| `_FlushDataStreams` | 0x100001c20 | OEM-defined stdout / optional global `__fd_dump` flush behavior now exposed through the original symbol-level C call surface, reusing the prior recovered utility; linked into command candidate |
+| `_is_bit_set` | 0x100001c60 | Recovered 32-bit masked x86 shift and bit test; now exposed with OEM-compatible global function signature in command helper module |
 | `_OpenDebugFile` | 0x100001c90 | Isolated original C body recovered in `command2leitz/original_command_file_helpers.c`; active integration pending |
 | `_OpenLogFile` | 0x100001f40 | Isolated original C body recovered with unchanged 1024-byte path buffer and 0755/0644 operations |
 | `_SendDebugFileToPrinter` | 0x100002170 | Original byte-by-byte fgetc/fputc transfer and diagnostics recovered; tested on isolated PRN fixture |
-| `_CloseDebugFile` | 0x100002440 | Original-specific effects incomplete |
-| `_CloseLogFile` | 0x100002480 | Original-specific effects incomplete |
+| `_CloseDebugFile` | 0x100002440 | Original global `__fd_dump`: conditional fclose then reset to NULL, using existing recovered implementation; unit-tested |
+| `_CloseLogFile` | 0x100002480 | Original global `__fd_log`: conditional fclose then reset to NULL, using existing recovered implementation; unit-tested |
 | `_WriteDebugBuffer` | 0x1000024c0 | Original non-null tests and `fwrite(data,length,1,stream)` recovered |
 | `_output_cups_info` | 0x100002520 | Same independently disassembled OEM function; shared recovered C source, not connected to live command entry |
 | `_test_raster` | 0x100004290 | Same C behavior independently verified against original command binary disassembly; shared reconstructed source under `reconstructions/macos-5.1.465-classic/shared/diagnostics/` |

@@ -113,3 +113,23 @@ replies. Existing original raster output parity remained intact.
 The compiled, reconstructed command entry is an analysis-only
 source-to-CUPS connector, not the original C++ ABI; the broader
 native error paths and genuine device interaction remain incomplete.
+
+## 2026-10-14 — native global OEM utility integration
+
+`original_command_file_helpers.[ch]` now exposes reconstructed
+`FlushDataStreams`, `is_bit_set`, `CloseDebugFile` and
+`CloseLogFile` native C function surfaces. Their bodies delegate
+to the existing original-derived utility implementation, but use
+the actual OEM global file pointers `__fd_dump`/`__fd_log`.
+Both the normal data-flush and absent-debug-dump paths, file
+closing and 32-bit original shift wraparound were checked.
+
+The original-derived command CUPS candidate links this module
+and calls `FlushDataStreams` for output flushes. No separate
+new implementation of the original algorithms was introduced.
+[All 3 CI jobs passed](https://github.com/an3k/leitz-icon-linux/actions/runs/38572871936),
+including unchanged complete stdout/stderr/exit matching for
+13 distinct manufacturer command cases. The new close/bit
+functions are linked and unit-tested but not necessarily
+executed by those 13 OEM command scenarios. Full native
+binary ABI and original hardware status behavior remain open.

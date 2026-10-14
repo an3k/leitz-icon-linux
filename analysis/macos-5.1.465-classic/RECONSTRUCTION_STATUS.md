@@ -1590,3 +1590,49 @@ Implementation commits:
 `6d53e6a8f8e1c712f02b00e34bcb8aebe26f1299`,
 `ab16e16c658b171ea903ec72589aba1d67cdf219`, and
 `1d153a2bdde352eb316d9b3912cb2993c2d46216`.
+
+## 2026-10-14 — original command utility functions connected to native global state
+
+The live `sources` branch was verified at
+`c7647361315876c0ae0fdbb4ed2de64275a5e46b`
+before changes. The original command recovery already had all
+four **isolated** helper semantics and 13 original command-query
+comparisons. None of that existing implementation was replaced.
+
+The SHA-256-authenticated original macOS command2leitz Mach-O assembly
+in [run 38564165909](https://github.com/an3k/leitz-icon-linux/actions/runs/38564165909)
+showed the precise four function bodies:
+- `_FlushDataStreams` (0x100001c20..0x100001c5c):
+  unconditional `fflush(stdout)`, followed by an optional
+  `fflush(__fd_dump)`.
+- `_is_bit_set` (0x100001c60..0x100001c86):
+  32-bit shift masking as native x86 `shll %cl`.
+- `_CloseDebugFile` (0x100002440..0x100002475):
+  conditional `fclose(__fd_dump)` and clearing its global.
+- `_CloseLogFile` (0x100002480..0x1000024b5):
+  conditional `fclose(__fd_log)` and clearing its global.
+
+These OEM function calls now use the **existing** recovered
+`classic_command_original_utils.[ch]` implementations as their
+underlying bodies, connected to real `__fd_dump`/`__fd_log`
+symbols in `original_command_file_helpers.[ch]`. The already
+reconstructed `_GetStatus` command CUPS entry now invokes the
+connected original `FlushDataStreams` surface instead of the
+isolated direct stdout flush callback. The candidate build links
+the exact shared helper source files. The original global file
+handling and x86 shift count wrap-around are unit-tested. No new
+file-opening or device operation was introduced.
+
+**Verified:** [CI run 38572871936](https://github.com/an3k/leitz-icon-linux/actions/runs/38572871936)
+passed the Linux GCC/Clang compilation and tests, native macOS
+compilation, and independent original manufacturer comparisons.
+All 13 original whole-command (stdout + stderr + exit code)
+comparisons and all four full raster-job mode-2/3 checks retained
+their byte-exact parity. The close and bit helpers are directly
+covered by isolated tests and disassembly, not dynamically
+exercised by these 13 normal command scenarios.
+
+Code commit:
+`a1c33f3686fd4e24c15982db7f9cd17edaa4d210`.
+The original C++ executable ABI, untested failure paths, and
+device-side behavior remain beyond this increment.
