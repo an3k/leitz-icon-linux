@@ -17,6 +17,18 @@ void signal_handler(int signo) {
     fprintf(stderr,"\nINFO: Cancelling the job...");
     terminate_flag=1;
 }
+/* Original file-private C++ stdlib wrapper labels. These existed in
+ * the recovered C source already; on macOS keep their OEM Mach-O names
+ * and definitions emitted even though optimization can inline calls.
+ * Inlining can differ from the OEM's original C++ compiler output. */
+#if defined(__APPLE__)
+static const char *classic_libcpp_strrchr(const char *s,int c)
+    __asm__("__ZL16__libcpp_strrchrPKci")
+    __attribute__((used,noinline));
+static char *classic_libcpp_strstr(char *haystack,const char *needle)
+    __asm__("__ZL15__libcpp_strstrPKcS0_")
+    __attribute__((used,noinline));
+#endif
 static const char *classic_libcpp_strrchr(const char *s,int c) {
     return strrchr(s,c);
 }
