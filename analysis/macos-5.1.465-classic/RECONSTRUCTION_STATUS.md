@@ -466,3 +466,44 @@ must receive their own completed run.
 Neither this wrapper nor the newly reconstructed `_ReadPage`
 is connected to the active `classic_raster_cups_adapter`. Its
 continued use of the older simplified core remains unchanged.
+
+## OEM raster main entry recovery — 2026-10-14
+
+The previously unfinished original `raster2printer` `_main` function
+was independently disassembled at `0x100004460..0x100004565` from the
+SHA-256-verified Leitz 5.1.465 classic Intel Mach-O. The new
+`original_raster_main.c` translates the **complete defined entry call
+sequence** directly rather than introducing callback behavior:
+
+1. `_OpenLogFile` unconditionally, with its original return ignored;
+2. `fprintf(stderr, "\nraster2printer.c:41:main(): raster filter started")`;
+3. reset the original global integer `terminate_flag` to zero;
+4. register the native `SIGTERM` handler and ignore `SIGPIPE`;
+5. reset original integer `job_size` to zero;
+6. invoke original `raster2printer(argc,argv)` once;
+7. unconditionally call `_CloseLogFile` and return the filter's result.
+
+No argument validation, error conversion, additional cleanup or safer
+signal behavior was added. A native `main` can be enabled by defining
+`CLASSIC_OEM_FINAL_MAIN` only when the remaining manufacturer functions
+are all linked; the existing separately tested CUPS adapter is unchanged.
+The original C++ symbol/linker and global storage arrangement are
+not claimed complete.
+
+`original_raster_main_test.c` verifies exactly the start diagnostic
+bytes, `OpenLogFile` / `raster2printer` / `CloseLogFile` order, original
+`SIGTERM`/`SIGPIPE` dispositions, global resets and unchanged
+result propagation for multiple return codes. GCC, Clang and
+ASan/UBSan passed locally. The sources-only CI will run these
+additional tests under both OSes.
+
+At earlier commit `dc0c92aa680d7bd26eea60e40f5615467d4de069`,
+[run 38492636976](https://github.com/an3k/leitz-icon-linux/actions/runs/38492636976)
+completed all three jobs, including native macOS CUPS SDK
+compilation of the newly reconstructed `_DitherPage` and vendor
+reference tests. This confirms compilation and checked scenarios;
+it does **not** establish full private-function or executable parity.
+
+The active `_raster2printer` function remains an important
+unfinished reconstruction. The new `_main` is not yet a complete
+runnable substitute for the manufacturer binary.
