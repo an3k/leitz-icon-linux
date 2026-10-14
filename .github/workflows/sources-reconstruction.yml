@@ -102,6 +102,9 @@ jobs:
           nm -g "$binary" > "$RUNNER_TEMP/oem-raster-linked-symbols.txt"
           # Original C++-private global symbols are present in nm but
           # are not assumed to be public exported functions.
+          for name in __ZL7strrchrUa9enable_ifIXLb1EEEPKci __ZL6strstrUa9enable_ifIXLb1EEEPcPKc __ZL12_OSSwapInt16t; do
+            nm "$binary" | grep -Fq " $name"
+          done
           for name in __ZL4sock __ZL12resolved_uri; do
             nm "$binary" | grep -Eq "[[:space:]]$name$"
           done
