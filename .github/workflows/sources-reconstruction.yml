@@ -96,6 +96,13 @@ jobs:
       - name: Compile joined OEM raster CUPS candidate against native Apple SDK
         run: |
           make -C reconstructions/macos-5.1.465-classic/raster2printer original_raster2printer_cups_candidate CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+      - name: Confirm original raster utility entry points are linked
+        run: |
+          binary="reconstructions/macos-5.1.465-classic/raster2printer/original_raster2printer_cups_candidate"
+          nm -g "$binary" > "$RUNNER_TEMP/oem-raster-linked-symbols.txt"
+          for name in _OpenLogFile _CloseLogFile _OpenDebugFile _CloseDebugFile _FlushDataStreams _is_bit_set _WriteDebugBuffer _SendDebugFileToPrinter; do
+            grep -Eq "[[:space:]]$name$" "$RUNNER_TEMP/oem-raster-linked-symbols.txt"
+          done
       - name: Build and execute OEM-derived URI resolver without a network connection
         run: |
           make -C reconstructions/macos-5.1.465-classic/raster2printer original_device_uri_test CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"

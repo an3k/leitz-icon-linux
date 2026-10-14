@@ -63,6 +63,38 @@ void CloseLogFile(void) {
     classic_original_log_close(&candidate.log);
 }
 
+/* Original Mach-O raster2printer exported helper entry points.
+ * These definitions use the existing recovered native algorithms and
+ * their global CUPS-candidate context; they do not claim the complete
+ * original x86_64 C++ ABI or its private global-memory layout.
+ *
+ * Original addresses verified by the manufacturer symbol inventory:
+ * _FlushDataStreams      0x1000015f0
+ * _is_bit_set            0x100001630
+ * _OpenDebugFile         0x100001660
+ * _SendDebugFileToPrinter 0x100001b40
+ * _CloseDebugFile        0x100001e10
+ * _WriteDebugBuffer      0x100001e90
+ */
+void FlushDataStreams(void) {
+    classic_original_raster_flush_streams(&candidate.prn,stdout);
+}
+int is_bit_set(int value,int bit) {
+    return classic_original_is_bit_set(value,bit);
+}
+void OpenDebugFile(void) {
+    classic_original_prn_open(&candidate.prn);
+}
+void CloseDebugFile(void) {
+    classic_original_prn_close(&candidate.prn);
+}
+void WriteDebugBuffer(const unsigned char *data,size_t size) {
+    classic_original_prn_write_buffer(&candidate.prn,data,size);
+}
+void SendDebugFileToPrinter(void) {
+    (void)classic_original_prn_send(&candidate.prn,stdout);
+}
+
 static int terminated(void *unused) {
     (void)unused;
     return terminate_flag!=0;
@@ -117,8 +149,8 @@ static void close_ppd(void *unused,void *ppd) {
     ppdClose((ppd_file_t *)ppd);
 }
 static void open_debug(void *ctx) {
-    classic_cups_context *c=ctx;
-    classic_original_prn_open(&c->prn);
+    (void)ctx;
+    OpenDebugFile();
 }
 static void select_stdout(void *ctx,int enabled) {
     classic_cups_context *c=ctx;
@@ -133,8 +165,11 @@ static size_t write_stdout(void *ctx,const void *bytes,size_t size) {
     return fwrite(bytes,size,1,stdout);
 }
 static size_t write_dump(void *ctx,const void *bytes,size_t size) {
-    classic_cups_context *c=ctx;
-    return fwrite(bytes,size,1,c->prn.dump);
+    (void)ctx;
+    WriteDebugBuffer(bytes,size);
+    /* _WriteData ignores the dump's fwrite return (see native helper).
+     * Its own write result comes from the chosen stdout/socket sink. */
+    return 1;
 }
 static int write_data(void *ctx,const uint8_t *bytes,size_t size,
                       const void *descriptor,size_t descriptor_size,
@@ -153,8 +188,8 @@ static int write_data(void *ctx,const uint8_t *bytes,size_t size,
     return classic_write_data_core(&io,bytes,size);
 }
 static void flush_data_streams(void *ctx) {
-    classic_cups_context *c=ctx;
-    classic_original_raster_flush_streams(&c->prn,stdout);
+    (void)ctx;
+    FlushDataStreams();
 }
 static void close_raster(void *unused,void *raster) {
     (void)unused;
@@ -165,12 +200,13 @@ static int close_fd(void *unused,int fd) {
     return close(fd);
 }
 static void close_debug(void *ctx) {
-    classic_cups_context *c=ctx;
-    classic_original_prn_close(&c->prn);
+    (void)ctx;
+    CloseDebugFile();
 }
 static int send_prn(void *ctx) {
-    classic_cups_context *c=ctx;
-    return classic_original_prn_send(&c->prn,stdout);
+    (void)ctx;
+    SendDebugFileToPrinter();
+    return 0;
 }
 static void start_page(void *ctx,classic_oem_read_descriptor *descriptor) {
     classic_cups_context *c=ctx;
