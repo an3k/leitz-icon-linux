@@ -284,3 +284,9 @@ New `original_raster_private_helpers.[ch]` preserves the original cancellation m
 - [Run 38487275493](https://github.com/an3k/leitz-icon-linux/actions/runs/38487275493) for commit `a76914bacf3091c84393d8fec1d8b935921911f2`: all 3 jobs succeeded, including local raster signal/C++ helper checks on GCC/Clang and native macOS alongside the existing vendor comparison suite.
 
 Both new OEM-derived parts remain **isolated reconstructions**; the genuine manufacturer's dormant `_output_cups_info` function and the original native signal handler have **not** been directly invoked and compared. These passing workflows do not establish full executable equivalence, and the incomplete original raster/command entry paths remain outstanding.
+
+## 2026-10-14 — four original command2leitz file helper functions recovered
+
+After checking branch `sources` at `88fddb5d0fc5690de6e934720456f522df9b6a85`, four remaining original command executable helper bodies were reconstructed directly from the SHA-256-verified Mach-O `command2leitz`: `_OpenDebugFile`, `_OpenLogFile`, `_SendDebugFileToPrinter` and `_WriteDebugBuffer`. New code is under `reconstructions/macos-5.1.465-classic/command2leitz/original_command_file_helpers.[ch]`. It keeps the original debug/log paths, permissions, byte-transfer loop, diagnostic strings, return values and unchecked original operations. Existing `_CloseDebugFile`, `_CloseLogFile` and `_FlushDataStreams` reconstructions were not changed or duplicated.
+
+Standalone GCC, Clang and ASan/UBSan local tests passed for existing-open branches, exact PRN bytes and original diagnostics. The manufacturer's fixed `/Library/Caches` open path is **not run** in those tests. Linking the isolated helper functions into a complete OEM-equivalent command executable and comprehensive edge-condition comparison remain open; subsequent CI must be checked independently.

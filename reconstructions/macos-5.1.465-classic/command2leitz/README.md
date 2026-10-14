@@ -23,10 +23,21 @@ The CUPS entry adapter compiles against Linux CUPS 2.x for **offline** inspectio
 
 ## Limitations: a finished 1:1 reconstruction is NOT available
 
-1. The original command executable also links `_OpenDebugFile`, `_OpenLogFile`, `_WriteData`, `_SendDebugFileToPrinter`, `_output_cups_info`, `_test_raster` and other utilities. These are not reproduced in this isolated active-path source.
+1. The isolated active command path is not yet linked with the separately recovered file/debug helpers, original `_WriteData` error diagnostics, or the shared OEM CUPS/raster diagnostic functions. Those are stored as independent C units and do not constitute a whole-executable reconstruction.
 2. Diagnostic stdout/stderr formatting and auxiliary side effects are not fully re-created.
 3. The vendor writes a NUL at `reply[received]` into a 1024-byte stack buffer. The recovered code retains that operation without a new bounds check; for a 1024-byte answer both implementations can write one byte out of bounds. This is a known original defect, not safe or production-qualified behavior.
 4. The original Mach-O cannot be executed on this Linux host for direct parity comparisons; the real macOS build and device communication are unverified.
 5. The **other** classic executable, `raster2printer`, is **not complete**. The prior experimental raster components remain separately under `enhancements/macos-5.1.465-classic/`.
 
 Do not confuse this partial recovery with the two complete, original manufacturer executables. Do not install it as a production printer filter.
+
+## 2026-10-14: recovered original command-file helper bodies
+
+Original manufacturer `command2leitz` Mach-O has been disassembled and its four previously missing file-handling functions reconstructed in `original_command_file_helpers.[ch]`:
+
+- `_OpenDebugFile` (0x100001c90–0x100001f30): original fixed `/Library/Caches/DEBUG/dbg.prn` path, conditional `mkdir/chmod`, unguarded `sprintf`, `fopen("wb")` and original line-numbered messages (88, 104, 108).
+- `_OpenLogFile` (0x100001f40–0x100002167): fixed `/Library/Caches/DEBUG/LeitzDriverLog.log`, original file permissions and unchanged line numbers (116, 132).
+- `_SendDebugFileToPrinter` (0x100002170–0x10000243c): one-byte `fgetc` / `fputc` loop, original error termination, unmodified diagnostics (142, 152, 158, 162) and unconditional zero return.
+- `_WriteDebugBuffer` (0x1000024c0–0x100002518): original three nonzero checks and single `fwrite(data,length,1,stream)` with ignored result.
+
+**No enhancements were introduced into these reconstructed functions.** The 1024-byte globals and original unsafe fixed-path opening are retained. The standalone tests exercise only already-open streams and a temporary PRN file; the fixed `/Library/Caches` filesystem writes are deliberately not invoked by tests. Original code and its boundary conditions must not be used as production-safe printing routines. Local GCC, Clang and Clang ASan/UBSan checks passed; CI build results are to be verified against the actual run. No change was made to the existing command entrypoint, the unrelated raster filter, originals or `enhancements/`.
