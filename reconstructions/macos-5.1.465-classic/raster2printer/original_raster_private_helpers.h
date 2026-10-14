@@ -8,6 +8,15 @@
  * __Z14signal_handleri, checked against authenticated original nm output.
  * This is a symbol-name bridge, not a claim of full C++ global-state ABI. */
 extern int terminate_flag;
+/* Shared OEM _main/_CheckPrinterStatus job counter. Original C++ file-
+ * private Mach-O symbol __ZL8job_size, x86 addl at 0x100009719.
+ * The CUPS reconstruction and isolated _main mock both define this
+ * same 32-bit symbol on macOS; Linux retains its portable C name. */
+#if defined(__APPLE__)
+extern unsigned int job_size __asm__("__ZL8job_size");
+#else
+extern unsigned int job_size;
+#endif
 #if defined(__APPLE__)
 void signal_handler(int signo) __asm__("__Z14signal_handleri");
 #else

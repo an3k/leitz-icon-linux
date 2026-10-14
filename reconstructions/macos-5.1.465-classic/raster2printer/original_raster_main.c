@@ -13,7 +13,7 @@
 extern void OpenLogFile(void);
 extern void CloseLogFile(void);
 extern int raster2printer(int, char **);
-extern unsigned int job_size;
+/* job_size is declared in the shared OEM-native/private helper header. */
 
 int classic_original_raster_main(int argc, char **argv) {
     OpenLogFile();
