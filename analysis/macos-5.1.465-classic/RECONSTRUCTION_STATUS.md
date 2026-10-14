@@ -290,3 +290,49 @@ Both new OEM-derived parts remain **isolated reconstructions**; the genuine manu
 After checking branch `sources` at `88fddb5d0fc5690de6e934720456f522df9b6a85`, four remaining original command executable helper bodies were reconstructed directly from the SHA-256-verified Mach-O `command2leitz`: `_OpenDebugFile`, `_OpenLogFile`, `_SendDebugFileToPrinter` and `_WriteDebugBuffer`. New code is under `reconstructions/macos-5.1.465-classic/command2leitz/original_command_file_helpers.[ch]`. It keeps the original debug/log paths, permissions, byte-transfer loop, diagnostic strings, return values and unchecked original operations. Existing `_CloseDebugFile`, `_CloseLogFile` and `_FlushDataStreams` reconstructions were not changed or duplicated.
 
 Standalone GCC, Clang and ASan/UBSan local tests passed for existing-open branches, exact PRN bytes and original diagnostics. The manufacturer's fixed `/Library/Caches` open path is **not run** in those tests. Linking the isolated helper functions into a complete OEM-equivalent command executable and comprehensive edge-condition comparison remain open; subsequent CI must be checked independently.
+
+## 2026-10-14 — original command2leitz _main control flow and CUPS candidate
+
+Examined the verified original `command2leitz` x86-64 Mach-O `_main` at
+`0x100000b10..0x1000011c0` (SHA-256
+`6e43cae5e152d5e2d8e9e975d026375563afdffdadca08f835cb4c3a58d3f3ee`).
+The previous partial CUPS adapter remains unchanged.
+
+New `original_command_main_flow.[ch]` recovers the defined OEM
+`_main` branches: unconditional start message; `argc == 7` command-file
+open (return 1 on failure) vs stdin otherwise; `ppdOpenFile` with the
+original `perror` and -1 return on failure; `cupsParseOptions`,
+`ppdMarkDefaults`, `cupsMarkOptions`, marked choice comparison
+for `ShouldSend_ESC_A`, option freeing and PPD close; repeated
+`cupsFileGetConf` with 1024-byte option name; `ReportStatus` exits
+1 regardless of query result; other two commands continue; unknown
+commands are ignored. Original stderr diagnostic line numbers and
+strings 41/49/54/75/85/98 are reproduced, including their line breaks.
+No new argc validation, retry limit or cleanup is added.
+
+The interface passes CUPS and status calls through callbacks. This
+is an original-function **behavioral C reconstruction**, NOT the
+manufacturer's native ABI or a fully reconstructed binary. The
+existing binary `command2leitz_recovered_cups` is untouched.
+New `original_command_main_cups_candidate.c` connects the branch-
+faithful function to real libcups, using the existing reconstructed
+status-query code. The candidate is additional and non-production.
+
+Local `gcc`, `clang`, and Clang ASan/UBSan tests passed. They
+verify exact stderr bytes on the defined normal path, all CUPS
+callback orders, choice YES/NO/absent, missing file/PPD, and early
+exit for `ReportStatus`. The real libcups candidate was compiled
+and launched offline with the original PPD and an unknown command;
+this produced the expected original `_main` diagnostics.
+
+New `verification/macos-5.1.465-classic/compare_command_main_with_vendor.sh`
+uses the macOS runner and independently verified manufacturer
+Mach-O to compare **complete stdout, stderr and exit status**
+for valid-file, stdin, nonexistent-file and nonexistent-PPD entry
+cases. This test does not access a real printer or change existing
+OEM comparisons. Its result must be verified after the commit.
+
+Remaining: native error/undefined branches outside these defined
+tests, direct comparison of genuine status calls, original global
+and C++ ABI and full original executable behavior. No enhancement
+is introduced into manufacturer-derived routines.

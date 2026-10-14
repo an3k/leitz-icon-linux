@@ -42,7 +42,7 @@ Other symbol entries: `__mh_execute_header` at 0, `__ZL7strrchrUa9enable_ifIXLb1
 | OEM symbol | Original macOS offset | Current reconstructed scope |
 |---|---|---|
 | `start` | 0x100000ad0 | Not recovered independently |
-| `_main` | 0x100000b10 | Active CUPS entry and dispatch only |
+| `_main` | 0x100000b10 | Full defined control-flow reconstruction in `original_command_main_flow.c`; exact original diagnostic sites; isolated test/candidate, original ABI and boundary cases not yet certified |
 | `_GetPrinterStatus` | 0x1000011d0 | Active query recovered |
 | `_GetUnitedStatus` | 0x1000012a0 | Active query recovered |
 | `_GetFirmvareVersion` | 0x100001370 | Active query recovered, OEM spelling retained |

@@ -134,6 +134,13 @@ jobs:
           echo "Compare classic OEM command filter against recovered C:"
           bash verification/macos-5.1.465-classic/compare_command_with_vendor.sh \
             "$work" "$command" "$ppd"
+          echo "Verify exact classic OEM command main diagnostics and error branches:"
+          make -C reconstructions/macos-5.1.465-classic/command2leitz \
+            command2leitz_original_main_candidate CC=clang \
+            CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
+          bash verification/macos-5.1.465-classic/compare_command_main_with_vendor.sh \
+            "$work" "$command" "$ppd"
+
           echo "Compare original RGB24 dithering against recovered raster output:"
           "$work/cups-fixture" "$work/rgb.ras" rgb
           bash verification/macos-5.1.465-classic/compare_rgb_with_vendor.sh \
