@@ -48,3 +48,17 @@ reports four `OEM_CONNECTED_C_PARITY=YES` cases (mono/RGB24
 and modes 2/3). These are exact stdout and exit-code comparisons,
 not standalone unit tests. Other modes and printer communication
 remain outside this proof.
+
+## Exact joined original command entry comparison (2026-10-14)
+
+The `compare_connected_command_with_vendor.sh` regression
+compares **three complete process outputs** (stdout, stderr,
+exit status) for SHA-256-verified vendor `command2leitz` against
+the separately linked original-derived CUPS command candidate.
+Both use the same independently validated local backchannel
+interposition. [Run 38564165909](https://github.com/an3k/leitz-icon-linux/actions/runs/38564165909)
+reports `OEM_COMMAND_CONNECTED_PARITY=YES` in all **13**
+status and error-response cases, including native diagnostic
+line endings and log-file errors. No printer is connected; these
+specific scenarios are not proof of complete native binary
+equivalence.

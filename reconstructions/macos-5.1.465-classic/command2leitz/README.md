@@ -12,21 +12,21 @@ This folder holds independent source reconstruction, **not** manufacturer-suppli
 - `_EndOfJob` at `0x100001a30..0x100001a76`: emits `ESC Z`, flushes stdout, and ignores its argument `ShouldSend_ESC_A`.
 - Original text prefixes recovered from Mach-O's `__DATA` pointers: `PRINTER_STATUS_`, `UNITED_STATUS_`, `FIRMWARE_VERSION_`.
 
-The CUPS entry adapter compiles against Linux CUPS 2.x for **offline** inspection and uses platform CUPS headers on macOS; it is **not an installed printer filter**. Its real macOS compilation remains unverified because macOS SDK headers and runtime are unavailable in this environment.
+The CUPS entry adapters compile against Linux CUPS 2.x for **offline** inspection, and both the legacy and connected-original `command2leitz` entry candidates now compile against the native macOS SDK in GitHub Actions. They remain **non-production comparison filters**, not installed printer drivers.
 
 ## Checks completed
 
 - GCC with `-std=c11 -Wall -Wextra -Werror`: built and exercised the recovered command path.
 - Clang AddressSanitizer and UndefinedBehaviorSanitizer: isolated branch checks passed.
 - Linked the CUPS adapter against installed `libcups.so.2`, and invoked it with an empty command file and the vendor PPD: exit 0.
-- **No original Mach-O executable was executed and no device output was compared.** These checks do not establish 1:1 functional equivalence.
+- Subsequently the SHA-256-verified original Mach-O **was executed on native macOS** alongside independently built source-derived entry candidates. Exact stdin/stdout/stderr/exit parity now exists for documented synthetic branches, but not for unrestricted device behavior or the native ABI.
 
 ## Limitations: a finished 1:1 reconstruction is NOT available
 
 1. The isolated active command path is not yet linked with the separately recovered file/debug helpers, original `_WriteData` error diagnostics, or the shared OEM CUPS/raster diagnostic functions. Those are stored as independent C units and do not constitute a whole-executable reconstruction.
 2. Diagnostic stdout/stderr formatting and auxiliary side effects are not fully re-created.
 3. The vendor writes a NUL at `reply[received]` into a 1024-byte stack buffer. The recovered code retains that operation without a new bounds check; for a 1024-byte answer both implementations can write one byte out of bounds. This is a known original defect, not safe or production-qualified behavior.
-4. The original Mach-O cannot be executed on this Linux host for direct parity comparisons; the real macOS build and device communication are unverified.
+4. The original Mach-O has been executed on a native macOS CI runner for deterministic comparisons; live printer communication and remaining macOS file/network/global edge cases are unverified.
 5. The **other** classic executable, `raster2printer`, is **not complete**. The prior experimental raster components remain separately under `enhancements/macos-5.1.465-classic/`.
 
 Do not confuse this partial recovery with the two complete, original manufacturer executables. Do not install it as a production printer filter.
@@ -95,3 +95,21 @@ The manufacturer x86_64 Mach-O `_WriteData` routines were checked again at `comm
 The two preexisting, incomplete sink-choice C implementations were corrected **in place only on those differences**; no alternative implementations, retry loops, additional guards, or changes to the established good paths were introduced. The separate cross-executable test in `verification/macos-5.1.465-classic/original_write_data_semantics_test.c` checks signed -1, positive short sends, zero sends, zero/positive stdout writes, PRN-only output, zero-length writes, dump ordering, and complete OEM stderr bytes. Local GCC and Clang with AddressSanitizer/UndefinedBehaviorSanitizer passed. CI builds now run this cross-test on Linux GCC/Clang and macOS Clang.
 
 The test is based on the **verified original assembly**, not on executing the original internal `_WriteData` directly. This still does not establish exact original ABI, network/device behavior or full program equivalence.
+
+## 2026-10-14 — complete defined status diagnostics in joined OEM entry
+
+The manufacturer `_GetPrinterStatus`, `_GetUnitedStatus`,
+`_GetFirmvareVersion` and `_GetStatus` text, error, log-file
+and state-message diagnostics were recovered on the original-derived
+command path without touching original vendor binaries or changing
+the command bytes. Native macOS proof:
+[run 38564165909](https://github.com/an3k/leitz-icon-linux/actions/runs/38564165909).
+All 13 independent original-versus-connected executable comparisons
+matched **exit code, full stdout, full stderr** exactly, with
+synthetic backchannel interception confirmed. Cases include normal,
+paper errors, unknown status, no reply, read error and U/V string
+replies. Existing original raster output parity remained intact.
+
+The compiled, reconstructed command entry is an analysis-only
+source-to-CUPS connector, not the original C++ ABI; the broader
+native error paths and genuine device interaction remain incomplete.

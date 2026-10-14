@@ -43,10 +43,10 @@ Other symbol entries: `__mh_execute_header` at 0, `__ZL7strrchrUa9enable_ifIXLb1
 |---|---|---|
 | `start` | 0x100000ad0 | Not recovered independently |
 | `_main` | 0x100000b10 | Full defined control-flow reconstruction in `original_command_main_flow.c`; exact original diagnostic sites; isolated test/candidate, original ABI and boundary cases not yet certified |
-| `_GetPrinterStatus` | 0x1000011d0 | Active query recovered |
-| `_GetUnitedStatus` | 0x1000012a0 | Active query recovered |
-| `_GetFirmvareVersion` | 0x100001370 | Active query recovered, OEM spelling retained |
-| `_GetStatus` | 0x100001440 | Core status path recovered; side effects incomplete |
+| `_GetPrinterStatus` | 0x1000011d0 | Recovered active ESC A query, original source-line 123 diagnostic, native reference parity for seven defined replies |
+| `_GetUnitedStatus` | 0x1000012a0 | Recovered active ESC U query, source-line 132 diagnostic, native reference parity for three defined replies |
+| `_GetFirmvareVersion` | 0x100001370 | Recovered active ESC V query and line-141 diagnostic, source spelling retained, three defined replies parity-verified |
+| `_GetStatus` | 0x100001440 | Normal status requests, read errors, empty replies and file-failure diagnostics parity-verified across 13 full connected OEM entry cases; native ABI and untested side effects incomplete |
 | `_EndOfJob` | 0x100001a30 | ESC Z recovered |
 | `_WriteData` | 0x100001a80 | Original-specific implementation incomplete |
 | `_FlushDataStreams` | 0x100001c20 | Original-specific implementation incomplete |
@@ -86,3 +86,10 @@ matched four original two-page outputs exactly (mono/RGB, mode 2/3)
 through the newly linked native CUPS entry. This is stronger evidence
 than an isolated-function test but does not establish binary/native
 ABI equivalence or hardware print/cut confirmation.
+
+**Command `_main` + `_GetStatus` joined native comparison (2026-10-14):**
+[run 38564165909](https://github.com/an3k/leitz-icon-linux/actions/runs/38564165909)
+confirmed byte-identical **stdout AND entire stderr** and identical
+exit status for 13 synthetic OEM backchannel replies. The comparison
+confirms the interposer acted in both executable processes. This
+does not prove all original command paths or ABI equivalents.

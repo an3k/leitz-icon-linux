@@ -1535,3 +1535,58 @@ excluded from the new exact-match proof. No physical printer or
 cut hardware has been used with the candidate. The independent
 production Linux driver and original vendor source directories
 remain unchanged.
+
+## 2026-10-14 — 13 verified original command status paths
+
+The `sources` HEAD was inspected at
+`20719e60b7e6eb5e194d62867e4cf5b89fe7f82a` before beginning.
+Previous OEM raster whole-job output matching, command main normal
+entry tests, and the four original-command helper files already existed
+and were not rewritten.
+
+**Original-derived command C updates**:
+- `command2leitz_recovered.c`: restored the original manufacturer
+  `_GetPrinterStatus`, `_GetUnitedStatus` and `_GetFirmvareVersion`
+  status-request diagnostics with original spelling and lines 123, 132,
+  141; restored `_GetStatus` zero reply at original line 172 and
+  read-error diagnostics including the original `errno` value at line
+  166; corrected their exact newlines.
+- `original_command_main_cups_candidate.c`: corrected the
+  original `_GetStatus` CUPS `STATE:` line breaks for ready,
+  paper empty, paper jam, general error, and unknown state; restored
+  the source-line 208 permission/error report when
+  `/private/var/log/leitz.log` cannot be opened and the line-217
+  state-message diagnostic. Manufacturer-created side-effect paths
+  have not been replaced with new retry or permission workarounds.
+- `compare_connected_command_with_vendor.sh`: compares distinct,
+  independently launched original Mach-O `command2leitz`
+  and connected source-derived command entry using the existing
+  synthetic macOS `cupsBackChannelRead` interposer. It requires
+  **identical stdout bytes, identical complete stderr bytes,
+  identical exit code and confirmed interposition**. Nothing is
+  sent to a physical printer.
+
+**Original binary verification and proof**:
+[GitHub Actions 38564165909](https://github.com/an3k/leitz-icon-linux/actions/runs/38564165909)
+verified the vendor command executable SHA-256
+`6e43cae5e152d5e2d8e9e975d026375563afdffdadca08f835cb4c3a58d3f3ee`,
+then confirmed **13/13 exact full-program command entry parity cases**:
+- `ReportStatus`: READY, NONE, MEDIA_JAM, READ_ERROR,
+  MEDIA_EMPTY, GENERAL_ERROR, UNKNOWN_STATUS (OEM exit 1).
+- `GetUnitedStatus`: NONE, U_42, READ_ERROR (OEM exit 0).
+- `GetFirmwareVersion`: NONE, READ_ERROR, V_42 (OEM exit 0).
+
+The native macOS CUPS build, Linux GCC/Clang reconstructed-code unit
+suites, and existing original raster comparison suite also passed.
+The 13 comparisons concern specific synthetic CUPS query responses,
+not every possible status response, a live print backend, the
+native Mach-O C++ ABI or a physical device. Original file,
+network and invalid-memory error paths outside these defined cases
+remain incomplete. The independent Linux driver, CUPS branch,
+original vendor inputs and enhancements were not changed.
+
+Implementation commits:
+`4e078938fb5cc4b7c584e880e32629e9d47bbefd`,
+`6d53e6a8f8e1c712f02b00e34bcb8aebe26f1299`,
+`ab16e16c658b171ea903ec72589aba1d67cdf219`, and
+`1d153a2bdde352eb316d9b3912cb2993c2d46216`.
