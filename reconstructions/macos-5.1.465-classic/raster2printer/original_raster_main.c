@@ -8,12 +8,11 @@
  */
 #include <signal.h>
 #include <stdio.h>
+#include "original_raster_private_helpers.h"
 
 extern void OpenLogFile(void);
 extern void CloseLogFile(void);
-extern void signal_handler(int);
 extern int raster2printer(int, char **);
-extern int terminate_flag;
 extern unsigned int job_size;
 
 int classic_original_raster_main(int argc, char **argv) {

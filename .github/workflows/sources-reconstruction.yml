@@ -100,7 +100,7 @@ jobs:
         run: |
           binary="reconstructions/macos-5.1.465-classic/raster2printer/original_raster2printer_cups_candidate"
           nm -g "$binary" > "$RUNNER_TEMP/oem-raster-linked-symbols.txt"
-          for name in _OpenLogFile _CloseLogFile _OpenDebugFile _CloseDebugFile _FlushDataStreams _is_bit_set _WriteDebugBuffer _SendDebugFileToPrinter _WriteData _CheckPrinterStatus _ResolveDeviceURI _ReadPage _StartDocument _EndDocument _DitherPage _StartPage _ProcessPage _EndPage _output_cups_info _test_raster _PrintPageDebugInfo; do
+          for name in _OpenLogFile _CloseLogFile _OpenDebugFile _CloseDebugFile _FlushDataStreams _is_bit_set _WriteDebugBuffer _SendDebugFileToPrinter _WriteData _CheckPrinterStatus _ResolveDeviceURI __Z14signal_handleri _ReadPage _StartDocument _EndDocument _DitherPage _StartPage _ProcessPage _EndPage _output_cups_info _test_raster _PrintPageDebugInfo; do
             grep -Eq "[[:space:]]$name$" "$RUNNER_TEMP/oem-raster-linked-symbols.txt"
           done
       - name: Confirm dormant OEM diagnostics are linked in command executable
