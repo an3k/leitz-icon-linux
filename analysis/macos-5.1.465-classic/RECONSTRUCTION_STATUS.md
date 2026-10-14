@@ -840,3 +840,58 @@ zero, including for a zero-size job, without incrementing the counter.
 These original behaviors should not be silently 'fixed' inside the
 `sources` reconstruction. Native reprint/transport state and complete
 OEM executable rebuild still remain uncompleted.
+
+## 2026-10-14 — connected original raster startup-to-epilogue C path
+
+Branch `sources` was first checked at commit
+`0bd3178d8393332be3e1b26344b3c3d16d842224`.
+The preceding standalone source fragments and reference tests were already
+present and successful. No prior reconstruction is replaced or duplicated.
+
+`original_raster_connected_job.[ch]` provides a **new, separately named,
+callable C composition** of four already reconstructed original
+`_raster2printer` regions:
+
+1. `original_raster_option_initialization`: argument checks, CUPS
+   raster input, PPD options, cleanup, output route and `_StartDocument`.
+2. `original_raster_active_page_read`: manufacturer `malloc` and single
+   CUPS pixel read; NOT the differently implemented standalone `_ReadPage`.
+3. `original_raster_active_page_output`: normal non-reprint RGB/mono
+   output, `_DitherPage`, `_StartPage`, `_ProcessPage`, `_EndPage`,
+   status and page buffer release.
+4. `original_raster_job_epilogue`: `_EndDocument`, input/PRN/socket
+   closure, original six-byte abort sequence and 64-byte-boundary
+   `ESC`, diagnostics, original return-slot value.
+
+The newly authored connector passes the CUPS handle from the preflight
+into the recovered `0x10a8`-byte descriptor, preserves zero-based
+printed-page indices separately from CUPS pages read, and stops
+on EOF/zero pixel count, a nonzero `_ProcessPage` result, or termination.
+It passes the last process result, raw socket descriptor, global job-size
+pointer, and cancellation state to the unmodified original job epilogue.
+
+**Precisely limited evidence:** This is an integration of recovered OEM
+fragments with a **new callback interface**. The exact OEM transitions
+between these functions, native stack/global ABI, `shouldResumePrintingOfLastLabel`
+(reprint), IPP/status device control, allocation-error branches, and
+any undocumented fallback paths are **not independently proven**.
+The integration is NOT a byte-identical decompilation of the whole
+original executable and must not replace the active Unraid/Linux driver.
+In particular, a zero-pixel read in the OEM inline reader leaves
+`pageBuffer` allocated and the normal output branch is skipped.
+This is exposed to the analysis caller without silently introducing
+new OEM cleanup or changing original error behavior.
+
+The new test builds **all seven previously recovered source modules
+together**, with one CUPS fixture and callbacks standing for the still
+unlinked original CUPS/transport functions. It verifies a complete
+two-page mono/RGB job through `_EndDocument`, process-return failure,
+invalid argument early exit, early termination with SIX OEM abort bytes
+plus trailing `ESC` at 64-byte boundary, and zero pixel result
+retaining buffer ownership for explicit test cleanup. The prior
+original-bin comparison suite is preserved; no new native-OEM parity
+claims are made from mock tests.
+
+Native Clang/CUPS SDK compilation is added as a separate check. Real
+printer communication, reprint paths, and exact whole-binary equality
+remain open. The GitHub run must be checked before any CI success claim.
