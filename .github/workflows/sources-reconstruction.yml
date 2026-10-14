@@ -61,6 +61,12 @@ jobs:
             -c reconstructions/macos-5.1.465-classic/raster2printer/original_read_page.c \
             -o "$RUNNER_TEMP/classic_original_read_page.o"
           clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
+            -c reconstructions/macos-5.1.465-classic/raster2printer/original_raster_active_page_read.c \
+            -o "$RUNNER_TEMP/classic_original_active_read.o"
+          clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
+            -c reconstructions/macos-5.1.465-classic/raster2printer/original_raster_active_page_output.c \
+            -o "$RUNNER_TEMP/classic_original_active_output.o"
+          clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
             -c reconstructions/macos-5.1.465-classic/raster2printer/original_dither_page.c \
             -o "$RUNNER_TEMP/classic_original_dither_page.o"
       - name: Build and execute OEM-derived URI resolver without a network connection

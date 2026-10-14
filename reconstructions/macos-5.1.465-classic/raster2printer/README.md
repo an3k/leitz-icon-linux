@@ -575,3 +575,53 @@ paths are not recovered here. Test mocks do not call the private
 `_raster2printer` function inside the manufacturer executable, and
 no complete executable equivalence is claimed. No safety hardening,
 fixed paper length, or altered manufacturer error behavior was added.
+
+## 2026-10-14 — normal-page dispatch after active raster read
+
+Disassembled the follow-on branch from the original SHA-256-verified
+manufacturer's `raster2printer` Mach-O at `0x100005f3b..0x1000062e5`.
+The new `original_raster_active_page_output.[ch]` consumes the
+already reconstructed active inline page-reader state; no second page
+reader, raster encoder or `_ProcessPage` implementation is introduced.
+
+In the OEM normal, non-reprint page path:
+1. If termination was requested or the "has page" flag is false,
+   exit before the normal per-page output and cleanup fragment.
+2. If the requested pixel count is positive and `pageBuffer` is non-null,
+   call `_DitherPage` exactly when CUPS color space is **1** (RGB).
+   Pass the original quality value at descriptor offset `0x4c`.
+3. Call `_StartPage`, `_ProcessPage` with the zero-based page index
+   and original fourth argument **0**, then `_EndPage`. RGB output
+   passes the dithered buffer; non-RGB passes the original page buffer.
+   OEM `_EndPage` receives a **full by-value copy of the original
+   0x10a8-byte descriptor**, unlike `_StartPage` and `_ProcessPage`.
+4. Emit the manufacturer's original line 393
+   `shouldResumePrintingOfLastLabel = false` diagnostic.
+5. For a missing/null page buffer, print `INFO: pageBuffer null` and
+   set the process status to 1; skip page commands.
+6. Increment the zero-based page index and print exactly
+   `STATE: none` and `PAGE: N 1` on stderr. Free both dither and
+   primary page buffers separately, setting both pointers null.
+7. Continue reading pages **only if** `_ProcessPage` returned 0
+   and the original "has page" flag was set.
+
+The special OEM `shouldResumePrintingOfLastLabel` path is **not**
+included in this new normal-page C function. In the analyzed main
+function that local flag is initialized to zero and has no observed
+normal assignment to one, but the original machine-code branch still
+exists and its undefined/unreachable semantics have not been declared
+equivalent. Full job-end `_EndDocument`, IPP/status decisions, signal
+interactions and the original compiler ABI also remain outstanding.
+
+The new tests verify RGB and non-RGB calls, existing quality selector,
+exact start/process/end order, by-value descriptor copy, failure
+propagation, missing buffer, termination/EOF skip, original CUPS page
+status diagnostics and buffer ownership. The injected callbacks invoke
+no real printer and do **not** substitute new printer protocol logic.
+No existing reconstruction, original manufacturer file, PPD, or
+`enhancements/` code has been overwritten.
+
+**Verification:** New isolated GCC/Clang and native Apple CUPS SDK
+compilation are configured via the existing workflow. The source
+compiles/behavioral assertions and the pre-existing original-Mach-O
+comparison must both succeed before the result is reported as verified.
