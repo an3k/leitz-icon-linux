@@ -335,17 +335,33 @@ static int send_prn(void *ctx) {
     SendDebugFileToPrinter();
     return 0;
 }
-static void start_page(void *ctx,classic_oem_read_descriptor *descriptor) {
+/* OEM source-level lifecycle entry points. All functions below
+ * delegate to the existing complete original-semantic C reconstructions
+ * and share exactly the same context, streams, row caches and job counter.
+ * These C callbacks do NOT claim the original x86_64 C++ by-value ABI.
+ */
+void StartDocument(void *ctx,const unsigned char *descriptor,unsigned length) {
+    classic_original_bridge_start_document(ctx,descriptor,length);
+}
+void EndDocument(void *ctx,const void *descriptor,size_t length) {
+    classic_original_bridge_end_document(ctx,descriptor,length);
+}
+void DitherPage(void *ctx,classic_oem_read_descriptor *descriptor,
+                const uint8_t *rgb,uint8_t *monochrome,unsigned quality) {
+    classic_original_raster_dither_bridge(
+        ctx,descriptor,rgb,monochrome,quality);
+}
+void StartPage(void *ctx,classic_oem_read_descriptor *descriptor) {
     classic_cups_context *c=ctx;
     classic_original_start_page(&c->page_io,descriptor);
 }
-static int process_page(void *ctx,classic_oem_read_descriptor *descriptor,
-                        const uint8_t *pixels,unsigned page_index,int reprint) {
+int ProcessPage(void *ctx,classic_oem_read_descriptor *descriptor,
+                const uint8_t *pixels,unsigned page_index,int reprint) {
     classic_cups_context *c=ctx;
     return classic_original_process_page_callback(
         &c->process,descriptor,pixels,page_index,reprint);
 }
-static void end_page(void *ctx,const void *descriptor,size_t descriptor_size) {
+void EndPage(void *ctx,const void *descriptor,size_t descriptor_size) {
     classic_cups_context *c=ctx;
     if(descriptor_size==CLASSIC_OEM_DOCUMENT_DESCRIPTOR_SIZE)
         classic_original_end_page(&c->page_io,descriptor);
@@ -371,14 +387,14 @@ int raster2printer(int argc,char **argv) {
     };
     classic_oem_option_initialization_io initialization={
         preflight,marked_choice,free_options,close_ppd,
-        open_debug,select_stdout,classic_original_bridge_start_document
+        open_debug,select_stdout,StartDocument
     };
     classic_oem_page_output_io pages={
-        c,classic_original_raster_dither_bridge,
-        start_page,process_page,end_page
+        c,DitherPage,
+        StartPage,ProcessPage,EndPage
     };
     classic_original_raster_finish_ops finish={
-        c,classic_original_bridge_end_document,close_fd,close_debug,
+        c,EndDocument,close_fd,close_debug,
         send_prn,write_data
     };
     classic_original_raster_connected_io io={
