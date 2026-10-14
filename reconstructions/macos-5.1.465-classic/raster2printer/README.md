@@ -341,3 +341,48 @@ been independently invoked within the OEM executable.
 **Scope:** Complete defined control flow of one function, separately
 reconstructed; full `raster2printer` integration and total functional
 equivalence of either executable remain incomplete.
+
+## Original _DitherPage function wrapper — 2026-10-14
+
+The original raster2printer Mach-O `_DitherPage` at
+`0x100006dd0..0x100007335` was re-read from the verified Intel binary.
+It takes exactly four positional arguments: a descriptor pointer, RGB24
+input bytes, 1-bit output bytes, and the OEM quality-selector integer.
+Before processing any pixels it emits these **unconditional** original
+stderr diagnostics:
+- `raster2printer.c:593:DitherPage(): Height = %i`
+- `raster2printer.c:594:DitherPage(): Bytes per line = %i`
+
+New `original_dither_page.[ch]` reconstructs this descriptor-level
+function using the original offsets `0x1c` (16-bit height) and `0x34`
+(32-bit input row length). It deliberately **reuses** the previously
+recovered `raster2printer_dither_recovered.c` RGB24 inner loop, original
+13 raster matrices, and quality-selection data. The pixel logic was
+already present and has not been copied or rewritten. The new function
+adds only the formerly missing OEM field access and diagnostic sequence.
+
+The original function accepts quality 7 through its switch but enters
+the RGB24 loop with an uninitialized matrix pointer; invalid input and
+non-3-aligned RGB geometry have undefined original behavior. The
+defined function-level reconstruction therefore covers OEM RGB24
+quality modes 0–6 and 8–14, without a new fallback, correction or
+boundary check. Actual 1-bit `Draft` jobs bypass OEM dithering.
+
+The standalone `original_dither_page_test.c` proves exact OEM
+diagnostic bytes and argument/geometry transfer via a test-only fake
+pixel core. The independently tested actual OEM-derived pixel core
+remains linked to the real `original_dither_page.c` in normal
+compilation; no second implementation is created. GCC/Clang local
+builds passed. Native macOS CUPS SDK compilation and the current
+complete original-printing comparison suite are run in CI. The
+original private `_DitherPage` has **not** been invoked directly.
+
+Previous commit `f1cb4cae81b51499c37c2d4dbda4d93ffb56395f`
+successfully completed all three GitHub Actions jobs, including native
+Apple CUPS compilation and manufacturer reference comparisons. These
+results apply to the recovered `_ReadPage` function; newer changes
+must receive their own completed run.
+
+Neither this wrapper nor the newly reconstructed `_ReadPage`
+is connected to the active `classic_raster_cups_adapter`. Its
+continued use of the older simplified core remains unchanged.

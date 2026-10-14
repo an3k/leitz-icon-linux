@@ -26,7 +26,7 @@ The symbol list has **31 entries for raster2printer** and **20 entries for comma
 | `_main` | 0x100004460 | Newly authored adapter, not OEM-equivalent |
 | `_raster2printer` | 0x1000045a0 | Active C sequence assembled, not OEM-equivalent |
 | `_StartDocument` | 0x100006890 | Isolated recovered output |
-| `_DitherPage` | 0x100006dd0 | RGB inner loop recovered; not full OEM function |
+| `_DitherPage` | 0x100006dd0 | Full defined RGB24 path including OEM descriptor and diagnostics reconstructed in `original_dither_page.[ch]`, reusing the existing halftone loop; original global/undefined-case ABI pending |
 | `_StartPage` | 0x100007380 | Isolated output |
 | `_ProcessPage` | 0x100007560 | Modes 0–3 recovered, full original control flow incomplete |
 | `_EndPage` | 0x1000089b0 | Isolated output |
