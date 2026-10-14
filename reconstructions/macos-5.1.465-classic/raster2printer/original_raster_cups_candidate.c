@@ -76,15 +76,23 @@ static classic_cups_context candidate={0};
  * native stream slot rather than storing a separate boolean. */
 #if defined(__APPLE__)
 FILE *classic_original_fd_stdout __asm__("__fd_stdout");
+FILE *classic_original_fd_dump __asm__("__fd_dump");
+FILE *classic_original_fd_log __asm__("__fd_log");
 #else
 FILE *classic_original_fd_stdout;
+FILE *classic_original_fd_dump;
+FILE *classic_original_fd_log;
 #endif
 
 void OpenLogFile(void) {
+    candidate.log.log_file=classic_original_fd_log;
     classic_original_log_open(&candidate.log);
+    classic_original_fd_log=candidate.log.log_file;
 }
 void CloseLogFile(void) {
+    candidate.log.log_file=classic_original_fd_log;
     classic_original_log_close(&candidate.log);
+    classic_original_fd_log=candidate.log.log_file;
 }
 
 /* Original Mach-O raster2printer exported helper entry points.
@@ -101,18 +109,24 @@ void CloseLogFile(void) {
  * _WriteDebugBuffer      0x100001e90
  */
 void FlushDataStreams(void) {
+    candidate.prn.dump=classic_original_fd_dump;
     classic_original_raster_flush_streams(&candidate.prn,stdout);
 }
 int is_bit_set(int value,int bit) {
     return classic_original_is_bit_set(value,bit);
 }
 void OpenDebugFile(void) {
+    candidate.prn.dump=classic_original_fd_dump;
     classic_original_prn_open(&candidate.prn);
+    classic_original_fd_dump=candidate.prn.dump;
 }
 void CloseDebugFile(void) {
+    candidate.prn.dump=classic_original_fd_dump;
     classic_original_prn_close(&candidate.prn);
+    classic_original_fd_dump=candidate.prn.dump;
 }
 void WriteDebugBuffer(const unsigned char *data,size_t size) {
+    candidate.prn.dump=classic_original_fd_dump;
     classic_original_prn_write_buffer(&candidate.prn,data,size);
 }
 void SendDebugFileToPrinter(void) {
@@ -212,7 +226,7 @@ int WriteData(const uint8_t *bytes,size_t size,
     c->socket_fd=socket_fd;
     classic_write_data_io io={
         c, socket_fd!=-1 && strstr(scheme,"ipp")!=NULL,
-        classic_original_fd_stdout!=NULL,c->prn.dump!=NULL,
+        classic_original_fd_stdout!=NULL,classic_original_fd_dump!=NULL,
         native_send,write_stdout,write_dump
     };
     return classic_write_data_core(&io,bytes,size);

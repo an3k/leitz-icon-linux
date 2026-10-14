@@ -108,7 +108,7 @@ jobs:
           for name in __ZL7strrchrUa9enable_ifIXLb1EEEPKci __ZL6strstrUa9enable_ifIXLb1EEEPcPKc __ZL12_OSSwapInt16t; do
             nm "$binary" | grep -Fq " $name"
           done
-          for name in __ZL4sock __ZL12resolved_uri __ZL8job_size __fd_stdout; do
+          for name in __ZL4sock __ZL12resolved_uri __ZL8job_size __fd_stdout __fd_dump __fd_log; do
             nm "$binary" | grep -Eq "[[:space:]]$name$"
           done
           for name in _OpenLogFile _CloseLogFile _OpenDebugFile _CloseDebugFile _FlushDataStreams _is_bit_set _WriteDebugBuffer _SendDebugFileToPrinter _WriteData _CheckPrinterStatus _ResolveDeviceURI __Z14signal_handleri _ReadPage _StartDocument _EndDocument _DitherPage _StartPage _ProcessPage _EndPage _output_cups_info _test_raster _PrintPageDebugInfo; do
