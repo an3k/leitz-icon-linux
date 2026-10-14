@@ -109,3 +109,15 @@ for name, begin, end in (
     for line in region:
         print(line)
 print("ORIGINAL_PROCESS_PAGE_CONTROL_END")
+
+# ProcessPage OEM calls including context to establish _WriteData
+# split points and mode-2/3 specific counter updates.
+print("ORIGINAL_PROCESS_MODE23_WRITE_CALLS_BEGIN")
+for i,(addr,line) in enumerate(asm):
+    if 0x100007a74 <= addr < 0x10000889b and (
+        "callq" in line or "job_size" in line
+    ):
+        print("OEM_WRITE_CONTEXT",hex(addr))
+        for _, neighbor in asm[max(0,i-9):min(len(asm),i+3)]:
+            print(neighbor)
+print("ORIGINAL_PROCESS_MODE23_WRITE_CALLS_END")
