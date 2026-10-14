@@ -22,12 +22,15 @@ for input in input.ras rgb.ras; do
       "$work/$input" >"$work/candidate-native.bin" 2>"$work/candidate-native.err"
     candidate_rc=$?
     if [[ "$original_rc" == "$candidate_rc" ]] &&
-       cmp -s "$work/oem-native.bin" "$work/candidate-native.bin"; then
-      echo "OEM_CONNECTED_C_PARITY=YES RASTER=$input MODE=$mode EXIT=$original_rc BYTES=$(wc -c < "$work/oem-native.bin" | tr -d ' ')"
+       cmp -s "$work/oem-native.bin" "$work/candidate-native.bin" &&
+       cmp -s "$work/oem-native.err" "$work/candidate-native.err"; then
+      echo "OEM_CONNECTED_C_PARITY=YES RASTER=$input MODE=$mode EXIT=$original_rc STDOUT_AND_STDERR=IDENTICAL BYTES=$(wc -c < "$work/oem-native.bin" | tr -d ' ')"
     else
       echo "OEM_CONNECTED_C_PARITY=NO RASTER=$input MODE=$mode OEM_EXIT=$original_rc C_EXIT=$candidate_rc"
       echo "OEM_BYTES=$(wc -c < "$work/oem-native.bin") C_BYTES=$(wc -c < "$work/candidate-native.bin")"
       cmp -l "$work/oem-native.bin" "$work/candidate-native.bin" | head -n 15 || true
+      echo "Complete original-vs-connected stderr first 100 differing lines:"
+      diff -u "$work/oem-native.err" "$work/candidate-native.err" | head -n 120 || true
       echo "Original stderr:";tail -n 10 "$work/oem-native.err"
       echo "Connected C stderr:";tail -n 10 "$work/candidate-native.err"
       failed=1
