@@ -44,3 +44,46 @@ verification. The original C++ ABI and IPP/status transport are not
 reconstructed by these diagnostic corrections. Any added code belongs
 only to the newly authored connecting C function, not to the manufacturer
 original files, existing isolated helper functions, or the active driver.
+
+## Complete native reprint-flag reference inventory
+
+The second SHA-256-verified manufacturer run,
+[38546921933](https://github.com/an3k/leitz-icon-linux/actions/runs/38546921933),
+collected **every direct reference** to the original frame-local
+`-0x7c05(%rbp)` in `_raster2printer` from `0x1000045a0`
+to `0x1000062eb`, not only the selected blocks. The result:
+
+| Address | Manufacturer instruction | Meaning |
+|---|---|---|
+| `0x100005603` | `movb $0x0, -0x7c05(%rbp)` | Single direct assignment: zero |
+| `0x100005641` | `movb -0x7c05(%rbp), %al` | Read reprint flag for diagnostic |
+| `0x1000056a2` | `movb -0x7c05(%rbp), %al` | Read for CUPS-header versus reprint branch |
+| `0x100005f91` | `testb $0x1, -0x7c05(%rbp)` | Read for output selection |
+| `0x1000060d2` | `movb -0x7c05(%rbp), %cl` | Read for status diagnostic |
+| `0x100006128` | `testb $0x1, -0x7c05(%rbp)` | Read before optional repeated `_ProcessPage` |
+| `0x1000061e0` | `testb $0x1, -0x7c05(%rbp)` | Read after optional repeated `_ProcessPage` |
+
+**Finding:** In the complete inspected native function there is no
+direct store of a nonzero value to this flag and no direct instruction
+taking the address of that flag. Under defined execution of this
+routine, the reprint-only branch therefore has no established activation
+path. It remains present as *unreachable compiled manufacturer code*,
+rather than an unimplemented ordinarily active feature. The original
+contains unchecked buffer operations, so undefined memory corruption
+cannot be ruled out by this static inspection alone.
+
+Other recovered state slots have real transitions: the has-page flag
+`-0x7c06(%rbp)` is assigned zero, one, then zero again at
+`0x100005c1e`, `0x100005c2a`, and `0x100005cf1`,
+respectively; the first-read flag `-0x7c19(%rbp)` is set to one
+at `0x100005626` and cleared at `0x100005f34`.
+The actual page-index increment is `0x100006227..0x10000622a`,
+and the process-result/has-page continue gate is
+`0x1000062ba..0x1000062e5`. The existing connected C path implements
+the normal zero-reprint state, but it is **not** a complete recovery of
+the manufacturer's native ABI or of its network/error behavior.
+
+The audit now also lists every **direct native function call** in
+this active function to identify genuine remaining integrations,
+rather than inventing reprint behavior which the manufacturer does not
+activate normally.

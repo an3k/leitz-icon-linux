@@ -48,3 +48,14 @@ for address, line in asm:
     ):
         print(line)
 print("ORIGINAL_RASTER_LOOP_SLOTS_END")
+
+# All direct calls within the active native function. Use this to
+# distinguish already reconstructed print helpers from still-unlinked
+# status, URI, and raw output helpers.
+print("ORIGINAL_RASTER_ACTIVE_CALLS_BEGIN")
+for address, line in asm:
+    if 0x1000045a0 <= address < 0x10000685a and (
+        "\\tcallq\\t" in line or "\\tcall\\t" in line
+    ):
+        print(line)
+print("ORIGINAL_RASTER_ACTIVE_CALLS_END")
