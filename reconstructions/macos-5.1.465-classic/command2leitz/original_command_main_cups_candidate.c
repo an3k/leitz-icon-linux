@@ -56,7 +56,9 @@ static void msg(void *ctx,const char*s){
    * CUPS terminal newline. Compare against verified OEM stdout/stderr. */
   if(!strncmp(s,"STATE: -",8))
     fprintf(stderr,"\n%s\n",s);
-  else if(!strcmp(s,"STATE: +media-jam-error,com.leitz.paper-jam-error"))
+  else if(!strcmp(s,"STATE: +media-jam-error,com.leitz.paper-jam-error") ||
+          !strcmp(s,"STATE: +com.leitz.out-of-paper-warning,media-empty-warning") ||
+          !strcmp(s,"STATE: +com.leitz.general-error"))
     fprintf(stderr,"\n%s\n",s);
   else if(!strncmp(s,"STATE:",6))
     fprintf(stderr,"\n%s",s);

@@ -1,6 +1,7 @@
 #include "command2leitz_recovered.h"
 
 #include <stdio.h>
+#include <errno.h>
 #include <string.h>
 #include <strings.h>
 
@@ -70,6 +71,10 @@ int classic_command_get_status(const classic_command_io *io, char command,
   if (received == -1 || received == 0) {
     if (received == 0)
       fprintf(stderr,"\ncommand2leitz.c:172:GetStatus(): empty back channel data\n");
+    else
+      fprintf(stderr,
+        "\ncommand2leitz.c:166:GetStatus(): unable to read back channel data, errno=%d\n",
+        errno);
     io->message(io->context, "ATTR: marker-message=NoData");
     return 0;
   }
