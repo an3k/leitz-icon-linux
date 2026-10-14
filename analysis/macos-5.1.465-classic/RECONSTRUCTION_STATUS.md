@@ -895,3 +895,27 @@ claims are made from mock tests.
 Native Clang/CUPS SDK compilation is added as a separate check. Real
 printer communication, reprint paths, and exact whole-binary equality
 remain open. The GitHub run must be checked before any CI success claim.
+
+## Connected original raster C job verification — 2026-10-14
+
+At `sources` commit `11029bfc7ec4eded160f61ad57eec75e72832133`,
+[GitHub Actions run 38545249981](https://github.com/an3k/leitz-icon-linux/actions/runs/38545249981)
+completed successfully in **all three jobs**. Original-derived
+`original_raster_connected_job_test` compiled and ran successfully
+under GCC and Clang on Linux, and in the native macOS build. The
+existing SHA-256-verified manufacturer-original comparisons passed.
+
+The test links all previously recovered `_raster2printer` startup,
+active page read, normal page output, and job-end fragments together,
+instead of merely mocking their control transitions independently.
+Verified scenarios: two pages with mono and RGB raster processing,
+ProcessPage nonzero exit, invalid argument early return, abort before
+the first page with the six-byte OEM abort sequence and extra `ESC`,
+and a zero-pixel read that leaves OEM page-buffer ownership unchanged.
+
+**What this does not prove:** exact equivalence of the original macOS
+`_raster2printer` function. The connector has a newly designed C
+callback API and unverified OEM transition points, and does not yet
+handle IPP/status, reprint, undocumented error cases or the original
+full C++/Mach-O ABI. No hardware test occurred. The earlier, unrelated
+normal CUPS candidate and all original sources remain untouched.
