@@ -32,6 +32,17 @@ unsigned cupsRasterReadPixels(cups_raster_t *p,unsigned char *buf,unsigned reque
     return result_lengths[i];
 }
 int main(void) {
+    /* Evidence: OEM disassembly 0x100008e64..0x100008e9f uses unsigned
+     * divl for quotient, signed idivl for the remainder. Normal inputs
+     * match ceiling division, but the high-bit 32-bit boundary differs.
+     * No huge buffers are allocated in these arithmetic-only checks. */
+    assert(classic_oem_read_page_packed_stride(5u,1u)==5u);
+    assert(classic_oem_read_page_packed_stride(8u,24u)==1u);
+    assert(classic_oem_read_page_packed_stride(24u,24u)==1u);
+    assert(classic_oem_read_page_packed_stride(25u,24u)==2u);
+    assert(classic_oem_read_page_packed_stride(0x80000008u,24u)==89478485u);
+    assert(classic_oem_read_page_packed_stride(0x80000010u,24u)==89478487u);
+    assert(classic_oem_read_page_packed_stride(0xffffffffu,24u)==178956971u);
     memset(&fake,0,sizeof fake);
     classic_oem_read_descriptor desc={0};desc.cups_raster=&fake;
     cups_page_header2_t h={0};unsigned char *pixel=NULL;

@@ -32,6 +32,20 @@ _Static_assert(offsetof(classic_oem_read_descriptor,cups_color_space)==0x3c,"OEM
 _Static_assert(offsetof(classic_oem_read_descriptor,cups_page_size_name)==0x1050,"OEM media name offset");
 _Static_assert(sizeof(classic_oem_read_descriptor)==0x10a8,"OEM descriptor size");
 
+/* Manufacturer _ReadPage 0x100008e64..0x100008e9f:
+ * unsigned divl computes the initial quotient, then *signed* idivl
+ * independently tests whether the 32-bit remainder is nonzero.
+ * For ordinary CUPS lengths <= INT32_MAX these produce conventional
+ * ceiling division; for larger values the signed/unsigned distinction
+ * is observable and must not be simplified away in the reconstruction.
+ * A zero divisor and the processor's trapping signed-overflow input
+ * remain undefined in the OEM and are deliberately not handled here. */
+static inline uint32_t classic_oem_read_page_packed_stride(
+        uint32_t bytes_per_line,uint32_t bits_per_pixel) {
+    return bytes_per_line / bits_per_pixel +
+        (((int32_t)bytes_per_line % (int32_t)bits_per_pixel)!=0);
+}
+
 /* OEM return: 0 on no header or zero pixels; 1 on any nonzero pixel count.
  * Original error handling deliberately leaves *pixels pointing to freed
  * storage after the zero-pixels case. Callers must not dereference or free

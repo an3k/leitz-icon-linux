@@ -24,9 +24,11 @@ int classic_original_read_page(classic_oem_read_descriptor *descriptor,
     descriptor->cups_width=(uint16_t)page_header->cupsWidth;
     descriptor->cups_height=(uint16_t)page_header->cupsHeight;
     descriptor->cups_bytes_per_line=page_header->cupsBytesPerLine;
-    descriptor->packed_bytes_per_line=
-        page_header->cupsBytesPerLine/page_header->cupsBitsPerPixel +
-        (page_header->cupsBytesPerLine%page_header->cupsBitsPerPixel != 0);
+    /* OEM 0x100008e68 unsigned divl; 0x100008e82 signed idivl.
+     * Keep the exact 32-bit signed remainder rather than treating both
+     * divisions as unsigned. Other page semantics stay unchanged. */
+    descriptor->packed_bytes_per_line=classic_oem_read_page_packed_stride(
+        page_header->cupsBytesPerLine,page_header->cupsBitsPerPixel);
     descriptor->cups_bits_per_pixel=page_header->cupsBitsPerPixel;
     descriptor->cups_color_space=page_header->cupsColorSpace;
     strcpy(descriptor->cups_page_size_name,page_header->cupsPageSizeName);
