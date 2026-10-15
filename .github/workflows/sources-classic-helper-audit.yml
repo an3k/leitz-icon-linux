@@ -53,6 +53,11 @@ jobs:
             /^0000000100006090/ {show=0;print "END_PAGE_CALLERS"}
             show {print}
           '
+          echo "OEM ProcessPage mode 3 original descriptor cache: compare, width store and page-local reset"
+          otool -tvV "$bin" | awk '
+            $1 ~ /^000000010000[0-9a-f]+$/ &&
+            $1 >= "0000000100007ad0" && $1 <= "0000000100007e80" {print}
+          '
           echo "OEM ProcessPage file-local 32-bit width-cache symbol: all native instructions referencing static local"
           otool -tvV "$bin" | grep -F 'ProcessPageE26bytesPrintedInPreviousLine' || true
           echo "OEM ProcessPage width-cache compare and update neighborhood"
