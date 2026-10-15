@@ -50,7 +50,7 @@ jobs:
           echo "OEM original raster2printer caller parameter registers and stack"
           otool -tvV "$bin" | awk '
             /^0000000100005f70/ {show=1;print "BEGIN_PAGE_CALLERS"}
-            /^0000000100006090/ {show=0;print "END_PAGE_CALLERS"}
+            /^0000000100006092/ {show=0;print "END_PAGE_CALLERS"}
             show {print}
           '
           echo "Original document lifecycle ABI and caller: StartDocument / EndDocument"
@@ -63,5 +63,27 @@ jobs:
             /^0000000100006dd0/ {show=0;print "END_START_DOCUMENT"}
             /^0000000100008ac0/ {show=1;print "BEGIN_END_DOCUMENT"}
             /^0000000100008cf0/ {show=0;print "END_END_DOCUMENT"}
+            show {print}
+          '
+
+          echo "OEM raster printing loop: normal/reprint flag, status after page, and loop exit"
+          otool -tvV "$bin" | awk '
+            /^00000001000055ce/ {show=1;print "BEGIN_LOOP_INITIALIZATION"}
+            /^00000001000056c3/ {show=0;print "END_LOOP_INITIALIZATION"}
+            show {print}
+          '
+          otool -tvV "$bin" | awk '
+            /^0000000100005f27/ {show=1;print "BEGIN_LOOP_PAGE_DISPATCH"}
+            /^0000000100005fbe/ {show=0;print "END_LOOP_PAGE_DISPATCH"}
+            show {print}
+          '
+          otool -tvV "$bin" | awk '
+            /^000000010000605e/ {show=1;print "BEGIN_LOOP_POST_PAGE"}
+            /^0000000100006135/ {show=0;print "END_LOOP_POST_PAGE"}
+            show {print}
+          '
+          otool -tvV "$bin" | awk '
+            /^0000000100006128/ {show=1;print "BEGIN_LOOP_REPRINT"}
+            /^000000010000634f/ {show=0;print "END_LOOP_REPRINT"}
             show {print}
           '
