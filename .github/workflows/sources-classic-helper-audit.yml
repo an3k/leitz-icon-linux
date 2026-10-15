@@ -38,3 +38,18 @@ jobs:
             /^0000000100001e10/ {show=0;print "END_SEND_DEBUG_FILE_TO_PRINTER"}
             show {print}
           '
+
+          echo "OEM original StartPage / ProcessPage / EndPage entry instructions"
+          otool -tvV "$bin" | awk '
+            /^0000000100007380/ {show=1;print "BEGIN_STARTPAGE"}
+            /^0000000100007560/ {show=0;print "END_STARTPAGE"}
+            /^00000001000089b0/ {show=1;print "BEGIN_ENDPAGE"}
+            /^0000000100008ac0/ {show=0;print "END_ENDPAGE"}
+            show {print}
+          '
+          echo "OEM original raster2printer caller parameter registers and stack"
+          otool -tvV "$bin" | awk '
+            /^0000000100005f70/ {show=1;print "BEGIN_PAGE_CALLERS"}
+            /^0000000100006090/ {show=0;print "END_PAGE_CALLERS"}
+            show {print}
+          '
