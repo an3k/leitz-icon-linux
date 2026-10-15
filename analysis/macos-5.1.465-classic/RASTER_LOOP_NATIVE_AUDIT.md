@@ -22,8 +22,8 @@ or from the synthetic connected C helper.
 | `0x100005603` | Initialize native reprint bit to zero | Already initially modeled as non-reprint |
 | `0x10000562d..0x10000563c` | Check `terminate_flag` before entering page-loop diagnostics | Retain existing termination check |
 | `0x100005641..0x1000056a2` | Select original `Reprinted` or `Not reprinted` loop message | Add **only** the normal non-reprint message to the currently non-reprint connector |
-| `0x1000056a2..0x1000056c3` | If not reprinting, read CUPS header; otherwise branch to reprint handling | Existing connector covers only non-reprint branch |
-| `0x100006128..0x1000061d6` | Reprint branch can call `_ProcessPage` with fourth argument `1` and a selected retained buffer | Not yet treated as fully reconstructed |
+| `0x1000056a2..0x1000056c3` | If not reprinting, read CUPS header; otherwise branch to reprint handling | Reachable non-reprint branch retained; nonactivated reprint handler now separately reconstructed and tested, without changing the main connector |
+| `0x100006128..0x1000061d6` | Reprint branch selects retained mono/dither buffer, clears descriptor +0x24 and calls `_ProcessPage` with fourth argument `1` followed by `_EndPage` | Source-level branch recovered in `classic_original_raster_reprint_page`; standalone tests cover RGB24/mono calls; still unreachable in original defined normal execution |
 | `0x1000062b5..0x1000062e5` | Continue only if process status zero and original has-page bit is set | Existing connector has the normal outcome |
 
 The manufacturer emits the non-reprint message **before**
@@ -36,11 +36,11 @@ and the same string at source line `258`, without a trailing newline.
 
 ## Limits
 
-This audit confirms concrete native addresses and format literals. It does
-not prove that the complete native reprint path is reachable, unreachable,
-or equivalent under all inputs; the compiler-local flag's **complete**
-read/write inventory is being collected by the same script for independent
-verification. The original C++ ABI and IPP/status transport are not
+The initial instruction sampling confirms native addresses and literals;
+the **later complete reference inventory below** establishes that this
+function never directly sets its own reprint flag to one. It does not
+prove behavior after undefined OEM memory corruption or certify an
+actual manufacturer executable with the dormant branch activated. The original C++ ABI and IPP/status transport are not
 reconstructed by these diagnostic corrections. Any added code belongs
 only to the newly authored connecting C function, not to the manufacturer
 original files, existing isolated helper functions, or the active driver.
@@ -123,3 +123,40 @@ The reprint-only pair of direct calls is present in the original
 binary but conditioned on the compiler-local byte that has only the
 documented direct zero assignment. Its observed native code is
 not evidence that normal execution activates reprinting.
+
+## Isolated original reprint caller reconstruction (2026-10-15)
+
+The complete original flag audit was **already obtained** in
+[38546921933](https://github.com/an3k/leitz-icon-linux/actions/runs/38546921933)
+before this change. Two later native audit runs
+([38735364670](https://github.com/an3k/leitz-icon-linux/actions/runs/38735364670)
+and [38735555142](https://github.com/an3k/leitz-icon-linux/actions/runs/38735555142))
+reconfirmed selected call instructions but did not establish a new flag
+transition. Redundant additions to the helper-audit workflow were
+subsequently reverted; the original established audit script and record
+remain intact.
+
+[Commit 9612314728e93671f649b35eff3db2f38d347c53](https://github.com/an3k/leitz-icon-linux/commit/9612314728e93671f649b35eff3db2f38d347c53)
+recovers the previously missing **caller's dormant branch**
+`0x100006135..0x1000061d6` as
+`classic_original_raster_reprint_page` in the existing
+`original_raster_active_page_output.c`, without reimplementing the
+already recovered ProcessPage encoders. The branch zeros descriptor
+offset +0x24; picks the **already retained** dither buffer for
+cupsColorSpace==1, otherwise the original page buffer; calls
+ProcessPage(descriptor,pixels,page_index,1); and invokes EndPage with a
+full by-value descriptor copy. It does **not** call StartPage, dither
+again, increment page index or free page memory.
+
+The existing normal CUPS connector was **not** changed to activate this
+inaccessible original branch. The isolated callback tests exercise both
+pixel selection paths, retained buffer ownership, descriptor clearing,
+the fourth ProcessPage argument and EndPage sequencing. Thus the tested
+source control flow now includes both OEM call sites, without inventing
+a missing transition or claiming executable-vendor parity for this
+normally unreachable branch.
+
+[CI 38736163664](https://github.com/an3k/leitz-icon-linux/actions/runs/38736163664)
+passed all three Linux/native-macOS/vendor-comparison jobs. Existing
+manufacturer comparisons remained 27/27 command cases and 90 connected
+raster/PRN/IPP parity-success records, no reported PARITY=NO.
