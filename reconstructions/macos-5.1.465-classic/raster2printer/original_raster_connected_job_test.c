@@ -112,7 +112,7 @@ static classic_original_raster_connected_io setup(mock*m){
                                                close_ppd,debug_open,choose_stdout,startdoc};
     classic_oem_page_output_io output={m,dither,startpage,processpage,endpage};
     classic_original_raster_finish_ops finish={m,end_document,closefd,
-                                               close_debug,send_prn,write_data,NULL};
+                                               close_debug,send_prn,write_data,NULL,NULL};
     io.initialization=init;io.page_output=output;io.finish=finish;
     io.is_terminated=terminated;io.termination_context=m;
     io.socket_fd=-1;io.job_size=&m->job_size;

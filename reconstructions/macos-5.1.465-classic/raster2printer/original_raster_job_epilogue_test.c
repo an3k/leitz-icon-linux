@@ -12,6 +12,8 @@ typedef struct {
     int closed[2];
     int live_socket,change_socket_after_close;
     unsigned socket_reads;
+    int live_terminated,terminate_after_debug_close;
+    unsigned terminate_reads;
     uint8_t bytes[8];
     uint8_t expect_descriptor[CLASSIC_OEM_DESCRIPTOR_BYTES];
 } mock;
@@ -29,7 +31,15 @@ static int socket_now(void *ctx){
     mock*m=ctx;++m->socket_reads;
     return m->live_socket;
 }
-static void close_dbg(void*ctx){step(ctx,'D');}
+static int terminate_now(void *ctx){
+    mock*m=ctx;++m->terminate_reads;
+    return m->live_terminated;
+}
+static void close_dbg(void*ctx){
+    mock*m=ctx;step(m,'D');
+    if(m->terminate_after_debug_close)
+        m->live_terminated=1;
+}
 static int send_prn(void*ctx){mock*m=ctx;step(m,'P');m->prn_count++;return -1;}
 static int write_data(void*ctx,const uint8_t*d,size_t n,const void*descriptor,size_t len,int sock){
     mock*m=ctx;step(m,'W');
@@ -41,7 +51,7 @@ static int write_data(void*ctx,const uint8_t*d,size_t n,const void*descriptor,si
 }
 static classic_original_raster_finish_ops callbacks(mock *m){
     classic_original_raster_finish_ops out={
-        m,end_document,close_fd,close_dbg,send_prn,write_data,NULL
+        m,end_document,close_fd,close_dbg,send_prn,write_data,NULL,NULL
     };
     return out;
 }
@@ -56,6 +66,7 @@ static void check_run(mock*m,uint8_t*desc,unsigned *job_size,
                       const char *seq,const char *stderr_expected){
     classic_original_raster_finish_ops io=callbacks(m);
     if(m->change_socket_after_close)io.current_socket_fd=socket_now;
+    if(m->terminate_after_debug_close)io.current_terminated=terminate_now;
     uint64_t pointer_slot = resolved ? 0x123456789abcdef0ULL : 0;
     memcpy(desc+0x1090,&pointer_slot,sizeof pointer_slot);
     memcpy(m->expect_descriptor,desc,CLASSIC_OEM_DESCRIPTOR_BYTES);
@@ -119,6 +130,19 @@ int main(void){
     assert(m.socket_reads>=4 && m.live_socket==19);
     assert(m.bytes_count==7 && bytes==64);
     assert(memcmp(m.bytes,"\033@\033Z\0\0\033",7)==0);
-    puts("OEM job epilogue original call order, live socket rereads and 64-byte cases passed");
+    /* OEM 0x100006504 reads the live SIGTERM global after debug close.
+     * An input snapshot of zero must NOT suppress six reset bytes when
+     * a signal changes the live flag during prior finish callbacks.
+     * Six new job bytes bring 58 to 64, triggering its extra ESC. */
+    memset(&m,0,sizeof m);setup_desc(&m,d,0,"ipp://Icon");
+    bytes=58;m.terminate_after_debug_close=1;
+    check_run(&m,d,&bytes,0,11,0,0,0,"EDWW",
+      "\nraster2printer.c:444:raster2printer(): do not print through PRN file "
+      "\nSTATE: none\n\nraster2printer.c:471:raster2printer():  job size : 64 "
+      "\nraster2printer.c:472:raster2printer(): raster filter finished\n");
+    assert(bytes==64 && m.terminate_reads==1);
+    assert(m.live_terminated==1 && m.bytes_count==7);
+    assert(memcmp(m.bytes,"\033@\033Z\0\0\033",7)==0);
+    puts("OEM job epilogue original call order, live socket/terminate reloads and 64-byte cases passed");
     return 0;
 }

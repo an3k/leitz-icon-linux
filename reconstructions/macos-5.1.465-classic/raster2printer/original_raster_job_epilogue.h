@@ -19,6 +19,11 @@ typedef struct {
      * reloads its original __ZL4sock separately for each socket use.
      * Optional C adapter reader: NULL retains old isolated fixtures. */
     int (*current_socket_fd)(void *);
+    /* Native OEM 0x100006504 reloads _terminate_flag AFTER EndDocument,
+     * closing its open input, closing PRN, optional PRN send and socket
+     * cleanup. A job-entry snapshot is not the observed state. Preserve
+     * the standalone fixtures' earlier snapshot fallback with NULL. */
+    int (*current_terminated)(void *);
 } classic_original_raster_finish_ops;
 typedef struct {
     const unsigned char *descriptor; /* exactly 0x10a8 bytes */

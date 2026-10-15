@@ -23,6 +23,16 @@ static int original_socket_now(
     return ops->current_socket_fd ?
         ops->current_socket_fd(ops->context) : state->socket_fd;
 }
+/* OEM original _raster2printer 0x100006504:
+ * movl _terminate_flag(%rip),%eax, AFTER close/PRN cleanup,
+ * 0x10000650a compares to zero, 0x10000650d skips ESC @ ESC Z if zero.
+ * Only read the live flag at this exact original decision site. */
+static int original_terminated_now(
+    const classic_original_raster_finish_ops *ops,
+    const classic_original_raster_finish_state *state) {
+    return ops->current_terminated ?
+        ops->current_terminated(ops->context) : state->terminated;
+}
 
 int classic_original_raster_finish_job(
     const classic_original_raster_finish_ops *ops,
@@ -57,7 +67,7 @@ int classic_original_raster_finish_job(
         original_socket_now(ops,state) != -1)
         (void)ops->close_fd(ops->context, original_socket_now(ops,state));
 
-    if (state->terminated) {
+    if (original_terminated_now(ops,state)) {
         /* Manufacturer builds four command bytes ESC @ ESC Z, appends two
          * NUL bytes and writes all SIX bytes (0x100006513..0x100006630).
          * This sequence must not be shortened to four bytes. */
