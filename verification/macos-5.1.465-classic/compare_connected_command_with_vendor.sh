@@ -15,6 +15,7 @@ for case in "ReportStatus READY" "ReportStatus NONE" "ReportStatus MEDIA_JAM" \
             "ReportStatus GENERAL_ERROR" "ReportStatus UNKNOWN_STATUS" \
             "GetUnitedStatus READ_ERROR" "GetFirmwareVersion READ_ERROR" \
             "GetFirmwareVersion V_42" \
+            "GetUnitedStatus LONG_1023" "GetFirmwareVersion LONG_1023" \
             "Sequence_UV READY" "Sequence_VU READY" \
             "Sequence_U_Report READY" "Sequence_Report_U READY" \
             "Sequence_Case READY" "Sequence_Unknown READY" \

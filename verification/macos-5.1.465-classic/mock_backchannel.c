@@ -39,6 +39,16 @@ static ssize_t substitute_read(char *buffer, int capacity, double deadline) {
                 (unsigned char)buffer[0]);
         return 1;
     }
+    /* Largest OEM response with a defined in-bounds NUL terminator:
+     * GetStatus allocates 1024 bytes then stores reply[received]=0.
+     * Deliberately do not inject 1024 (OEM would write out of bounds).
+     * The same synthetic backchannel is used for OEM and recovered code. */
+    if (!strcmp(setting,"LONG_1023")) {
+        if (capacity < 1023) return -1;
+        memset(buffer,'X',1023);
+        fputs("MOCK_BACKCHANNEL: 1023 bytes\n",stderr);
+        return 1023;
+    }
     size_t n=strlen(setting);
     if (capacity<0 || n>(size_t)capacity) return -1;
     memcpy(buffer,setting,n);
