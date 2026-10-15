@@ -15,7 +15,9 @@
  * descriptor pointer as _CheckPrinterStatus (original 0x10000922c).
  * Its native implementation writes scheme +0x50, hostname +0x450,
  * resource +0x850, username +0xc50 and port +0x1098, ending inside
- * the original 0x10a8-byte descriptor. At 0x100009fa5..0x100009fd3,
+ * the original 0x10a8-byte descriptor. The OEM-copied
+ * CUPS cupsPageSizeName is a separate 64-byte region at +0x1050,
+ * ending at +0x108f, not an 88-byte union member. At 0x100009fa5..0x100009fd3,
  * it returns an unmasked 32-bit integer, not a bool-sized status.
  *
  * The sparse URI structure is deliberately PRIVATE to the existing

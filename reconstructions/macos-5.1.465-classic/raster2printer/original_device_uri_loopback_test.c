@@ -42,7 +42,7 @@ int main(void) {
     assert(strcmp(descriptor.scheme,"ipp")==0);
     assert(strcmp(descriptor.hostname,"127.0.0.1")==0);
     assert(strcmp(descriptor.resource,"/printers/icon")==0);
-    assert(descriptor.uri_tail.port==4231); /* OEM keeps URI port in descriptor */
+    assert(descriptor.port==4231); /* OEM keeps URI port in descriptor */
     assert(classic_original_socket>=0);
 
     fd_set readset;

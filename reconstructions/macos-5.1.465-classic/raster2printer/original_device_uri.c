@@ -30,7 +30,7 @@ int classic_original_resolve_device_uri(
         http_uri_status_t status=httpSeparateURI(
             HTTP_URI_CODING_NONE,classic_original_resolved_uri,
             d->scheme,1024,d->username,1024,d->hostname,1024,
-            &d->uri_tail.port,d->resource,1024);
+            &d->port,d->resource,1024);
         if(status<HTTP_URI_STATUS_OK) {
             fprintf(stderr,"ERROR: Bad printer URI \"%s\".\n",
                     classic_original_resolved_uri);

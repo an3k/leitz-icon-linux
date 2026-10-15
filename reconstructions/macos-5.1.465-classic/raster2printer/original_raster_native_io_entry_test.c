@@ -12,7 +12,7 @@ _Static_assert(offsetof(classic_original_raster_descriptor,resource)==0x850,
                "Native resolver resource field");
 _Static_assert(offsetof(classic_original_raster_descriptor,username)==0xc50,
                "Native resolver username field");
-_Static_assert(offsetof(classic_original_raster_descriptor,uri_tail.port)==0x1098,
+_Static_assert(offsetof(classic_original_raster_descriptor,port)==0x1098,
                "Native resolver port field");
 _Static_assert(_Generic(&ReadPage,
   int (*)(classic_oem_read_descriptor *,cups_page_header2_t *,

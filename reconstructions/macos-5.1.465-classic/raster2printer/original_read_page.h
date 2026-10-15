@@ -12,8 +12,11 @@
  * _CheckPrinterStatus and the raster job. Each named field position is
  * independently supported by verified OEM original instructions.
  * Unknown bytes remain opaque; no original C++ spelling is asserted.
- * +0x1098 (URI port) overlaps the 88-byte name view at +0x1050.
- * The union models that observed overlap, not the original source syntax.
+ * The actual CUPS page header's cupsPageSizeName has 64 bytes.
+ * The OEM copies its string into the descriptor at +0x1050; the
+ * manufacturer URI parser stores the port at +0x1098, separated by
+ * eight currently opaque bytes at +0x1090..+0x1097. Do NOT invent
+ * a union/overlap between these independent observed locations.
  */
 typedef struct {
     cups_raster_t *cups_raster;               /* +0x0000 */
@@ -37,14 +40,10 @@ typedef struct {
     char hostname[1024];                      /* +0x0450 */
     char resource[1024];                      /* +0x0850 */
     char username[1024];                      /* +0x0c50 */
-    union {
-        char cups_page_size_name[0x58];       /* +0x1050..0x10a7 */
-        struct {
-            unsigned char unknown_1050[0x48];
-            int port;                         /* +0x1098 */
-            unsigned char unknown_109c[0x0c];
-        } uri_tail;
-    };
+    char cups_page_size_name[64];             /* +0x1050..0x108f */
+    unsigned char unknown_1090[8];            /* +0x1090..0x1097 */
+    int port;                                  /* +0x1098..0x109b */
+    unsigned char unknown_109c[0x0c];        /* +0x109c..0x10a7 */
 } classic_oem_read_descriptor;
 
 _Static_assert(offsetof(classic_oem_read_descriptor,print_through_prn)==0x08,"OEM PRN offset");
@@ -57,8 +56,10 @@ _Static_assert(offsetof(classic_oem_read_descriptor,scheme)==0x50,"OEM scheme of
 _Static_assert(offsetof(classic_oem_read_descriptor,hostname)==0x450,"OEM hostname offset");
 _Static_assert(offsetof(classic_oem_read_descriptor,resource)==0x850,"OEM resource offset");
 _Static_assert(offsetof(classic_oem_read_descriptor,username)==0xc50,"OEM username offset");
-_Static_assert(offsetof(classic_oem_read_descriptor,uri_tail.port)==0x1098,"OEM URI port offset");
-_Static_assert(sizeof(((classic_oem_read_descriptor *)0)->cups_page_size_name)==0x58,"OEM page-name view");
+_Static_assert(offsetof(classic_oem_read_descriptor,unknown_1090)==0x1090,"OEM opaque slot offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,port)==0x1098,"OEM URI port offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,unknown_109c)==0x109c,"OEM tail offset");
+_Static_assert(sizeof(((classic_oem_read_descriptor *)0)->cups_page_size_name)==64,"CUPS page-name capacity");
 _Static_assert(offsetof(classic_oem_read_descriptor,cups_height)==0x1c,"OEM height offset");
 _Static_assert(offsetof(classic_oem_read_descriptor,cups_width)==0x1e,"OEM width offset");
 _Static_assert(offsetof(classic_oem_read_descriptor,packed_bytes_per_line)==0x20,"OEM raster-stride offset");
