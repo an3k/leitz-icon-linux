@@ -113,13 +113,13 @@ int classic_command_native_get_status(char command,_Bool flag,
   return classic_command_get_status(&io,command,prefix,flag,timeout);
 }
 int classic_command_native_get_printer_status(_Bool flag,double timeout) {
-  return classic_command_native_get_status('A',flag,"PRINTER_STATUS_",timeout);
+  return classic_command_native_get_status('A',flag,classic_original_printer_status_prefix(),timeout);
 }
 int classic_command_native_get_united_status(_Bool flag,double timeout) {
-  return classic_command_native_get_status('U',flag,"UNITED_STATUS_",timeout);
+  return classic_command_native_get_status('U',flag,classic_original_united_status_prefix(),timeout);
 }
 int classic_command_native_get_firmware_version(_Bool flag,double timeout) {
-  return classic_command_native_get_status('V',flag,"FIRMWARE_VERSION_",timeout);
+  return classic_command_native_get_status('V',flag,classic_original_firmware_version_prefix(),timeout);
 }
 void classic_command_native_end_of_job(_Bool flag) {
   classic_command_io io={NULL,out_char,out_flush,back,msg,log_file,notify,

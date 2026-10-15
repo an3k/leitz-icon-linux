@@ -64,6 +64,12 @@ static void reset(struct capture *s) {
   s->length=1;
 }
 int main(void) {
+  /* Original Mach-O exports four pointer objects in __DATA,__data;
+   * these getters must return their actual vendor string payloads. */
+  assert(!strcmp(classic_original_printer_status_prefix(),"PRINTER_STATUS_"));
+  assert(!strcmp(classic_original_united_status_prefix(),"UNITED_STATUS_"));
+  assert(!strcmp(classic_original_firmware_version_prefix(),"FIRMWARE_VERSION_"));
+  assert(!strcmp(classic_original_notification_domain(),"com.xyron.Leitz-Icon-Software"));
   struct capture s;
   reset(&s);
   classic_command_io io={&s,emit_byte,flush,read_reply,log_line,write_log,notify,NULL};

@@ -28,6 +28,15 @@ typedef struct {
   void (*end_job)(void *context, int should_send_esc_a);
 } classic_command_io;
 
+/* The four original macOS __DATA,__data status-domain and prefix
+ * pointer variables are file-local, so source-level getters allow the
+ * joined CUPS implementation to reuse those same OEM pointer objects.
+ * These getter functions do not represent additional OEM exports. */
+const char *classic_original_printer_status_prefix(void);
+const char *classic_original_united_status_prefix(void);
+const char *classic_original_firmware_version_prefix(void);
+const char *classic_original_notification_domain(void);
+
 /* Recovered from 0x100001440..0x100001a26 and 0x100001a30..0x100001a76.
  * The vendor's ShouldSend_ESC_A flag has no observable influence here.
  * A successful backchannel read sends ESC Z even if log writing fails.

@@ -5,12 +5,39 @@
 #include <string.h>
 #include <strings.h>
 
-/* Mach-O __DATA,__data, 0x1000061d0 through 0x1000061e8.
- * These are the original string payloads, read at their pointed-to offsets. */
-static const char printer_status_prefix[] = "PRINTER_STATUS_";
-static const char united_status_prefix[] = "UNITED_STATUS_";
-static const char firmware_version_prefix[] = "FIRMWARE_VERSION_";
-static const char notification_domain[] = "com.xyron.Leitz-Icon-Software";
+/* The OEM has four local writable POINTERS in __DATA,__data
+ * (0x1000061d0, 0x1000061d8, 0x1000061e0, 0x1000061e8),
+ * not char arrays. Original Mach-O nm symbols and their exact
+ * deliberately misspelled names come from the authenticated binary.
+ * Preserve a distinct local original symbol per 8-byte pointer.
+ * The getters are source-level bridge functions, not OEM symbols. */
+#if defined(__APPLE__)
+#define OEM_NATIVE_LOCAL_PTR(label) __asm__(label) __attribute__((used))
+#else
+#define OEM_NATIVE_LOCAL_PTR(label)
+#endif
+static const char *printer_status_prefix
+    OEM_NATIVE_LOCAL_PTR("_kPIPrinterStatusCommandPrefix") = "PRINTER_STATUS_";
+static const char *united_status_prefix
+    OEM_NATIVE_LOCAL_PTR("_kPIUnitedStatusCommandPrefix") = "UNITED_STATUS_";
+static const char *firmware_version_prefix
+    OEM_NATIVE_LOCAL_PTR("_kPIFirmawareVersionCommandPrefix") = "FIRMWARE_VERSION_";
+static const char *notification_domain
+    OEM_NATIVE_LOCAL_PTR("_kPILeitzIconDomain") = "com.xyron.Leitz-Icon-Software";
+#undef OEM_NATIVE_LOCAL_PTR
+
+const char *classic_original_printer_status_prefix(void) {
+  return printer_status_prefix;
+}
+const char *classic_original_united_status_prefix(void) {
+  return united_status_prefix;
+}
+const char *classic_original_firmware_version_prefix(void) {
+  return firmware_version_prefix;
+}
+const char *classic_original_notification_domain(void) {
+  return notification_domain;
+}
 
 void EndOfJob(const classic_command_io *io,
               int should_send_esc_a) {
