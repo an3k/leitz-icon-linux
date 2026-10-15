@@ -11,7 +11,13 @@
  *
  * The argument is a pointer to a 0x10a8-byte descriptor. Do not
  * substitute a by-value struct: the manufacturer uses a pointer.
+ * OEM epilogue 0x1000099f2..0x100009a1d loads an 8-bit status,
+ * masks AL with 1 and zero-extends it to EAX before returning.
+ * This establishes the externally observable bool-sized 0/1 return.
+ * The original C++ source spelling (bool vs another one-byte type)
+ * is not recoverable verbatim from machine code alone.
+ *
  * The status routine is dormant in ordinary OEM raster printing;
  * this signature check does not prove its untested error branches. */
-int CheckPrinterStatus(classic_oem_read_descriptor *descriptor);
+_Bool CheckPrinterStatus(classic_oem_read_descriptor *descriptor);
 #endif

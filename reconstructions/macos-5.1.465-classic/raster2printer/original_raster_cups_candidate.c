@@ -343,14 +343,15 @@ int ReadPage(classic_oem_read_descriptor *descriptor,
         descriptor,header,pixels,requested_bytes,page_counter);
 }
 
-/* Manufacturer _CheckPrinterStatus 0x1000091a9 stores its first
- * register parameter %rdi to -0x1100(%rbp), then loads that POINTER
- * and adds 0x50 at 0x1000091d7..0x1000091de. The later call to
- * _ResolveDeviceURI at 0x10000922c passes the same pointer. This
- * function uses a pointer, NOT a by-value 0x10a8 stack parameter.
- * The previous by-value trial was disproved and is corrected here.
- * The recovered status body itself was already correct. */
-int CheckPrinterStatus(classic_oem_read_descriptor *descriptor) {
+/* Manufacturer _CheckPrinterStatus takes its first parameter as an
+ * original descriptor POINTER in rdi (0x1000091a9..0x1000091de).
+ * Its epilogue 0x1000099f2..0x100009a1d masks the stored one-byte
+ * result with 1, then zero-extends AL into EAX. Unlike the earlier
+ * artificial int entry, the native contract is a boolean result.
+ * The existing callback algorithm retains its separate int-valued
+ * analysis-only -2 marker for genuinely undefined response branches.
+ * Converting that marker here does not assert OEM error-path parity. */
+_Bool CheckPrinterStatus(classic_oem_read_descriptor *descriptor) {
     classic_native_status_context state={descriptor};
     classic_original_status_io io={
         .context=&state,
@@ -373,7 +374,7 @@ int CheckPrinterStatus(classic_oem_read_descriptor *descriptor) {
         .current_socket_fd=status_socket_now,
         .resolved_uri_is_present=status_resolved_now
     };
-    return classic_original_check_status(&io);
+    return classic_original_check_status(&io) != 0;
 }
 static void close_raster(void *unused,void *raster) {
     (void)unused;

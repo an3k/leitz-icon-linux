@@ -9,8 +9,11 @@ _Static_assert(sizeof(classic_oem_read_descriptor)==0x10a8u,
 _Static_assert(offsetof(classic_oem_read_descriptor,
                         cups_page_size_name)==0x1050u,
                "OEM descriptor terminal field");
-typedef int (*original_status_by_pointer)(classic_oem_read_descriptor *);
+typedef _Bool (*original_status_by_pointer)(classic_oem_read_descriptor *);
+_Static_assert(_Generic(&CheckPrinterStatus,
+               _Bool (*)(classic_oem_read_descriptor *):1,default:0),
+               "OEM status entry must return normalized single-bit boolean");
 static original_status_by_pointer original_entry=CheckPrinterStatus;
-int classic_native_status_abi_probe(classic_oem_read_descriptor *reference) {
+_Bool classic_native_status_abi_probe(classic_oem_read_descriptor *reference) {
     return original_entry(reference);
 }
