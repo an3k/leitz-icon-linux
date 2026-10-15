@@ -15,7 +15,12 @@
  * The actual CUPS page header's cupsPageSizeName has 64 bytes.
  * The OEM copies its string into the descriptor at +0x1050; the
  * manufacturer URI parser stores the port at +0x1098, separated by
- * eight currently opaque bytes at +0x1090..+0x1097. Do NOT invent
+ * eight currently opaque bytes at +0x1090..+0x1097. Mode 3 uses
+ * +0x24 to retain its last width between pages: OEM 0x100007c78
+ * loads this 32-bit field, and 0x100007cb0 writes a zero-extended
+ * width BYTE before sending ESC D (confirmed by original Mach-O
+ * SHA-256 audit 38778100810). This source-level name is inferred,
+ * not claimed to be the OEM C++ declaration. Do NOT invent
  * a union/overlap between these independent observed locations.
  */
 typedef struct {
@@ -28,7 +33,8 @@ typedef struct {
     uint16_t cups_height;                     /* +0x001c */
     uint16_t cups_width;                      /* +0x001e */
     uint32_t packed_bytes_per_line;           /* +0x0020 */
-    unsigned char unknown_0024[0x30-0x24];
+    uint32_t mode3_previous_width;             /* +0x0024, OEM 0x7c78 / 0x7cb0 */
+    unsigned char unknown_0028[0x30-0x28];
     uint32_t cups_bits_per_pixel;             /* +0x0030 */
     uint32_t cups_bytes_per_line;             /* +0x0034 */
     unsigned char unknown_0038[0x3c-0x38];
@@ -63,6 +69,8 @@ _Static_assert(sizeof(((classic_oem_read_descriptor *)0)->cups_page_size_name)==
 _Static_assert(offsetof(classic_oem_read_descriptor,cups_height)==0x1c,"OEM height offset");
 _Static_assert(offsetof(classic_oem_read_descriptor,cups_width)==0x1e,"OEM width offset");
 _Static_assert(offsetof(classic_oem_read_descriptor,packed_bytes_per_line)==0x20,"OEM raster-stride offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,mode3_previous_width)==0x24,"OEM mode-3 cached-width offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,unknown_0028)==0x28,"OEM still-opaque descriptor offset");
 _Static_assert(offsetof(classic_oem_read_descriptor,cups_bits_per_pixel)==0x30,"OEM bpp offset");
 _Static_assert(offsetof(classic_oem_read_descriptor,cups_bytes_per_line)==0x34,"OEM line width offset");
 _Static_assert(offsetof(classic_oem_read_descriptor,cups_color_space)==0x3c,"OEM color-space offset");

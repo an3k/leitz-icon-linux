@@ -155,15 +155,44 @@ int main(void){
     const size_t parts3[]={3,3,2,2};
     check(&m,expected3,sizeof expected3,parts3,4);
     assert(m.cache.mode3_previous_width==1);
+    assert(m.descriptor.mode3_previous_width==1);
 
     /* Page-local last-left-offset starts at zero on every new page;
      * the persistent width cache does not. */
     reset_output(&m);
     m.descriptor.cups_height=1;
+    /* Native field, not the now deliberately stale helper cache,
+     * is authoritative on the next mode-3 page. */
+    m.cache.mode3_previous_width=0;
     assert(classic_original_process_page_modes23(&io,&m.descriptor,m0,3)==0);
     const uint8_t cached3[]={0x1b,'B',2,0x16,0xff};
     const size_t cached3parts[]={3,2};
     check(&m,cached3,sizeof cached3,cached3parts,2);
+    assert(m.cache.mode3_previous_width==1);
+    reset_output(&m);
+    m.descriptor.mode3_previous_width=0;
+    assert(classic_original_process_page_modes23(&io,&m.descriptor,m0,4)==0);
+    const uint8_t forced3[]={0x1b,'B',2,0x1b,'D',1,0x16,0xff};
+    const size_t forced3parts[]={3,3,2};
+    check(&m,forced3,sizeof forced3,forced3parts,3);
+    assert(m.descriptor.mode3_previous_width==1);
+
+    /* OEM stores the low eight width bits in a 32-bit descriptor field:
+     * 260-byte nonwhite rows always send ESC D 0x04, since the second
+     * row compares 260 against the previously stored 4, not 260.
+     * No change to the independent row encoder is required. */
+    begin(&m,3,260,2);io=setup(&m);
+    uint8_t wide[520];
+    memset(wide,0xff,sizeof wide);
+    assert(classic_original_process_page_modes23(
+        &io,&m.descriptor,wide,0)==0);
+    assert(m.calls==4 && m.bytes==528 && m.job_size==528);
+    assert(m.length[0]==3 && m.length[1]==261);
+    assert(m.length[2]==3 && m.length[3]==261);
+    assert(!memcmp(m.stream,"\033D\004",3));
+    assert(!memcmp(m.stream+264,"\033D\004",3));
+    assert(m.descriptor.mode3_previous_width==4);
+    assert(m.cache.mode3_previous_width==4);
 
     begin(&m,3,4,1);io=setup(&m);
     memset(pixels,0,sizeof pixels);pixels[0]=0xff;

@@ -19,7 +19,11 @@ extern uint32_t classic_original_mode2_static_width;
  * mode-2 reprint-first-row width-command exception.
  * This bridge preserves the independently reconstructed row encoder.
  * Original CUPS descriptor, shared width cache and globals are supplied
- * by the caller. Callbacks are new C ABI, not the original Mach-O ABI.
+ * by the caller. Mode 3 MUTATES the original descriptor's +0x24
+ * width cache (OEM 0x7cb0), storing the zero-extended low byte
+ * BEFORE the ESC D WriteData. The old page-encoder cache is only
+ * a private adapter; it is synchronized from the descriptor.
+ * Callbacks are new C ABI, not the original Mach-O ABI.
  */
 typedef struct {
     classic_original_page_lifecycle_ops output;
@@ -34,7 +38,7 @@ typedef struct {
  * _StartPage and _EndPage belong to the surrounding page coordinator. */
 int classic_original_process_page_modes23(
     const classic_original_process_modes23_io *io,
-    const classic_oem_read_descriptor *descriptor,
+    classic_oem_read_descriptor *descriptor,
     const uint8_t *pixels,
     unsigned page_index);
 

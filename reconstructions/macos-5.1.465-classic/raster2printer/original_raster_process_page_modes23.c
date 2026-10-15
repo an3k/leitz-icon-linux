@@ -63,7 +63,7 @@ static void report_original_mode2_first_bit(const uint8_t *row,
 
 int classic_original_process_page_modes23(
     const classic_original_process_modes23_io *io,
-    const classic_oem_read_descriptor *descriptor,
+    classic_oem_read_descriptor *descriptor,
     const uint8_t *pixels,unsigned page_index) {
     uint32_t mode;
     memcpy(&mode,(const uint8_t *)descriptor+0x40,sizeof mode);
@@ -71,6 +71,13 @@ int classic_original_process_page_modes23(
 
     const unsigned stride=descriptor->packed_bytes_per_line;
     const unsigned height=descriptor->cups_height;
+    /* OEM mode 3 reads descriptor+0x24 (0x100007c78), rather than a
+     * separately retained encoder cache. Refresh the existing row
+     * implementation's transient working value at every ProcessPage
+     * entry. Mode-2's independent static symbol is NOT changed. */
+    if (mode==3u)
+        io->job_cache->mode3_previous_width=
+            descriptor->mode3_previous_width;
     classic_mode23_page page;
     /* OEM 0x10000815f..0x10000824d: for mode 2, the first
      * nonblank reprint row must send ESC D even for cached width.
@@ -126,10 +133,22 @@ int classic_original_process_page_modes23(
             const int has_width=new_width!=previous_width ||
                 (mode==2u && first_nonblank && reprint);
             if (has_width) {
+                if (mode==3u) {
+                    /* Original 0x100007ca2..0x100007cb0 truncates the
+                     * calculated width to AL, zero-extends it to EAX,
+                     * and writes EAX at descriptor+0x24 BEFORE
+                     * 0x100007d6d _WriteData. In particular, widths
+                     * over 255 must cause another width command on
+                     * the next same-width row, not be cached as 260.
+                     * This also affects the by-value descriptor that
+                     * the WriteData callback receives. */
+                    descriptor->mode3_previous_width=(uint8_t)new_width;
+                    io->job_cache->mode3_previous_width=
+                        descriptor->mode3_previous_width;
+                }
                 emit(&io->output,descriptor,encoded+at,3);
-                /* Original width cache is updated only by mode 2,
-                 * immediately after the 3-byte ESC D _WriteData,
-                 * not by blank rows, mode 3 or a suppressed width. */
+                /* Mode 2 separately writes its original process-
+                 * static symbol after the width WriteData returns. */
                 if (mode==2u)
                     classic_original_mode2_static_width=new_width;
                 at+=3;

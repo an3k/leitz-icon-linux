@@ -84,8 +84,9 @@ int classic_original_raster_reprint_page(
     classic_oem_read_descriptor *descriptor,
     const classic_oem_active_page_state *page,
     unsigned page_index) {
-    uint32_t cleared=0;
-    memcpy((unsigned char *)descriptor+0x24,&cleared,sizeof cleared);
+    /* OEM reprint caller 0x100006135 clears the very same mode-3
+     * width field consumed at _ProcessPage 0x100007c78. */
+    descriptor->mode3_previous_width=0;
     const uint8_t *pixels=descriptor->cups_color_space==1u
                            ? page->dithered_page : page->page_buffer;
     int result=io->process_page(io->context,descriptor,pixels,page_index,1);
