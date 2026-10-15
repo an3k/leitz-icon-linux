@@ -61,3 +61,36 @@ int classic_original_raster_output_page(
     /* OEM repeats only if _ProcessPage returned 0 and a page was present. */
     return *last_process_result==0 && has_page;
 }
+
+/* Unreachable original reprint-true call sequence at OEM
+ * _raster2printer 0x100006135..0x1000061d6.
+ *
+ * Earlier original instructions set shouldResumePrintingOfLastLabel to
+ * false at 0x100005603, with no subsequent assignment in the entire
+ * raster page-read/output loop (audited from 0x1000055ce..0x1000062e5).
+ * Therefore do NOT use this dormant branch to introduce extra printing
+ * in the normal CUPS job. Its original call effects are preserved here
+ * for completeness, separately from the reachable page algorithm.
+ *
+ * On entry the OEM zeros descriptor offset +0x24, selects the already
+ * allocated dither output only for cupsColorSpace==1, calls
+ * _ProcessPage(descriptor, pixels, index, true) and then _EndPage with
+ * a full 0x10a8-byte descriptor COPY. There is NO _StartPage or
+ * _DitherPage call in this reprint-only sequence. Its surrounding OEM
+ * loop owns eventual buffer cleanup and PAGE diagnostics.
+ */
+int classic_original_raster_reprint_page(
+    const classic_oem_page_output_io *io,
+    classic_oem_read_descriptor *descriptor,
+    const classic_oem_active_page_state *page,
+    unsigned page_index) {
+    uint32_t cleared=0;
+    memcpy((unsigned char *)descriptor+0x24,&cleared,sizeof cleared);
+    const uint8_t *pixels=descriptor->cups_color_space==1u
+                           ? page->dithered_page : page->page_buffer;
+    int result=io->process_page(io->context,descriptor,pixels,page_index,1);
+    classic_oem_read_descriptor copy;
+    memcpy(&copy,descriptor,sizeof copy);
+    io->end_page(io->context,&copy,sizeof copy);
+    return result;
+}

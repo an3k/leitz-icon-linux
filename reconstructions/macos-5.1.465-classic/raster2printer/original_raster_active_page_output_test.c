@@ -9,7 +9,7 @@
 typedef struct {
     char calls[32];
     unsigned n,quality,seen_page;
-    int process_result;
+    int process_result,expected_reprint;
     const uint8_t *selected;
     classic_oem_read_descriptor *descriptor;
 } mock;
@@ -24,7 +24,7 @@ static void start(void *v,classic_oem_read_descriptor*d) {
 }
 static int process(void*v,classic_oem_read_descriptor*d,const uint8_t *pixels,
                    unsigned page,int reprint) {
-    mock*m=v;mark(m,'P');assert(d==m->descriptor && reprint==0);
+    mock*m=v;mark(m,'P');assert(d==m->descriptor && reprint==m->expected_reprint);
     m->seen_page=page;m->selected=pixels;return m->process_result;
 }
 static void end(void*v,const void*desc,size_t length) {
@@ -81,6 +81,37 @@ int main(void) {
     assert(classic_original_raster_output_page(&io,&d,&page,&page_index,1,1,&process_result)==0);
     assert(page_index==3 && page.page_buffer!=NULL && page.dithered_page!=NULL);
     free(page.page_buffer);free(page.dithered_page);
+
+    /* OEM 0x6135..0x61d6: the original reprint-only branch resets
+     * descriptor +0x24 and calls ONLY ProcessPage(reprint=1), EndPage.
+     * Explicitly exercise it here without making it reachable in the
+     * real joined CUPS job, where the flag is hardwired to zero. */
+    memset(&m,0,sizeof m);m.descriptor=&d;
+    m.expected_reprint=1;io=setup(&m);
+    init_page(&page,9,1);
+    d.cups_color_space=1;
+    page.dithered_page[0]=0xb7;
+    memset((unsigned char *)&d+0x24,0xa5,4);
+    unsigned old_index=page_index;
+    assert(classic_original_raster_reprint_page(&io,&d,&page,old_index)==0);
+    assert(strcmp(m.calls,"PE")==0 && m.seen_page==old_index);
+    assert(m.selected==page.dithered_page && m.selected[0]==0xb7);
+    assert(page_index==old_index && page.page_buffer && page.dithered_page);
+    unsigned char zero[4]={0};
+    assert(!memcmp((unsigned char *)&d+0x24,zero,4));
+    free(page.dithered_page);free(page.page_buffer);
+
+    memset(&m,0,sizeof m);m.descriptor=&d;
+    m.expected_reprint=1;m.process_result=7;io=setup(&m);
+    init_page(&page,6,0);
+    d.cups_color_space=0;
+    memset((unsigned char *)&d+0x24,0xd3,4);
+    assert(classic_original_raster_reprint_page(&io,&d,&page,7)==7);
+    assert(strcmp(m.calls,"PE")==0 && m.seen_page==7);
+    assert(m.selected==page.page_buffer && m.selected[0]==0x34);
+    assert(!memcmp((unsigned char *)&d+0x24,zero,4));
+    assert(page.page_buffer && !page.dithered_page);
+    free(page.page_buffer);
 
     assert(fflush(stderr)==0);
     assert(dup2(stderr_saved,fileno(stderr))>=0 && close(stderr_saved)==0);

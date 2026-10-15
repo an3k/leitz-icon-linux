@@ -48,10 +48,14 @@ int classic_original_raster_connected_job(
             io->is_terminated(io->termination_context))
             break;
 
-        /* OEM loop head 0x10000567e..0x1000056b0 prints its
-         * non-reprint state BEFORE attempting another CUPS header;
-         * it also prints on the final EOF attempt. The original
-         * reprint-true branch has not been wired into this connector. */
+        /* Original 0x100005603 initializes the reprint flag to zero.
+         * Native OEM audits through 0x1000062e5 found no writes to
+         * that flag in the page loop, so its reprint-true body at
+         * 0x100006135..0x1000061d6 is unreachable here.
+         * Its exact ProcessPage(...,1)/EndPage sequence is recovered
+         * separately in classic_original_raster_reprint_page(), but
+         * must not invent a new reprint trigger in the normal job.
+         * This diagnostic also executes on the final EOF attempt. */
         fprintf(stderr,"\n Not reprinted i_page = %i.\n",
                 (int)*page_index);
 
