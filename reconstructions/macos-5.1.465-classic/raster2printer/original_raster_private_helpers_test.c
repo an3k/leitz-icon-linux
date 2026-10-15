@@ -8,6 +8,7 @@ int main(void) {
     /* OEM source and native symbol table both identify byte constants. */
     assert(sizeof ESC==1 && sizeof SYN==1);
     assert(ESC==0x1b && SYN==0x16);
+    assert(sizeof SYN_COMPRESSED_RASTER==1 && SYN_COMPRESSED_RASTER==0x17);
     char text[]="ABC-BC";
     assert(classic_strrchr_wrapper(text,'B')==text+4);
     assert(classic_strrchr_wrapper(text,'Z')==NULL);

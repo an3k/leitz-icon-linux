@@ -5,6 +5,7 @@
  * C symbol names produce the original Mach-O symbols on Apple. */
 extern const unsigned char ESC;
 extern const unsigned char SYN;
+extern const unsigned char SYN_COMPRESSED_RASTER;
 /* Original C++ source in classic raster2printer. Most functions retain
  * portable C analysis names because their original C++ ABI differs.
  * The signal handler, however, takes only an int and has the matching

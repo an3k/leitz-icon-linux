@@ -85,10 +85,14 @@ static classic_cups_context candidate={0};
 FILE *classic_original_fd_stdout __asm__("__fd_stdout");
 FILE *classic_original_fd_dump __asm__("__fd_dump");
 FILE *classic_original_fd_log __asm__("__fd_log");
+/* Original writable Mach-O __DATA,__common __fd_err at 0x1000114b0;
+ * present as a global pointer independently of libc's stderr. */
+FILE *classic_original_fd_err __asm__("__fd_err");
 #else
 FILE *classic_original_fd_stdout;
 FILE *classic_original_fd_dump;
 FILE *classic_original_fd_log;
+FILE *classic_original_fd_err;
 #endif
 
 /* The original native Mach-O declares two writable common DATA arrays:

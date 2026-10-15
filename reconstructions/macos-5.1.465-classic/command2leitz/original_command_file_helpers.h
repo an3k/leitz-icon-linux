@@ -6,6 +6,7 @@
 /* One-byte OEM protocol constants, global Mach-O _ESC and _SYN. */
 extern const unsigned char ESC;
 extern const unsigned char SYN;
+extern const unsigned char SYN_COMPRESSED_RASTER;
 
 /* macOS classic 5.1.465 command2leitz global storage and OEM functions.
  * This independent reconstruction is NOT linked into production filters. */
@@ -16,10 +17,12 @@ extern const unsigned char SYN;
 #if defined(__APPLE__)
 extern FILE *__fd_dump __asm__("__fd_dump");
 extern FILE *__fd_log __asm__("__fd_log");
+extern FILE *__fd_err __asm__("__fd_err");
 extern FILE *__fd_stdout __asm__("__fd_stdout");
 #else
 extern FILE *__fd_dump;
 extern FILE *__fd_log;
+extern FILE *__fd_err;
 extern FILE *__fd_stdout;
 #endif
 extern char dbgprn_filename[1024];

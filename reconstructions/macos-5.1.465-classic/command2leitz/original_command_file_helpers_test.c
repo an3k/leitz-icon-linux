@@ -12,6 +12,8 @@
 int main(void) {
     assert(sizeof ESC==1 && sizeof SYN==1);
     assert(ESC==0x1b && SYN==0x16);
+    assert(sizeof SYN_COMPRESSED_RASTER==1 && SYN_COMPRESSED_RASTER==0x17);
+    assert(__fd_err==NULL);
     FILE *captured_errors=tmpfile(); assert(captured_errors);
     int olderr=dup(fileno(stderr));assert(olderr>=0);
     assert(dup2(fileno(captured_errors),fileno(stderr))>=0);

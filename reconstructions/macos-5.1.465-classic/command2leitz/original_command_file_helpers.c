@@ -20,14 +20,19 @@
  * by Leitz's unchanged original Linux 1.0.3 raster_c_functions.c. */
 const unsigned char ESC=0x1b;
 const unsigned char SYN=0x16;
+/* Original command2leitz __TEXT,__const 0x100004d6a;
+ * native raster opcode 0x17 is the compressed-row selector. */
+const unsigned char SYN_COMPRESSED_RASTER=0x17;
 
 #if defined(__APPLE__)
 FILE *__fd_dump __asm__("__fd_dump") = NULL;
 FILE *__fd_log __asm__("__fd_log") = NULL;
+FILE *__fd_err __asm__("__fd_err") = NULL;
 FILE *__fd_stdout __asm__("__fd_stdout") = NULL;
 #else
 FILE *__fd_dump = NULL;
 FILE *__fd_log = NULL;
+FILE *__fd_err = NULL;
 FILE *__fd_stdout = NULL;
 #endif
 char dbgprn_filename[1024];

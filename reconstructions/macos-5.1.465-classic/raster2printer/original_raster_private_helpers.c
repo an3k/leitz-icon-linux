@@ -19,6 +19,10 @@
  */
 const unsigned char ESC=0x1b;
 const unsigned char SYN=0x16;
+/* The original 5.1.465 data table places this third one-byte symbol
+ * immediately after _SYN at __TEXT,__const 0x10000a43a.
+ * Mode 2's OEM raster encoder emits 0x17 for compressed rows. */
+const unsigned char SYN_COMPRESSED_RASTER=0x17;
 int terminate_flag;
 void signal_handler(int signo) {
     (void)signo;
