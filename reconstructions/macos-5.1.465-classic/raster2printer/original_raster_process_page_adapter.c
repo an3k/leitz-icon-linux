@@ -22,12 +22,19 @@ int classic_original_process_page_callback(
     classic_original_process_page_adapter *adapter=ctx;
     uint32_t mode;
     memcpy(&mode,(const uint8_t *)descriptor+0x40,sizeof mode);
-    if(reprint!=0) return -2;
-    if (mode<=1u)
+    if (mode<=1u) {
+        /* The mode-0/1 nonzero-reprint branch remains unverified. */
+        if (reprint!=0) return -2;
         return classic_original_process_page_modes01(
             &adapter->modes01,descriptor,pixels,page_index);
-    if (mode==2u || mode==3u)
+    }
+    if (mode==2u || mode==3u) {
+        /* Page-specific OEM flag, not persistent job state. Keep the
+         * shared width cache; do not leak reprint into later pages. */
+        classic_original_process_modes23_io page_io=adapter->modes23;
+        page_io.reprint=(unsigned)(reprint!=0);
         return classic_original_process_page_modes23(
-            &adapter->modes23,descriptor,pixels,page_index);
+            &page_io,descriptor,pixels,page_index);
+    }
     return -2;
 }

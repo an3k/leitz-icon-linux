@@ -54,7 +54,10 @@ int classic_original_process_page_modes23(
     const unsigned stride=descriptor->packed_bytes_per_line;
     const unsigned height=descriptor->cups_height;
     classic_mode23_page page;
-    classic_mode23_begin(&page,io->job_cache,mode,stride,0);
+    /* OEM 0x10000815f..0x10000824d: for mode 2, the first
+     * nonblank reprint row must send ESC D even for cached width.
+     * The existing row encoder already implements that condition. */
+    classic_mode23_begin(&page,io->job_cache,mode,stride,io->reprint);
     uint8_t *encoded=malloc((size_t)stride+11);
     if (!encoded) return -2;  /* OEM allocation failure not yet recovered */
 

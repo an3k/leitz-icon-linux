@@ -1,5 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include "original_raster_process_page_modes23.h"
+#include "original_raster_process_page_adapter.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -89,6 +90,51 @@ int main(void){
     const uint8_t cached2[]={0x1b,'B',1,0x16,0x55,0x55};
     const size_t cached2parts[]={3,1,2};
     check(&m,cached2,sizeof cached2,cached2parts,3);
+
+    /* OEM fourth ProcessPage argument: reprinting the first nonblank
+     * mode-2 row forces ESC D even when width is cached. A subsequent
+     * ordinary page must not inherit that per-invocation flag. */
+    reset_output(&m);
+    io.reprint=1;
+    assert(classic_original_process_page_modes23(&io,&m.descriptor,r3,2)==0);
+    const uint8_t forced2[]={0x1b,'B',1,0x1b,'D',2,0x16,0x55,0x55};
+    const size_t forced2parts[]={3,3,1,2};
+    check(&m,forced2,sizeof forced2,forced2parts,4);
+    io.reprint=0;
+    reset_output(&m);
+    assert(classic_original_process_page_modes23(&io,&m.descriptor,r3,3)==0);
+    check(&m,cached2,sizeof cached2,cached2parts,3);
+
+    /* Integration regression: the public ProcessPage dispatcher must
+     * preserve cached width while forwarding the isolated reprint flag. */
+    begin(&m,2,4,1);
+    memset(pixels,0,sizeof pixels);
+    pixels[1]=0x55;pixels[2]=0x55;
+    io=setup(&m);
+    classic_original_process_page_adapter adapter;
+    classic_original_process_page_adapter_initialize(
+        &adapter,io.output,term,&m);
+    assert(classic_original_process_page_callback(
+        &adapter,&m.descriptor,pixels,0,0)==0);
+    check(&m,forced2,sizeof forced2,forced2parts,4);
+    reset_output(&m);
+    assert(classic_original_process_page_callback(
+        &adapter,&m.descriptor,pixels,1,0)==0);
+    check(&m,cached2,sizeof cached2,cached2parts,3);
+    reset_output(&m);
+    assert(classic_original_process_page_callback(
+        &adapter,&m.descriptor,pixels,2,1)==0);
+    check(&m,forced2,sizeof forced2,forced2parts,4);
+    reset_output(&m);
+    assert(classic_original_process_page_callback(
+        &adapter,&m.descriptor,pixels,3,0)==0);
+    check(&m,cached2,sizeof cached2,cached2parts,3);
+    reset_output(&m);
+    uint32_t unsupported=1;
+    memcpy((uint8_t *)&m.descriptor+0x40,&unsupported,sizeof unsupported);
+    assert(classic_original_process_page_callback(
+        &adapter,&m.descriptor,pixels,4,1)==-2);
+    assert(m.calls==0 && m.job_size==0);
 
     begin(&m,3,4,3);
     uint8_t *m0=pixels,*m1=pixels+4;

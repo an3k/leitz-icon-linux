@@ -25,7 +25,9 @@ void classic_original_process_page_adapter_initialize(
  * original row implementation reads four bytes beyond its final row:
  * only call this with readable padding, otherwise OEM behavior is
  * undefined. Normal reprint flag is always 0 in the original job loop.
- * Nonzero reprint is refused with reconstruction-only -2. */
+ * For modes 2/3 the OEM reprint flag is now forwarded to the recovered
+ * row logic (only mode 2 uses it for the first width command).
+ * Modes 0/1 with nonzero reprint remain unverified and return -2. */
 int classic_original_process_page_callback(
     void *adapter,classic_oem_read_descriptor *descriptor,
     const uint8_t *pixels,unsigned page_index,int reprint);

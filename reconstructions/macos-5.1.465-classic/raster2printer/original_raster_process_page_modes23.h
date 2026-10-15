@@ -4,7 +4,8 @@
 #include "original_raster_page_lifecycle.h"
 #include "classic_process_page_modes_23.h"
 
-/* Native macOS 5.1.465 ProcessPage: modes 2/3, normal reprint=0.
+/* Native macOS 5.1.465 ProcessPage: modes 2/3 and the verified
+ * mode-2 reprint-first-row width-command exception.
  * This bridge preserves the independently reconstructed row encoder.
  * Original CUPS descriptor, shared width cache and globals are supplied
  * by the caller. Callbacks are new C ABI, not the original Mach-O ABI.
@@ -14,6 +15,7 @@ typedef struct {
     classic_mode23_job_cache *job_cache;  /* retained across pages */
     int (*is_terminated)(void *);
     void *termination_context;
+    unsigned reprint; /* Fourth OEM ProcessPage argument; 0 in normal job */
 } classic_original_process_modes23_io;
 
 /* Returns 0 for original defined mode-2/3 paths. -2 denotes only a
