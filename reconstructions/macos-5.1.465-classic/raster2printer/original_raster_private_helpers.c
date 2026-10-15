@@ -11,6 +11,14 @@
 #include "original_raster_private_helpers.h"
 #include <stdio.h>
 #include <string.h>
+/* Original macOS raster2printer Mach-O __TEXT,__const global objects:
+ * _ESC at 0x10000a438 and _SYN at 0x10000a439, one byte each.
+ * Their 0x1b and 0x16 values also appear as the authentic 1.0.3
+ * Leitz Linux manufacturer's const byte ESC/SYN definitions.
+ * These are recovered source-level data objects, not new protocol modes.
+ */
+const unsigned char ESC=0x1b;
+const unsigned char SYN=0x16;
 int terminate_flag;
 void signal_handler(int signo) {
     (void)signo;

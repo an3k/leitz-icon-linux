@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <stddef.h>
 
+/* One-byte OEM protocol constants, global Mach-O _ESC and _SYN. */
+extern const unsigned char ESC;
+extern const unsigned char SYN;
+
 /* macOS classic 5.1.465 command2leitz global storage and OEM functions.
  * This independent reconstruction is NOT linked into production filters. */
 /* Original Mach-O globals are __fd_dump, __fd_log and __fd_stdout.

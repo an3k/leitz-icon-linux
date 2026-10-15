@@ -14,6 +14,13 @@
 #include <string.h>
 #include <sys/stat.h>
 
+/* Recovered original global one-byte read-only protocol symbols:
+ * original command2leitz Mach-O _ESC at 0x100004d68 and _SYN
+ * at 0x100004d69, both in __TEXT,__const. Values corroborated
+ * by Leitz's unchanged original Linux 1.0.3 raster_c_functions.c. */
+const unsigned char ESC=0x1b;
+const unsigned char SYN=0x16;
+
 #if defined(__APPLE__)
 FILE *__fd_dump __asm__("__fd_dump") = NULL;
 FILE *__fd_log __asm__("__fd_log") = NULL;

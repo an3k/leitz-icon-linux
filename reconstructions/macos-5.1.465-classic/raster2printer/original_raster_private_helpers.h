@@ -1,6 +1,10 @@
 #ifndef ORIGINAL_RASTER_PRIVATE_HELPERS_H
 #define ORIGINAL_RASTER_PRIVATE_HELPERS_H
 #include <stdint.h>
+/* Original native constant objects in __TEXT,__const: _ESC/_SYN.
+ * C symbol names produce the original Mach-O symbols on Apple. */
+extern const unsigned char ESC;
+extern const unsigned char SYN;
 /* Original C++ source in classic raster2printer. Most functions retain
  * portable C analysis names because their original C++ ABI differs.
  * The signal handler, however, takes only an int and has the matching

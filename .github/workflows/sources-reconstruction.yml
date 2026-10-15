@@ -143,7 +143,7 @@ jobs:
           for name in __ZL7strrchrUa9enable_ifIXLb1EEEPKci __ZL6strstrUa9enable_ifIXLb1EEEPcPKc __ZL12_OSSwapInt16t; do
             nm "$binary" | grep -Fq " $name"
           done
-          for name in __ZL4sock __ZL12resolved_uri __ZL8job_size __fd_stdout __fd_dump __fd_log _dbgprn_filename _log_filename; do
+          for name in __ZL4sock __ZL12resolved_uri __ZL8job_size __fd_stdout __fd_dump __fd_log _dbgprn_filename _log_filename _ESC _SYN; do
             nm "$binary" | grep -Eq "[[:space:]]$name$"
           done
           for name in _OpenLogFile _CloseLogFile _OpenDebugFile _CloseDebugFile _FlushDataStreams _is_bit_set _WriteDebugBuffer _SendDebugFileToPrinter _WriteData _CheckPrinterStatus _ResolveDeviceURI __Z14signal_handleri _ReadPage _StartDocument _EndDocument _DitherPage _StartPage _ProcessPage _EndPage _output_cups_info _test_raster _PrintPageDebugInfo; do
@@ -154,7 +154,7 @@ jobs:
           make -C reconstructions/macos-5.1.465-classic/command2leitz command2leitz_original_main_candidate CC=clang CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations"
           binary="reconstructions/macos-5.1.465-classic/command2leitz/command2leitz_original_main_candidate"
           nm -g "$binary" > "$RUNNER_TEMP/oem-command-linked-symbols.txt"
-          for name in _output_cups_info _test_raster _PrintPageDebugInfo _GetStatus _GetPrinterStatus _GetUnitedStatus _GetFirmvareVersion _EndOfJob _WriteData __fd_stdout __fd_dump __fd_log; do
+          for name in _output_cups_info _test_raster _PrintPageDebugInfo _GetStatus _GetPrinterStatus _GetUnitedStatus _GetFirmvareVersion _EndOfJob _WriteData __fd_stdout __fd_dump __fd_log _ESC _SYN; do
             grep -Eq "[[:space:]]$name$" "$RUNNER_TEMP/oem-command-linked-symbols.txt"
           done
           # OEM prefix/domain objects are *local data pointer* symbols,

@@ -10,6 +10,8 @@
  * OpenDebugFile/OpenLogFile when closed use fixed /Library/Caches paths;
  * the test deliberately does NOT invoke those filesystem-mutating paths. */
 int main(void) {
+    assert(sizeof ESC==1 && sizeof SYN==1);
+    assert(ESC==0x1b && SYN==0x16);
     FILE *captured_errors=tmpfile(); assert(captured_errors);
     int olderr=dup(fileno(stderr));assert(olderr>=0);
     assert(dup2(fileno(captured_errors),fileno(stderr))>=0);
