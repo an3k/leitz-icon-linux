@@ -8,21 +8,57 @@
  * This C descriptor reproduces the original field offsets used by ReadPage,
  * without claiming its unknown member names or the entire original C++ ABI.
  */
+/* Canonical native byte layout shared by _ReadPage, _ResolveDeviceURI,
+ * _CheckPrinterStatus and the raster job. Each named field position is
+ * independently supported by verified OEM original instructions.
+ * Unknown bytes remain opaque; no original C++ spelling is asserted.
+ * +0x1098 (URI port) overlaps the 88-byte name view at +0x1050.
+ * The union models that observed overlap, not the original source syntax.
+ */
 typedef struct {
-    cups_raster_t *cups_raster;              /* 0x0000 */
-    unsigned char unknown_0008[0x1c-8];
-    uint16_t cups_height;                   /* 0x001c */
-    uint16_t cups_width;                    /* 0x001e */
-    uint32_t packed_bytes_per_line;         /* 0x0020 */
+    cups_raster_t *cups_raster;               /* +0x0000 */
+    uint32_t print_through_prn;               /* +0x0008 */
+    unsigned char unknown_000c[4];
+    uint32_t cut_every_label;                 /* +0x0010 */
+    uint32_t high_resolution;                 /* +0x0014 */
+    uint32_t debug_mode;                      /* +0x0018 */
+    uint16_t cups_height;                     /* +0x001c */
+    uint16_t cups_width;                      /* +0x001e */
+    uint32_t packed_bytes_per_line;           /* +0x0020 */
     unsigned char unknown_0024[0x30-0x24];
-    uint32_t cups_bits_per_pixel;           /* 0x0030 */
-    uint32_t cups_bytes_per_line;           /* 0x0034 */
+    uint32_t cups_bits_per_pixel;             /* +0x0030 */
+    uint32_t cups_bytes_per_line;             /* +0x0034 */
     unsigned char unknown_0038[0x3c-0x38];
-    uint32_t cups_color_space;              /* 0x003c */
-    unsigned char unknown_0040[0x1050-0x40];
-    char cups_page_size_name[0x58];         /* 0x1050 */
+    uint32_t cups_color_space;                /* +0x003c */
+    uint32_t optimization_level;              /* +0x0040 */
+    unsigned char unknown_0044[0x4c-0x44];
+    uint32_t print_quality;                   /* +0x004c */
+    char scheme[1024];                        /* +0x0050 */
+    char hostname[1024];                      /* +0x0450 */
+    char resource[1024];                      /* +0x0850 */
+    char username[1024];                      /* +0x0c50 */
+    union {
+        char cups_page_size_name[0x58];       /* +0x1050..0x10a7 */
+        struct {
+            unsigned char unknown_1050[0x48];
+            int port;                         /* +0x1098 */
+            unsigned char unknown_109c[0x0c];
+        } uri_tail;
+    };
 } classic_oem_read_descriptor;
 
+_Static_assert(offsetof(classic_oem_read_descriptor,print_through_prn)==0x08,"OEM PRN offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,cut_every_label)==0x10,"OEM cutter offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,high_resolution)==0x14,"OEM resolution offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,debug_mode)==0x18,"OEM debug offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,optimization_level)==0x40,"OEM optimization offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,print_quality)==0x4c,"OEM quality offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,scheme)==0x50,"OEM scheme offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,hostname)==0x450,"OEM hostname offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,resource)==0x850,"OEM resource offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,username)==0xc50,"OEM username offset");
+_Static_assert(offsetof(classic_oem_read_descriptor,uri_tail.port)==0x1098,"OEM URI port offset");
+_Static_assert(sizeof(((classic_oem_read_descriptor *)0)->cups_page_size_name)==0x58,"OEM page-name view");
 _Static_assert(offsetof(classic_oem_read_descriptor,cups_height)==0x1c,"OEM height offset");
 _Static_assert(offsetof(classic_oem_read_descriptor,cups_width)==0x1e,"OEM width offset");
 _Static_assert(offsetof(classic_oem_read_descriptor,packed_bytes_per_line)==0x20,"OEM raster-stride offset");

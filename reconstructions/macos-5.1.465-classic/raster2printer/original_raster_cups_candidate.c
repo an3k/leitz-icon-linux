@@ -256,13 +256,11 @@ static void flush_data_streams(void *ctx) {
 /* Original macOS _ResolveDeviceURI 0x100009a30 takes the SAME
  * descriptor pointer as _CheckPrinterStatus, not a separately sized
  * analysis-only URI structure. Its recovered URI fields and TCP/9100
- * algorithm remain represented by the offset-checked sparse view.
- * The OEM-named symbol therefore exposes the complete 0x10a8-byte
- * descriptor type; only the private implementation uses that view.
+ * algorithm now share the same offset-checked 0x10a8-byte C11 object.
+ * The OEM-named symbol and internal resolver use that one descriptor.
  * This function is dormant in the normal raster print path. */
 int ResolveDeviceURI(classic_oem_read_descriptor *descriptor) {
-    return classic_original_resolve_device_uri(
-        (classic_original_raster_descriptor *)(void *)descriptor);
+    return classic_original_resolve_device_uri(descriptor);
 }
 
 /* Original _CheckPrinterStatus 0x100009190:
