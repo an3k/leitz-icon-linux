@@ -11,4 +11,11 @@
  */
 int SendDebugFileToPrinter(void);
 
+/* OEM __DATA,__common global arrays, distinct from FILE* streams.
+ * Original raster2printer.symbols.txt:
+ * _dbgprn_filename 0x1000114d0, _log_filename 0x1000118d0.
+ */
+extern char dbgprn_filename[1024];
+extern char log_filename[1024];
+
 #endif

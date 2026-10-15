@@ -91,9 +91,28 @@ FILE *classic_original_fd_dump;
 FILE *classic_original_fd_log;
 #endif
 
+/* The original native Mach-O declares two writable common DATA arrays:
+ * _dbgprn_filename: 0x1000114d0..0x1000118cf (1024 bytes)
+ * _log_filename:    0x1000118d0..0x100011ccf (1024 bytes).
+ * Their names and contiguous sizes are from authenticated original
+ * raster2printer.symbols.txt and the OEM OpenDebugFile file references,
+ * not inferred from the synthetic private C context.
+ *
+ * Existing already-recovered file helper algorithms use callback-local
+ * 1024-byte filename storage. This bridge moves exactly those bytes to
+ * and from the original named globals at OEM helper boundaries; its
+ * copies are reconstruction scaffolding, NOT recovered C++ source.
+ */
+char dbgprn_filename[1024];
+char log_filename[1024];
+_Static_assert(sizeof(dbgprn_filename)==1024,"OEM PRN filename global");
+_Static_assert(sizeof(log_filename)==1024,"OEM log filename global");
+
 void OpenLogFile(void) {
     candidate.log.log_file=classic_original_fd_log;
+    memcpy(candidate.log.filename,log_filename,sizeof log_filename);
     classic_original_log_open(&candidate.log);
+    memcpy(log_filename,candidate.log.filename,sizeof log_filename);
     classic_original_fd_log=candidate.log.log_file;
 }
 void CloseLogFile(void) {
@@ -124,7 +143,9 @@ int is_bit_set(int value,int bit) {
 }
 void OpenDebugFile(void) {
     candidate.prn.dump=classic_original_fd_dump;
+    memcpy(candidate.prn.filename,dbgprn_filename,sizeof dbgprn_filename);
     classic_original_prn_open(&candidate.prn);
+    memcpy(dbgprn_filename,candidate.prn.filename,sizeof dbgprn_filename);
     classic_original_fd_dump=candidate.prn.dump;
 }
 void CloseDebugFile(void) {
@@ -141,6 +162,9 @@ void WriteDebugBuffer(const unsigned char *data,size_t size) {
  * returns the integer zero on both completed and fopen-error paths.
  * Keep the existing original PRN implementation and diagnostic order. */
 int SendDebugFileToPrinter(void) {
+    /* OEM _SendDebugFileToPrinter loads _dbgprn_filename again at
+     * 0x100001bd1, instead of relying on a prior state snapshot. */
+    memcpy(candidate.prn.filename,dbgprn_filename,sizeof dbgprn_filename);
     return classic_original_prn_send(&candidate.prn,stdout);
 }
 
