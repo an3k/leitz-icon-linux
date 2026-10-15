@@ -23,6 +23,7 @@
 #include "classic_write_data.h"
 #include "original_device_uri.h"
 #include "original_raster_native_status_entry.h"
+#include "original_raster_native_io_entry.h"
 #include "original_raster_native_page_entry.h"
 #include "original_raster_native_document_entry.h"
 #include "original_raster_native_write_data_entry.h"
@@ -252,13 +253,16 @@ static void flush_data_streams(void *ctx) {
     FlushDataStreams();
 }
 
-/* Original macOS _ResolveDeviceURI 0x100009a30: the implementation
- * already exists in original_device_uri.c, including the OEM TCP/9100
- * behavior and error/undefined paths. This named entry is NOT
- * triggered by the ordinary CUPS raster job.
- */
-int ResolveDeviceURI(classic_original_raster_descriptor *descriptor) {
-    return classic_original_resolve_device_uri(descriptor);
+/* Original macOS _ResolveDeviceURI 0x100009a30 takes the SAME
+ * descriptor pointer as _CheckPrinterStatus, not a separately sized
+ * analysis-only URI structure. Its recovered URI fields and TCP/9100
+ * algorithm remain represented by the offset-checked sparse view.
+ * The OEM-named symbol therefore exposes the complete 0x10a8-byte
+ * descriptor type; only the private implementation uses that view.
+ * This function is dormant in the normal raster print path. */
+int ResolveDeviceURI(classic_oem_read_descriptor *descriptor) {
+    return classic_original_resolve_device_uri(
+        (classic_original_raster_descriptor *)(void *)descriptor);
 }
 
 /* Original _CheckPrinterStatus 0x100009190:
@@ -286,8 +290,7 @@ static int status_resolved_now(void *unused) {
 }
 static int status_resolve(void *ctx) {
     classic_native_status_context *state=ctx;
-    return ResolveDeviceURI(
-        (classic_original_raster_descriptor *)state->descriptor);
+    return ResolveDeviceURI(state->descriptor);
 }
 static ssize_t status_send(void *unused,int fd,const void *buf,size_t length,
                            int flags) {
