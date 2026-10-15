@@ -191,6 +191,34 @@ int main(void){
         &io,&m.descriptor,full_ones,0)==0);
     assert(m.job_size==9 && m.calls==4);
 
+    begin(&m,1,4,1);io=setup(&m);
+    assert(classic_original_process_page_modes23(&io,&m.descriptor,pixels,0)==-2);
+    assert(m.calls==0 && m.job_size==0);
+
+    assert(fflush(stderr)==0);
+    assert(dup2(saved,fileno(stderr))>=0 && close(saved)==0);
+    rewind(capture);
+    char logs[4096]={0};size_t n=fread(logs,1,sizeof logs-1,capture);
+    logs[n]=0;assert(fclose(capture)==0);
+    assert(strstr(logs,
+      "\nras" "ter2printer.c:860:ProcessPage(): first bit/byte. do not send 255"));
+    assert(strstr(logs,"\nINFO: Printing page 1, 0% complete..."));
+    assert(strstr(logs,"\nINFO: Printing page 1, 50% complete..."));
+    assert(strstr(logs,"\nATTR: job-media-progress=50"));
+    /* Manufacturer 0xff sentinel is initialized once per mode-2 row.
+     * Three fixture rows have an initial set bit; long black runs do
+     * NOT generate additional copies of this diagnostic. */
+    const char *diag="raster2printer.c:860:ProcessPage(): first bit/byte. do not send 255";
+    const char *cursor=logs;
+    unsigned diag_count=0;
+    while((cursor=strstr(cursor,diag))!=NULL) {
+        ++diag_count;
+        cursor+=strlen(diag);
+    }
+    assert(diag_count==3);
+    assert(strstr(logs,"\nINFO: Printing page 3, 0% complete..."));
+    /* Keep extra dispatcher assertions after restoring stderr, so
+     * an assertion failure reports its exact condition in CI. */
     /* OEM mode-0/1 paths do not use the fourth ProcessPage argument.
      * Exercise their actual public dispatcher with equal input and
      * compare normal vs explicit-reprint command bytes/call boundaries.
@@ -218,32 +246,6 @@ int main(void){
         assert(memcmp(m.stream,expected,sizeof expected)==0);
     }
 
-    begin(&m,1,4,1);io=setup(&m);
-    assert(classic_original_process_page_modes23(&io,&m.descriptor,pixels,0)==-2);
-    assert(m.calls==0 && m.job_size==0);
-
-    assert(fflush(stderr)==0);
-    assert(dup2(saved,fileno(stderr))>=0 && close(saved)==0);
-    rewind(capture);
-    char logs[4096]={0};size_t n=fread(logs,1,sizeof logs-1,capture);
-    logs[n]=0;assert(fclose(capture)==0);
-    assert(strstr(logs,
-      "\nras" "ter2printer.c:860:ProcessPage(): first bit/byte. do not send 255"));
-    assert(strstr(logs,"\nINFO: Printing page 1, 0% complete..."));
-    assert(strstr(logs,"\nINFO: Printing page 1, 50% complete..."));
-    assert(strstr(logs,"\nATTR: job-media-progress=50"));
-    /* Manufacturer 0xff sentinel is initialized once per mode-2 row.
-     * Three fixture rows have an initial set bit; long black runs do
-     * NOT generate additional copies of this diagnostic. */
-    const char *diag="raster2printer.c:860:ProcessPage(): first bit/byte. do not send 255";
-    const char *cursor=logs;
-    unsigned diag_count=0;
-    while((cursor=strstr(cursor,diag))!=NULL) {
-        ++diag_count;
-        cursor+=strlen(diag);
-    }
-    assert(diag_count==3);
-    assert(strstr(logs,"\nINFO: Printing page 3, 0% complete..."));
     puts("OEM mode-2/3 normal ProcessPage command boundaries, progress and state passed");
     return 0;
 }
