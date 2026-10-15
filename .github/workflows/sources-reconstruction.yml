@@ -143,6 +143,16 @@ jobs:
           for name in __ZL7strrchrUa9enable_ifIXLb1EEEPKci __ZL6strstrUa9enable_ifIXLb1EEEPcPKc __ZL12_OSSwapInt16t; do
             nm "$binary" | grep -Fq " $name"
           done
+          # Recovered OEM __DATA,__data halftone arrays. Original `nm`
+          # lists these as *local* C++ data; check all labels with nm -nm,
+          # not merely the existing nm -g exported function inventory.
+          nm -nm "$binary" > "$RUNNER_TEMP/oem-raster-all-native-symbols.txt"
+          for name in __ZL9supercell __ZL8bayer4x4 __ZL8bayer8x8 __ZL13CUPSthreshold __ZL16orderedSuperCell __ZL15reorderedBayer3 __ZL10supercell1 __ZL14reorderedBayer __ZL10bayer14x14 __ZL12clustered8x8 __ZL12dispersed8x8 __ZL8nasik4x4 __ZL12dithering3x3; do
+            if ! grep -Fq "$name" "$RUNNER_TEMP/oem-raster-all-native-symbols.txt"; then
+              echo "Missing OEM halftone data symbol: $name" >&2
+              exit 1
+            fi
+          done
           for name in __ZL4sock __ZL12resolved_uri __ZL8job_size __ZZ11ProcessPageE26bytesPrintedInPreviousLine __fd_stdout __fd_dump __fd_log __fd_err _dbgprn_filename _log_filename _ESC _SYN _SYN_COMPRESSED_RASTER; do
             nm "$binary" | grep -Eq "[[:space:]]$name$"
           done

@@ -1,13 +1,20 @@
 /* All 13 original numeric halftone matrix payloads from the classic
  * manufacturer's Mach-O, previously individually audited against original
- * __DATA virtual addresses (listed at each block). No numeric element is
- * changed from the previously extracted manufacturer data.
- * THIS FILE CONTAINS DATA, NOT A RECONSTRUCTION OF _DitherPage.
+ * __DATA virtual addresses (listed at each block). No numeric element
+ * has changed from the previously extracted manufacturer data.
+ *
+ * The original x86_64 __DATA,__data tables are writable 32-bit objects
+ * with C++ local labels __ZL... (verified original nm -nm listing).
+ * The prior reconstruction incorrectly declared these as const C arrays
+ * under synthetic names, placing them in read-only data on Apple.
+ * Their exact OEM assembler labels now come from the shared header.
+ * The preexisting matrix selection and RGB24 dither algorithms are
+ * entirely unchanged; THIS FILE CONTAINS OEM DATA, NOT _DitherPage.
  */
 #include "raster2printer_quality_recovered.h"
 
 /* supercell @ Mach-O VA 0x10000c240; raw SHA256 de625ad93312b97349a1aea6ed61ef98004b4db4005e9c27d53c45c929393a04 */
-const int32_t matrix_supercell[64] = {
+int32_t matrix_supercell[64] = {
     13, 11, 12, 15, 18, 20, 19, 16,
     4, 3, 2, 9, 27, 28, 28, 22,
     5, 0, 1, 10, 26, 31, 30, 21,
@@ -19,7 +26,7 @@ const int32_t matrix_supercell[64] = {
 };
 
 /* bayer4x4 @ Mach-O VA 0x10000c340; raw SHA256 f7c76ec10f854eb7ed14282dbb43466efed2460f1e420879ada2562c0723b022 */
-const int32_t matrix_bayer4x4[16] = {
+int32_t matrix_bayer4x4[16] = {
     1, 9, 3, 11,
     13, 5, 15, 7,
     4, 12, 2, 10,
@@ -27,7 +34,7 @@ const int32_t matrix_bayer4x4[16] = {
 };
 
 /* bayer8x8 @ Mach-O VA 0x10000c380; raw SHA256 44cbf409ab0ca5272e7fa764bc3e2ad3a6d5d4991281f73c219b164239da5dd7 */
-const int32_t matrix_bayer8x8[64] = {
+int32_t matrix_bayer8x8[64] = {
     0, 32, 8, 40, 2, 34, 10, 42,
     48, 16, 56, 24, 50, 18, 58, 26,
     12, 44, 4, 36, 14, 46, 6, 38,
@@ -39,7 +46,7 @@ const int32_t matrix_bayer8x8[64] = {
 };
 
 /* CUPSthreshold @ Mach-O VA 0x10000c480; raw SHA256 779d8ab0c375cfcfe68f3d185a2ec35c1365f960d4a416dd3dff637c69d865da */
-const int32_t matrix_CUPSthreshold[4096] = {
+int32_t matrix_CUPSthreshold[4096] = {
     0, 235, 138, 22, 45, 98, 217, 2, 45, 98, 7, 185, 45, 97, 6, 192, 110, 37, 110, 37, 97, 45, 18, 148, 109, 37, 97, 45, 7, 185, 45, 97, 6, 192, 109, 37, 57, 82, 165, 12, 26, 130, 190, 6, 119, 31, 97, 45, 179, 8, 109, 37, 97, 45, 140, 22, 109, 37, 57, 82, 9, 177, 24, 135,
     109, 37, 57, 82, 20, 143, 57, 82, 146, 19, 57, 82, 15, 158, 87, 53, 20, 144, 13, 162, 138, 22, 53, 87, 162, 13, 138, 22, 57, 82, 22, 140, 57, 82, 153, 16, 119, 31, 109, 37, 109, 37, 57, 81, 19, 147, 213, 2, 53, 87, 21, 142, 13, 164, 53, 87, 187, 6, 152, 17, 119, 32, 110, 37,
     24, 135, 12, 167, 97, 45, 17, 151, 45, 97, 32, 119, 26, 130, 119, 32, 81, 58, 30, 121, 81, 58, 181, 8, 119, 32, 97, 45, 17, 151, 45, 97, 161, 14, 45, 97, 213, 2, 135, 24, 7, 183, 138, 22, 109, 37, 58, 81, 121, 30, 109, 37, 58, 81, 30, 121, 58, 81, 127, 27, 58, 81, 165, 12,
@@ -107,7 +114,7 @@ const int32_t matrix_CUPSthreshold[4096] = {
 };
 
 /* orderedSuperCell @ Mach-O VA 0x100010480; raw SHA256 acb5eea2e03b54ae9be70bafe6a57b9259a74147f6f7c1690be5686adbef0783 */
-const int32_t matrix_orderedSuperCell[324] = {
+int32_t matrix_orderedSuperCell[324] = {
     49, 10, 59, 197, 215, 195, 116, 146, 224, 248, 241, 162, 103, 172, 231, 181, 82, 43,
     187, 108, 138, 217, 254, 245, 166, 107, 176, 235, 182, 83, 44, 73, 152, 121, 23, 3,
     240, 161, 102, 171, 230, 186, 88, 48, 78, 157, 123, 24, 4, 34, 93, 131, 53, 13,
@@ -129,7 +136,7 @@ const int32_t matrix_orderedSuperCell[324] = {
 };
 
 /* reorderedBayer3 @ Mach-O VA 0x100010990; raw SHA256 66085e94ebe5312e9fd9b39b6b92a6985f5c3c893b3c45ce88e9f6ebb129db66 */
-const int32_t matrix_reorderedBayer3[144] = {
+int32_t matrix_reorderedBayer3[144] = {
     14, 46, 0, 32, 12, 44, 3, 35, 15, 47, 1, 33,
     50, 30, 62, 16, 48, 28, 60, 19, 51, 31, 63, 17,
     4, 36, 8, 40, 7, 39, 11, 43, 5, 37, 9, 41,
@@ -145,7 +152,7 @@ const int32_t matrix_reorderedBayer3[144] = {
 };
 
 /* supercell1 @ Mach-O VA 0x100010bd0; raw SHA256 0328ed94b6144e317f252b74cb3c73b68946561028011bf9a3e91adae5c2b51d */
-const int32_t matrix_supercell1[36] = {
+int32_t matrix_supercell1[36] = {
     3, 7, 9, 18, 12, 0,
     11, 16, 14, 2, 6, 8,
     12, 0, 4, 10, 17, 15,
@@ -155,7 +162,7 @@ const int32_t matrix_supercell1[36] = {
 };
 
 /* reorderedBayer @ Mach-O VA 0x100010c60; raw SHA256 81fefc9714ea548e36c893b9a3125bc25f50c748c6ce1dae5f8112a5099eb68d */
-const int32_t matrix_reorderedBayer[144] = {
+int32_t matrix_reorderedBayer[144] = {
     12, 44, 3, 35, 15, 47, 1, 33, 13, 45, 2, 34,
     14, 48, 28, 60, 19, 51, 31, 63, 17, 49, 29, 61,
     18, 50, 7, 39, 11, 43, 5, 37, 9, 41, 6, 38,
@@ -171,7 +178,7 @@ const int32_t matrix_reorderedBayer[144] = {
 };
 
 /* bayer14x14 @ Mach-O VA 0x100010f10; raw SHA256 e424a9e71f3e03c54dd87854b419fe080eb7e803b3486b99627c6bd6d78e1a46 */
-const int32_t matrix_bayer14x14[196] = {
+int32_t matrix_bayer14x14[196] = {
     131, 187, 8, 78, 50, 18, 134, 89, 155, 102, 29, 95, 184, 74,
     22, 86, 113, 171, 142, 105, 34, 166, 9, 60, 151, 128, 40, 110,
     168, 137, 45, 28, 64, 188, 82, 54, 124, 189, 80, 13, 156, 56,
@@ -189,7 +196,7 @@ const int32_t matrix_bayer14x14[196] = {
 };
 
 /* clustered8x8 @ Mach-O VA 0x100011220; raw SHA256 dafc1aef2487e3df0cc1a7583189fc1b57d2ab28d1fa599f8563970ae34cdfe8 */
-const int32_t matrix_clustered8x8[64] = {
+int32_t matrix_clustered8x8[64] = {
     14, 12, 13, 16, 19, 21, 20, 17,
     5, 4, 3, 10, 28, 29, 30, 23,
     6, 1, 2, 11, 27, 32, 31, 22,
@@ -201,7 +208,7 @@ const int32_t matrix_clustered8x8[64] = {
 };
 
 /* dispersed8x8 @ Mach-O VA 0x100011320; raw SHA256 6c060734e5d7e39dc732391e95804b5a3f28515eb43d15a3ef5104c73c2e1af5 */
-const int32_t matrix_dispersed8x8[64] = {
+int32_t matrix_dispersed8x8[64] = {
     1, 30, 8, 28, 2, 29, 7, 27,
     17, 9, 24, 16, 18, 10, 23, 15,
     5, 25, 3, 32, 6, 26, 4, 31,
@@ -213,7 +220,7 @@ const int32_t matrix_dispersed8x8[64] = {
 };
 
 /* nasik4x4 @ Mach-O VA 0x100011420; raw SHA256 6548e16d4c41510c38c18d4a93ef841e9500d0d0d52c9c538ff0eda6b83a5ec9 */
-const int32_t matrix_nasik4x4[16] = {
+int32_t matrix_nasik4x4[16] = {
     0, 14, 3, 13,
     11, 5, 8, 6,
     12, 2, 15, 1,
@@ -221,7 +228,7 @@ const int32_t matrix_nasik4x4[16] = {
 };
 
 /* dithering3x3 @ Mach-O VA 0x100011460; raw SHA256 37942b249a9a112bf95fa046205229ba9eed35be0ae49dc05025db1fca8b297a */
-const int32_t matrix_dithering3x3[9] = {
+int32_t matrix_dithering3x3[9] = {
     3, 7, 5,
     6, 1, 2,
     9, 4, 8
