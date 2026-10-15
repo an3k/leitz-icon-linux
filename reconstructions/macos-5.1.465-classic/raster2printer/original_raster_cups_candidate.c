@@ -22,6 +22,7 @@
 #include "classic_write_data.h"
 #include "original_device_uri.h"
 #include "original_raster_native_status_entry.h"
+#include "original_raster_native_page_entry.h"
 #include "original_raster_native_write_data_entry.h"
 #include "original_status_exchange.h"
 #include "original_read_page.h"
@@ -389,10 +390,12 @@ static int send_prn(void *ctx) {
     SendDebugFileToPrinter();
     return 0;
 }
-/* OEM source-level lifecycle entry points. All functions below
- * delegate to the existing complete original-semantic C reconstructions
- * and share exactly the same context, streams, row caches and job counter.
- * These C callbacks do NOT claim the original x86_64 C++ by-value ABI.
+/* Native page ABI verified by authenticated macOS 5.1.465 Mach-O
+ * _raster2printer at 0x100005fbe..0x10000605e, and native
+ * _StartPage 0x100007399, _EndPage 0x1000089bb. The OEM-named
+ * StartPage, ProcessPage and EndPage use their original call surfaces.
+ * Unmodified source-only callback adapters remain below.
+ * Other OEM exports (e.g. DitherPage/StartDocument) are still bridged.
  */
 void StartDocument(void *ctx,const unsigned char *descriptor,unsigned length) {
     classic_original_bridge_start_document(ctx,descriptor,length);
@@ -405,20 +408,37 @@ void DitherPage(void *ctx,classic_oem_read_descriptor *descriptor,
     classic_original_raster_dither_bridge(
         ctx,descriptor,rgb,monochrome,quality);
 }
-void StartPage(void *ctx,classic_oem_read_descriptor *descriptor) {
-    classic_cups_context *c=ctx;
-    classic_original_start_page(&c->page_io,descriptor);
+void StartPage(classic_oem_read_descriptor *descriptor) {
+    classic_original_start_page(&candidate.page_io,descriptor);
 }
-int ProcessPage(void *ctx,classic_oem_read_descriptor *descriptor,
+int ProcessPage(classic_oem_read_descriptor *descriptor,
                 const uint8_t *pixels,unsigned page_index,int reprint) {
-    classic_cups_context *c=ctx;
     return classic_original_process_page_callback(
-        &c->process,descriptor,pixels,page_index,reprint);
+        &candidate.process,descriptor,pixels,page_index,reprint);
 }
-void EndPage(void *ctx,const void *descriptor,size_t descriptor_size) {
-    classic_cups_context *c=ctx;
-    if(descriptor_size==CLASSIC_OEM_DOCUMENT_DESCRIPTOR_SIZE)
-        classic_original_end_page(&c->page_io,descriptor);
+void EndPage(classic_oem_read_descriptor descriptor) {
+    classic_original_end_page(&candidate.page_io,&descriptor);
+}
+/* The connected-job callback ABI is ours, not the original's. These
+ * bridges call the actual OEM-signature exports above, rather than
+ * attaching a private context argument to OEM-named symbols. */
+static void connected_start_page(void *ctx,classic_oem_read_descriptor *d) {
+    (void)ctx;
+    StartPage(d);
+}
+static int connected_process_page(void *ctx,classic_oem_read_descriptor *d,
+                                  const uint8_t *pixels,unsigned index,
+                                  int reprint) {
+    (void)ctx;
+    return ProcessPage(d,pixels,index,reprint);
+}
+static void connected_end_page(void *ctx,const void *d,size_t size) {
+    (void)ctx;
+    if(size==CLASSIC_OEM_DOCUMENT_DESCRIPTOR_SIZE) {
+        classic_oem_read_descriptor by_value;
+        memcpy(&by_value,d,sizeof by_value);
+        EndPage(by_value);
+    }
 }
 int raster2printer(int argc,char **argv) {
     classic_cups_context *c=&candidate;
@@ -445,7 +465,7 @@ int raster2printer(int argc,char **argv) {
     };
     classic_oem_page_output_io pages={
         c,DitherPage,
-        StartPage,ProcessPage,EndPage
+        connected_start_page,connected_process_page,connected_end_page
     };
     classic_original_raster_finish_ops finish={
         c,EndDocument,close_fd,close_debug,
