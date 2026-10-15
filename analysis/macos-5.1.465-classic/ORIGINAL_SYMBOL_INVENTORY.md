@@ -143,3 +143,44 @@ raster/PRN/IPP parity-success records, with zero reported parity failures.
 A matching original data symbol and tested value are not evidence that
 all original C++ translation-unit lifetime, initialization, errors or
 hardware behavior have been reconstructed.
+
+## Restored original 13 writable native halftone table symbols (2026-10-15)
+
+The manufacturer 5.1.465 `raster2printer.symbols.txt` contains these
+**13 separate original __DATA,__data 32-bit writable halftone table objects**.
+The exact numeric array contents and all 13 original virtual locations were
+**already** inventoried in `raster2printer_matrices_recovered.c`, each with
+its previously authenticated SHA-256. No matrix values or dither algorithms
+were reimplemented. The missing part was native object identity:
+previously each array had only a synthetic `matrix_*` name and was declared
+`const`, which on Apple ordinarily places the object in read-only data.
+[Code commit 77b0a36b](https://github.com/an3k/leitz-icon-linux/commit/77b0a36ba0721184ecc517ad00207c63f61867fc)
+restores exactly the OEM labels via Apple assembler aliases and preserves
+the original writable allocation class. [Macro-scope fix 41670086](https://github.com/an3k/leitz-icon-linux/commit/4167008604db9209a420b2026eba9af88cad9191)
+corrected a header-only compilation error before final verification.
+
+| OEM table | Exact original symbol | Manufacturer VA | int32 elements |
+|---|---|---|---:|
+| `supercell` | `__ZL9supercell` | `0x10000c240` | 64 |
+| `bayer4x4` | `__ZL8bayer4x4` | `0x10000c340` | 16 |
+| `bayer8x8` | `__ZL8bayer8x8` | `0x10000c380` | 64 |
+| `CUPSthreshold` | `__ZL13CUPSthreshold` | `0x10000c480` | 4096 |
+| `orderedSuperCell` | `__ZL16orderedSuperCell` | `0x100010480` | 324 |
+| `reorderedBayer3` | `__ZL15reorderedBayer3` | `0x100010990` | 144 |
+| `supercell1` | `__ZL10supercell1` | `0x100010bd0` | 36 |
+| `reorderedBayer` | `__ZL14reorderedBayer` | `0x100010c60` | 144 |
+| `bayer14x14` | `__ZL10bayer14x14` | `0x100010f10` | 196 |
+| `clustered8x8` | `__ZL12clustered8x8` | `0x100011220` | 64 |
+| `dispersed8x8` | `__ZL12dispersed8x8` | `0x100011320` | 64 |
+| `nasik4x4` | `__ZL8nasik4x4` | `0x100011420` | 16 |
+| `dithering3x3` | `__ZL12dithering3x3` | `0x100011460` | 9 |
+
+This restores native data-object names and writable C storage; it does **not**
+claim exact original file-local C++ linkage, original virtual addresses in
+the new executable, dynamic-loader relocations, or original source syntax.
+The 13 tables' existing contents and 15 PPD quality selectors retain
+the previous verified behavior. Final [CI 38780500037](https://github.com/an3k/leitz-icon-linux/actions/runs/38780500037)
+passed Linux GCC/Clang, native macOS CUPS build and original-symbol checks,
+and authenticated manufacturer executable output comparisons. The latter
+still reports 27/27 command and 90 connected raster/PRN/IPP success lines,
+zero `PARITY=NO`. No new hardware or original-private-branch parity claimed.
