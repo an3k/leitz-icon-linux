@@ -115,7 +115,14 @@ int GetStatus(const classic_command_io *io, char command,
   if (command == 'A') {
     emit_state(io, (unsigned char)reply[0]);
   } else {
-    char message[1025 + 32];
+    /* The OEM formats ATTR with two unbounded %s fields. The reply
+     * contains at most 1023 defined bytes (reply[received] appends
+     * NUL); the three original native prefixes are at most
+     * sizeof("FIRMWARE_VERSION_") bytes. The prior 1057-byte buffer
+     * silently truncated a valid maximum-length OEM status reply.
+     * Preserve all defined OEM bytes without adding a new heap path. */
+    char message[sizeof(reply) + sizeof("FIRMWARE_VERSION_")
+                 + sizeof("ATTR: marker-message=\"\"")];
     /* Original cupsFilePrintf(leitz.log, "%s%s", prefix, reply) and
      * fprintf(stderr, "ATTR: marker-message=\"%s%s\"\n", ...).
      * Unlike the experimental implementation there is no hex escaping. */

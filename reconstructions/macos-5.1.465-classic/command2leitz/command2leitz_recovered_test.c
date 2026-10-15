@@ -97,6 +97,29 @@ int main(void) {
   assert(strcmp(s.log_text,"FIRMWARE_VERSION_3.0")==0);
   assert(strcmp(s.lines[0],"ATTR: marker-message=\"FIRMWARE_VERSION_3.0\"")==0);
   assert(s.notified==1 && s.logged==1);
+  /* The manufacturer prints ATTR with unbounded %s%s rather than
+   * a fixed 1057-byte status line. The 1023-byte backchannel reply
+   * is defined; 1024 bytes would trigger the original off-by-one
+   * stack write and is intentionally not exercised. */
+  for (int kind=0; kind<2; ++kind) {
+    const char *prefix=kind ? "FIRMWARE_VERSION_" : "UNITED_STATUS_";
+    reset(&s);
+    memset(s.response,kind ? 'V' : 'U',1023);
+    s.length=1023;
+    assert(GetStatus(&io,kind ? 'V' : 'U',prefix,1,7.0)==1);
+    const size_t n=strlen(prefix);
+    const size_t lead=strlen("ATTR: marker-message=\"");
+    const size_t total=lead+n+1023+1;
+    assert(strlen(s.log_text)==n+1023);
+    assert(strncmp(s.log_text,prefix,n)==0);
+    assert(s.log_text[n]==(kind ? 'V' : 'U'));
+    assert(s.messages==1 && strlen(s.lines[0])==total);
+    assert(!strncmp(s.lines[0],"ATTR: marker-message=\"",lead));
+    assert(!strncmp(s.lines[0]+lead,prefix,n));
+    assert(s.lines[0][lead+n+1022]==(kind ? 'V' : 'U'));
+    assert(s.lines[0][total-1]=='"');
+    assert(s.count==4 && !memcmp(s.stream,kind ? "\033V\033Z" : "\033U\033Z",4));
+  }
   reset(&s);
   s.response[0]='x';s.length=1;s.log_failure=1;
   assert(classic_command_dispatch(&io,"GetUnitedStatus","",1)==0);
