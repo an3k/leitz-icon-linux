@@ -191,6 +191,33 @@ int main(void){
         &io,&m.descriptor,full_ones,0)==0);
     assert(m.job_size==9 && m.calls==4);
 
+    /* OEM mode-0/1 paths do not use the fourth ProcessPage argument.
+     * Exercise their actual public dispatcher with equal input and
+     * compare normal vs explicit-reprint command bytes/call boundaries.
+     * Supply four readable lookahead bytes for the OEM raw-row copy. */
+    for (uint32_t mode=0; mode<=1; ++mode) {
+        begin(&m,mode,4,1);
+        io=setup(&m);
+        classic_original_process_page_adapter_initialize(
+            &adapter,io.output,term,&m);
+        memset(pixels,0,sizeof pixels);
+        pixels[0]=0xff;
+        assert(classic_original_process_page_callback(
+            &adapter,&m.descriptor,pixels,0,0)==0);
+        assert(m.calls==2 && m.bytes==12 && m.job_size==12);
+        const uint8_t *normal=m.stream;
+        uint8_t expected[12];
+        memcpy(expected,normal,sizeof expected);
+        const size_t first_chunk=m.length[0];
+        const size_t second_chunk=m.length[1];
+        reset_output(&m);
+        assert(classic_original_process_page_callback(
+            &adapter,&m.descriptor,pixels,1,1)==0);
+        assert(m.calls==2 && m.bytes==12 && m.job_size==12);
+        assert(m.length[0]==first_chunk && m.length[1]==second_chunk);
+        assert(memcmp(m.stream,expected,sizeof expected)==0);
+    }
+
     begin(&m,1,4,1);io=setup(&m);
     assert(classic_original_process_page_modes23(&io,&m.descriptor,pixels,0)==-2);
     assert(m.calls==0 && m.job_size==0);

@@ -27,7 +27,10 @@ void classic_original_process_page_adapter_initialize(
  * undefined. Normal reprint flag is always 0 in the original job loop.
  * For modes 2/3 the OEM reprint flag is now forwarded to the recovered
  * row logic (only mode 2 uses it for the first width command).
- * Modes 0/1 with nonzero reprint remain unverified and return -2. */
+ * The fourth argument does not affect the reconstructed mode-0/1
+ * source paths; those modes are dispatched without a synthetic -2
+ * error even when the caller passes a nonzero flag. Such a call is
+ * unreachable from the verified normal OEM raster job. */
 int classic_original_process_page_callback(
     void *adapter,classic_oem_read_descriptor *descriptor,
     const uint8_t *pixels,unsigned page_index,int reprint);

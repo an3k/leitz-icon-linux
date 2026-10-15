@@ -23,8 +23,10 @@ int classic_original_process_page_callback(
     uint32_t mode;
     memcpy(&mode,(const uint8_t *)descriptor+0x40,sizeof mode);
     if (mode<=1u) {
-        /* The mode-0/1 nonzero-reprint branch remains unverified. */
-        if (reprint!=0) return -2;
+        /* The fourth OEM ProcessPage parameter influences the width
+         * resend condition in mode 2 only (0x10000815f..0x10000824d).
+         * The already reconstructed mode-0/1 row paths do not consult
+         * that argument; refusing these calls was an adapter invention. */
         return classic_original_process_page_modes01(
             &adapter->modes01,descriptor,pixels,page_index);
     }
