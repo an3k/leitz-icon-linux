@@ -31,7 +31,6 @@ extern const classic_raster_halftone_table classic_raster_quality_tables[15];
 #else
 #define CLASSIC_OEM_MATRIX(name,count,original) \
     extern int32_t name[count]
-#undef CLASSIC_OEM_MATRIX
 #endif
 
 CLASSIC_OEM_MATRIX(matrix_supercell, 64, "__ZL9supercell");
@@ -47,4 +46,5 @@ CLASSIC_OEM_MATRIX(matrix_clustered8x8, 64, "__ZL12clustered8x8");
 CLASSIC_OEM_MATRIX(matrix_dispersed8x8, 64, "__ZL12dispersed8x8");
 CLASSIC_OEM_MATRIX(matrix_nasik4x4, 16, "__ZL8nasik4x4");
 CLASSIC_OEM_MATRIX(matrix_dithering3x3, 9, "__ZL12dithering3x3");
+#undef CLASSIC_OEM_MATRIX
 #endif
