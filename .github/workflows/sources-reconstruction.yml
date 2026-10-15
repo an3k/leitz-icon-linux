@@ -46,6 +46,11 @@ jobs:
           make -C reconstructions/macos-5.1.465-classic/command2leitz clean all check CC=clang
           make -C reconstructions/macos-5.1.465-classic/raster2printer clean all check CC=clang
           make -C verification/macos-5.1.465-classic clean_write_data check_write_data CC=clang
+      - name: Compile OEM command GetStatus native register signatures
+        run: |
+          clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
+            -c reconstructions/macos-5.1.465-classic/command2leitz/original_command_native_status_entry_test.c \
+            -o "$RUNNER_TEMP/command_getstatus_native_abi.o"
       - name: Compile recovered dormant test-raster function with actual macOS CUPS SDK
         run: |
           clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations -c reconstructions/macos-5.1.465-classic/shared/diagnostics/original_test_raster.c -o "$RUNNER_TEMP/classic_test_raster.o"

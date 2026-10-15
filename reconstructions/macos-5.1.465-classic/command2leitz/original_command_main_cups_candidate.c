@@ -6,6 +6,7 @@
 #include "original_command_file_helpers.h"
 #include "classic_command_write_data.h"
 #include "original_command_native_write_data.h"
+#include "original_command_native_status_entry.h"
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -93,16 +94,33 @@ static void notify(void *ctx,const char*domain){(void)ctx;
   (void)domain;
 #endif
 }
-/* The OEM _main calls the three named helper entry points, which
- * in turn call the common reconstructed _GetStatus implementation. */
+/* True original function entrypoints now use the manufacturer's
+ * register ABI, while the single already-verified callback algorithm
+ * remains an internal implementation detail. These OEM-named functions
+ * are the ones reached by the joined CUPS _main. */
+int classic_command_native_get_status(char command,_Bool flag,
+                                       const char *prefix,double timeout) {
+  classic_command_io io={NULL,out_char,out_flush,back,msg,log_file,notify};
+  return classic_command_get_status(&io,command,prefix,flag,timeout);
+}
+int classic_command_native_get_printer_status(_Bool flag,double timeout) {
+  return classic_command_native_get_status('A',flag,"PRINTER_STATUS_",timeout);
+}
+int classic_command_native_get_united_status(_Bool flag,double timeout) {
+  return classic_command_native_get_status('U',flag,"UNITED_STATUS_",timeout);
+}
+int classic_command_native_get_firmware_version(_Bool flag,double timeout) {
+  return classic_command_native_get_status('V',flag,"FIRMWARE_VERSION_",timeout);
+}
+/* OEM _main routes ReportStatus to an immediate exit after the query;
+ * the existing original_command_main_flow.c preserves that behavior. */
 static int query(void *ctx,char command,const char*prefix,int send,double timeout){
   (void)ctx;
   (void)prefix;
-  classic_command_io io={NULL,out_char,out_flush,back,msg,log_file,notify};
-  if(command=='A')return GetPrinterStatus(&io,send,timeout);
-  if(command=='U')return GetUnitedStatus(&io,send,timeout);
-  if(command=='V')return GetFirmvareVersion(&io,send,timeout);
-  return 0; /* not reachable from the OEM command-main routing table */
+  if(command=='A')return classic_command_native_get_printer_status((_Bool)send,timeout);
+  if(command=='U')return classic_command_native_get_united_status((_Bool)send,timeout);
+  if(command=='V')return classic_command_native_get_firmware_version((_Bool)send,timeout);
+  return 0;
 }
 
 /* Original _WriteData is linked separately with its original-style

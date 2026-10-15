@@ -35,11 +35,25 @@ int classic_command_get_status(const classic_command_io *io, char command,
  * manufacturer's compiled C++ ABI is NOT asserted identical.
  * The wrappers reuse the single already recovered _GetStatus body.
  */
-int GetStatus(const classic_command_io *, char command,const char *prefix,
-              int should_send_esc_a,double timeout);
+/* These are intentionally the isolated callback implementations, NOT
+ * the manufacturer's four native external function ABIs. The native
+ * command candidate exports _GetStatus/_GetPrinterStatus/etc separately.
+ * Apple assembler labels keep the two distinct sets from colliding. */
+#if defined(__APPLE__)
+int GetStatus(const classic_command_io *,char,const char *,int,double)
+    __asm__("_classic_command_callback_GetStatus");
+int GetPrinterStatus(const classic_command_io *,int,double)
+    __asm__("_classic_command_callback_GetPrinterStatus");
+int GetUnitedStatus(const classic_command_io *,int,double)
+    __asm__("_classic_command_callback_GetUnitedStatus");
+int GetFirmvareVersion(const classic_command_io *,int,double)
+    __asm__("_classic_command_callback_GetFirmvareVersion");
+#else
+int GetStatus(const classic_command_io *,char,const char *,int,double);
 int GetPrinterStatus(const classic_command_io *,int,double);
 int GetUnitedStatus(const classic_command_io *,int,double);
 int GetFirmvareVersion(const classic_command_io *,int,double);
+#endif
 void EndOfJob(const classic_command_io *,int);
 
 /* Recovered from _main, 0x100000fe2..0x10000118f.
