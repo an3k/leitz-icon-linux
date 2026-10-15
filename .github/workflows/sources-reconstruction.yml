@@ -111,6 +111,11 @@ jobs:
           clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
             -c reconstructions/macos-5.1.465-classic/raster2printer/original_raster_native_page_entry_test.c \
             -o "$RUNNER_TEMP/raster_native_page_abi.o"
+      - name: Compile OEM raster SendDebugFileToPrinter native return ABI
+        run: |
+          clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
+            -c reconstructions/macos-5.1.465-classic/raster2printer/original_raster_native_prn_entry_test.c \
+            -o "$RUNNER_TEMP/raster_native_prn_abi.o"
       - name: Compile OEM raster WriteData 0x10a8-byte by-value native ABI
         run: |
           clang -O2 -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \

@@ -27,6 +27,7 @@
 #include "original_raster_native_page_entry.h"
 #include "original_raster_native_document_entry.h"
 #include "original_raster_native_write_data_entry.h"
+#include "original_raster_native_prn_entry.h"
 #include "original_status_exchange.h"
 #include "original_read_page.h"
 #include <cups/cups.h>
@@ -135,8 +136,12 @@ void WriteDebugBuffer(const unsigned char *data,size_t size) {
     candidate.prn.dump=classic_original_fd_dump;
     classic_original_prn_write_buffer(&candidate.prn,data,size);
 }
-void SendDebugFileToPrinter(void) {
-    (void)classic_original_prn_send(&candidate.prn,stdout);
+/* OEM 0x100001e05 xorl %eax,%eax; 0x100001e0c retq.
+ * Unlike earlier void OEM-named binding, original _SendDebugFileToPrinter
+ * returns the integer zero on both completed and fopen-error paths.
+ * Keep the existing original PRN implementation and diagnostic order. */
+int SendDebugFileToPrinter(void) {
+    return classic_original_prn_send(&candidate.prn,stdout);
 }
 
 static int terminated(void *unused) {
@@ -391,8 +396,7 @@ static void close_debug(void *ctx) {
 }
 static int send_prn(void *ctx) {
     (void)ctx;
-    SendDebugFileToPrinter();
-    return 0;
+    return SendDebugFileToPrinter();
 }
 /* Native page ABI verified by authenticated macOS 5.1.465 Mach-O
  * _raster2printer at 0x100005fbe..0x10000605e, and native
