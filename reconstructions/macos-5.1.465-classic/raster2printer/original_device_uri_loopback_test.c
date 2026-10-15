@@ -4,6 +4,13 @@
  * port 9100 for an IPP URI, independent of the URI-supplied port.
  * This C-only test does not contact or configure a printer.
  */
+/* macOS CUPS headers use BSD u_int/u_char types. Since this
+ * loopback-only fixture also requests POSIX APIs, expose both sets
+ * before the shared original raster descriptor includes cups/raster.h.
+ * No OEM behavior or production compilation flags are changed. */
+#if defined(__APPLE__)
+#define _DARWIN_C_SOURCE 1
+#endif
 #define _POSIX_C_SOURCE 200809L
 #include "original_device_uri.h"
 #include <arpa/inet.h>
