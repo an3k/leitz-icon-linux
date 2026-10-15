@@ -65,6 +65,16 @@ jobs:
             $1 ~ /^000000010000[0-9a-f]+$/ &&
             $1 >= "00000001000080d0" && $1 <= "0000000100008250" {print}
           '
+          echo "OEM raster job 0x1090 descriptor pointer-size slot and TCP socket cleanup branch"
+          otool -tvV "$bin" | awk '
+            $1 ~ /^000000010000[0-9a-f]+$/ &&
+            $1 >= "0000000100006440" && $1 <= "0000000100006530" {print}
+          '
+          echo "OEM raster job tail pointer-slot initializer and original CUPS header page-size storage"
+          otool -tvV "$bin" | awk '
+            $1 ~ /^000000010000[0-9a-f]+$/ &&
+            $1 >= "0000000100004590" && $1 <= "0000000100004660" {print}
+          '
           echo "Original document lifecycle ABI and caller: StartDocument / EndDocument"
           otool -tvV "$bin" | awk '
             /^0000000100005370/ {show=1;print "BEGIN_START_DOCUMENT_CALLER"}
