@@ -9,6 +9,21 @@
 #include <stdio.h>
 #include <string.h>
 
+/* Source-level bridge for repeated original native global reads:
+ * 0x1000064e1: test __ZL4sock against -1 before close
+ * 0x1000064ee: reload __ZL4sock as close(fd)
+ * 0x1000065e1: reload __ZL4sock for terminated reset _WriteData
+ * 0x10000669a: reload __ZL4sock for trailing ESC _WriteData.
+ * Values may change between calls; avoid an entry-only snapshot.
+ * Verified direct original disassembly CI 38784545750.
+ */
+static int original_socket_now(
+    const classic_original_raster_finish_ops *ops,
+    const classic_original_raster_finish_state *state) {
+    return ops->current_socket_fd ?
+        ops->current_socket_fd(ops->context) : state->socket_fd;
+}
+
 int classic_original_raster_finish_job(
     const classic_original_raster_finish_ops *ops,
     const classic_original_raster_finish_state *state) {
@@ -39,8 +54,8 @@ int classic_original_raster_finish_job(
     uint64_t slot_1090=0;
     memcpy(&slot_1090, state->descriptor + 0x1090, sizeof slot_1090);
     if (strstr(uri, "ipp") != NULL && slot_1090 != 0 &&
-        state->socket_fd != -1)
-        (void)ops->close_fd(ops->context, state->socket_fd);
+        original_socket_now(ops,state) != -1)
+        (void)ops->close_fd(ops->context, original_socket_now(ops,state));
 
     if (state->terminated) {
         /* Manufacturer builds four command bytes ESC @ ESC Z, appends two
@@ -51,7 +66,7 @@ int classic_original_raster_finish_job(
         memcpy(copy, state->descriptor, sizeof copy);
         (void)ops->write_data(ops->context, reset_and_end,
                               sizeof reset_and_end, copy, sizeof copy,
-                              state->socket_fd);
+                              original_socket_now(ops,state));
     }
 
     /* Original signed idivl by 64; OEM sends one ESC even when the
@@ -60,7 +75,7 @@ int classic_original_raster_finish_job(
         static const uint8_t esc = 0x1b;
         memcpy(copy, state->descriptor, sizeof copy);
         (void)ops->write_data(ops->context, &esc, 1,
-                              copy, sizeof copy, state->socket_fd);
+                              copy, sizeof copy, original_socket_now(ops,state));
     }
     fprintf(stderr,"\nSTATE: none\n");
     fprintf(stderr,

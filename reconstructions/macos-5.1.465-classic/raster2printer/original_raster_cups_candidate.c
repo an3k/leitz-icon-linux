@@ -534,7 +534,7 @@ int raster2printer(int argc,char **argv) {
     };
     classic_original_raster_finish_ops finish={
         c,connected_end_document,close_fd,close_debug,
-        send_prn,write_data
+        send_prn,write_data,status_socket_now
     };
     classic_original_raster_connected_io io={
         initialization,pages,finish,terminated,c,-1,&job_size
