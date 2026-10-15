@@ -1891,3 +1891,13 @@ Checked `sources` HEAD `c8760a249d5bdb1020aa5468d717493dfec659c6` and the comple
 **Verification:** [GitHub Actions 38665905068](https://github.com/an3k/leitz-icon-linux/actions/runs/38665905068) passes Linux GCC/Clang, native macOS Clang with original entry-point `nm` symbols and additional ABI compile probe, plus the authenticated vendor comparison. It preserves **25/25 full command comparisons**, **52/52 RGB24 matrices**, **4/4 normal raster**, **4/4 mode-1 RGB24**, **8/8 defined mode-0**, and **1/1 PRN** with no logged failed parity cases. The ordinary command path uses the native three query entry points and native common status entry. No printer or external TCP endpoint was contacted for these changes.
 
 Commits: `75388b944700de88e3cbef65b37a1bee575ebe8a` (authenticated original disassembly), `1c16c179e1fe453c9c40abb08bf36d2adcbd4767` (four native query/status ABIs), `ab89f0efbf868297d801d3598b54018523e47db5` (native EndOfJob ABI). This is not a claim of complete original binary equivalence or real hardware behavior.
+
+## 2026-10-15 — joined native EndOfJob success path
+
+Inspected sources HEAD 1e1c754619c6593e8b8cc55377e57e1601b3ac3d and successful manufacturer CI 38665905068 first; the separate native EndOfJob(bool) entry and callback-based implementation were already present, but GetStatus's normal success path never reached the native entry.
+
+Manufacturer command2leitz Mach-O 5.1.465 _GetStatus 0x1000019e0..0x1000019eb forwards the masked original flag in %edi to _EndOfJob only after a positive backchannel reply. The existing single status implementation now offers an optional source-level end_job callback; the joined native CUPS candidate delegates that boundary to the previously recovered native _EndOfJob(bool) entry, which continues to reuse the original ESC Z and flush implementation. Isolated mocks and the older CUPS candidate retain their earlier fallback. No duplication of status algorithms or printing commands.
+
+Verification: GitHub Actions https://github.com/an3k/leitz-icon-linux/actions/runs/38668597114 passed all three jobs (Linux GCC/Clang, native macOS, authenticated OEM comparisons). The new isolated test asserts the native delegate is called exactly once after success, preserves flag, exact ESC Z bytes and flush, and is not called after an empty reply. Manufacturer full-process parity remains 25/25 command, 52/52 halftone, 4/4 normal raster, 4/4 RGB mode 1, 8/8 defined mode 0, 1/1 PRN, 6/6 startup and 1/1 loopback IPP, with no known failed comparisons. Complete private C++ ABI, undefined branches and live printer behavior remain unverified.
+
+Code commit: 85c0d2f9a83bebb7da73e014582530d292fbeceb. Changes confined to sources.
