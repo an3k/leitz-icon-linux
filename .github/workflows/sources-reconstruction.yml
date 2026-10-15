@@ -186,6 +186,15 @@ jobs:
           echo "COMMAND_ORIGINAL_SYMBOLS_END"
           echo "Unrecovered original native function symbols:"
           nm -nm "$raster" "$command" | grep -E '(_ResolveDeviceURI|_CheckPrinterStatus|_WriteData|_OpenLogFile)' || true
+          echo "Audit original command GetStatus native argument registers and caller forwarding:"
+          otool -tvV "$command" | awk '
+            /^_GetPrinterStatus:$/ || /^_GetUnitedStatus:$/ ||
+            /^_GetFirmvareVersion:$/ || /^_GetStatus:$/ {
+              show=1; count=0; print; next
+            }
+            show && /^_[A-Za-z0-9_.$]+:$/ {show=0}
+            show && count++ < 400 {print}
+          '
           echo "Original command utility assembly: flush, bit test and output"
           otool -tvV "$command" | awk '
             /^_FlushDataStreams:$/ || /^_is_bit_set:$/ ||
