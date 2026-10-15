@@ -155,7 +155,17 @@ static classic_original_raster_connected_io setup(mock*m) {
     io.finish=finish;io.is_terminated=terminated;io.termination_context=m;
     io.job_size=&m->job_size;io.socket_fd=-1;return io;
 }
-static void reset(mock*m){memset(m,0,sizeof *m);active=m;}
+/* This fixture launches multiple independently modeled CUPS jobs in one
+ * Unix test process. Real CUPS starts a fresh filter process for each job,
+ * with the OEM ProcessPage function-local static 32-bit width initialized
+ * by loader BSS to zero each time. Only the TEST must emulate that fresh
+ * process boundary; production adapter initialization does NOT clear it.
+ */
+static void reset(mock*m){
+    memset(m,0,sizeof *m);
+    classic_original_mode2_static_width=0;
+    active=m;
+}
 int main(void) {
     assert(setenv("PPD","classic.ppd",1)==0);
     char *argv[]={"raster2printer","1","u","title","1","test",NULL};
