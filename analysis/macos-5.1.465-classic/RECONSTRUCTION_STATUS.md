@@ -1970,3 +1970,15 @@ Verified live sources HEAD 7a4d5668bae50681edfc511befefd8449d2cfc86 and successf
 **Verified:** CI 38728912252 passed all three jobs: Linux GCC/Clang unit tests, native macOS CUPS build and original manufacturer execution comparisons. The OEM regression log contained 27/27 full command parity matches and 90 connected OEM raster/PRN/IPP comparison success lines, with no reported PARITY=NO. Defined raster outputs, original variable page lengths, cutter settings and 1023-byte command status responses remained unchanged. No real printer contacted.
 
 **Still incomplete:** Original private C++ memory layout, undefined mode-0/1 trailing-row overreads, unverified network/error paths, and device hardware results. Only sources was modified; driver, cups and main untouched.
+
+## 2026-10-15 — macOS CheckPrinterStatus boolean native return
+
+Before execution checked the actual sources HEAD 148cccad1f71f8568a7921ebb3181472ee55ffca and previously completed CI; no earlier implementations or successful tests were repeated manually.
+
+**OEM source evidence:** Authenticated manufacturer macOS 5.1.465 raster2printer disassembly from CI 38728912252 and earlier native audits shows that _CheckPrinterStatus takes a **pointer** to the 0x10a8-byte descriptor in RDI (0x1000091a9). Its return epilogue 0x1000099f2..0x100009a1d loads a single-byte status, executes `andb $0x1,%al`, then `movzbl %al,%eax`. Thus the original returns a canonical 0/1 boolean-sized value, not an unrestricted signed int. The OEM's literal source-level spelling (C++ `bool` vs another 8-bit representation) cannot be uniquely reconstructed from only these instructions.
+
+**Code correction:** Commit c063cf597b13041fab21708b7f679d4759b8b044 (sources) changes only the OEM-named `CheckPrinterStatus` return to `_Bool`, leaves its proven descriptor-pointer argument unchanged and adapts the existing `classic_original_check_status` int-valued analysis function to a true/false result at that external boundary. The internal helper deliberately retains -2 to mark OEM undefined/unverified response branches; converting this marker to a bool does NOT certify those cases as manufacturer-equivalent. The native signature compilation probe now asserts `_Bool (*)(descriptor*)`. No encoder, CUPS media logic, ordinary raster job or physical printer is changed.
+
+**Validation:** GitHub Actions 38732042515 passed all three jobs: GCC/Clang offline source tests, native macOS Apple CUPS build including status ABI probe, SHA-256-verified OEM manufacturer executable comparison. The original command comparison shows 27/27 successful cases and 90 recorded connected raster/PRN/IPP parity-success lines; no `PARITY=NO` reported. Dormant OEM CheckPrinterStatus is not invoked by the normal original raster job; no side-by-side status execution or real hardware proof is claimed.
+
+**Remaining:** private C++ layout, undefined 64-byte backchannel/status and mode-0/1 final-row memory access, unusual resolver/socket error paths, and real device operation.
