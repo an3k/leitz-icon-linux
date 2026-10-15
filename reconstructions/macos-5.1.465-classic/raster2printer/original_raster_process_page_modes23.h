@@ -8,7 +8,12 @@
  * native C++ mangled label __ZZ11ProcessPageE26bytesPrintedInPreviousLine.
  * Its memory width and read/write sites are verified in original Mach-O.
  */
+#if defined(__APPLE__)
+extern uint32_t classic_original_mode2_static_width
+    __asm__("__ZZ11ProcessPageE26bytesPrintedInPreviousLine");
+#else
 extern uint32_t classic_original_mode2_static_width;
+#endif
 
 /* Native macOS 5.1.465 ProcessPage: modes 2/3 and the verified
  * mode-2 reprint-first-row width-command exception.
