@@ -512,10 +512,10 @@ int raster2printer(int argc,char **argv) {
 
     c->bridge.original=(classic_original_document_ops){
         c,write_data,flush_data_streams,close_raster,
-        &job_size,-1,terminated
+        &job_size,-1,terminated,status_socket_now
     };
     c->page_io=(classic_original_page_lifecycle_ops){
-        c,write_data,flush_data_streams,&job_size,-1
+        c,write_data,flush_data_streams,&job_size,-1,status_socket_now
     };
     classic_original_process_page_adapter_initialize(
         &c->process,c->page_io,terminated,c);

@@ -15,12 +15,14 @@ typedef struct {
     unsigned char payload[640];
     unsigned stop_after_calls;
     int sent_wrong_descriptor;
+    int live_socket,change_socket_after_first;
+    unsigned socket_reads;
 } mock;
 
 static int send_bytes(void *ctx,const uint8_t *data,size_t n,
                       const void *desc,size_t desc_len,int fd) {
     mock*m=ctx;
-    assert(fd==-1);
+    assert(fd==m->live_socket);
     assert(desc_len==sizeof m->descriptor);
     assert(desc!=&m->descriptor);
     assert(memcmp(desc,&m->descriptor,desc_len)==0);
@@ -29,8 +31,10 @@ static int send_bytes(void *ctx,const uint8_t *data,size_t n,
     m->length[m->calls++]=n;
     memcpy(m->payload+m->written,data,n);
     m->written+=n;
+    if(m->change_socket_after_first && m->calls==1)m->live_socket=19;
     return -1; /* OEM ignores WriteData errors. */
 }
+static int socket_now(void*ctx){mock*m=ctx;++m->socket_reads;return m->live_socket;}
 static void unused_flush(void*ctx){(void)ctx;assert(0);}
 static int is_terminated(void *ctx) {
     mock*m=ctx;
@@ -39,7 +43,7 @@ static int is_terminated(void *ctx) {
 static classic_original_process_modes01_io setup(mock *m){
     classic_original_process_modes01_io io={0};
     io.output=(classic_original_page_lifecycle_ops){
-        m,send_bytes,unused_flush,&m->job_size,-1
+        m,send_bytes,unused_flush,&m->job_size,-1,NULL
     };
     io.is_terminated=is_terminated;
     io.termination_context=m;
@@ -47,6 +51,7 @@ static classic_original_process_modes01_io setup(mock *m){
 }
 static void initialize(mock*m,unsigned mode,unsigned stride,unsigned height){
     memset(m,0,sizeof *m);
+    m->live_socket=-1;
     m->descriptor.packed_bytes_per_line=stride;
     m->descriptor.cups_height=(uint16_t)height;
     uint32_t v=mode;
@@ -95,6 +100,13 @@ int main(void) {
     assert(classic_original_process_page_modes01(&io,&m.descriptor,rows,0)==0);
     assert(m.calls==2 && m.job_size==9); /* SIGTERM after first raster row */
 
+    /* Original reloads the socket for the mode-0 preamble and both
+     * subsequent row writes. Four lookahead bytes remain readable. */
+    initialize(&m,0,1,2);io=setup(&m);
+    m.change_socket_after_first=1;io.output.current_socket_fd=socket_now;
+    assert(classic_original_process_page_modes01(
+        &io,&m.descriptor,rows,0)==0);
+    assert(m.calls==3 && m.socket_reads==3 && m.live_socket==19);
     initialize(&m,3,1,64);io=setup(&m);
     assert(classic_original_process_page_modes01(&io,&m.descriptor,rows,0)==-2);
     assert(m.calls==0 && m.job_size==0); /* no mode-3 behavior invented */

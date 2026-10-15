@@ -146,9 +146,9 @@ static classic_original_raster_connected_io setup(mock*m) {
         m,classic_original_bridge_end_document,close_fd,close_debug,
         send_prn,doc_write,NULL,NULL};
     classic_original_document_ops doc={
-        m,doc_write,doc_flush,doc_close,&m->job_size,-1,terminated};
+        m,doc_write,doc_flush,doc_close,&m->job_size,-1,terminated,NULL};
     m->bridge.original=doc;
-    m->page_io=(classic_original_page_lifecycle_ops){m,doc_write,doc_flush,&m->job_size,-1};
+    m->page_io=(classic_original_page_lifecycle_ops){m,doc_write,doc_flush,&m->job_size,-1,NULL};
     classic_original_process_page_adapter_initialize(
         &m->process_io,m->page_io,terminated,m);
     io.initialization=init;io.page_output=page;

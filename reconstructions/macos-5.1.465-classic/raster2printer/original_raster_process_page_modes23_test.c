@@ -16,17 +16,21 @@ typedef struct {
     unsigned calls;
     uint8_t stream[2048];
     unsigned abort_after_calls;
+    int live_socket,change_socket_after_first;
+    unsigned socket_reads;
 } mock;
 static int write_data(void *ctx,const uint8_t *data,size_t count,
                       const void *copy,size_t size,int fd){
-    mock*m=ctx;assert(fd==-1);
+    mock*m=ctx;assert(fd==m->live_socket);
     assert(size==sizeof m->descriptor && copy!=&m->descriptor);
     assert(memcmp(copy,&m->descriptor,size)==0);
     assert(m->calls<160 && m->bytes+count<=sizeof m->stream);
     m->length[m->calls]=count;m->offsets[m->calls]=m->bytes;
     ++m->calls;memcpy(m->stream+m->bytes,data,count);m->bytes+=count;
+    if(m->change_socket_after_first && m->calls==1)m->live_socket=19;
     return -1; /* OEM does not stop on failed WriteData. */
 }
+static int socket_now(void*ctx){mock*m=ctx;++m->socket_reads;return m->live_socket;}
 static void flush(void *ctx){(void)ctx;assert(0&&"No EndPage inside ProcessPage");}
 static int term(void *ctx){
     mock*m=ctx;return m->abort_after_calls&&m->calls>=m->abort_after_calls;
@@ -34,7 +38,7 @@ static int term(void *ctx){
 static classic_original_process_modes23_io setup(mock*m){
     classic_original_process_modes23_io io={0};
     io.output=(classic_original_page_lifecycle_ops){
-        m,write_data,flush,&m->job_size,-1
+        m,write_data,flush,&m->job_size,-1,NULL
     };
     io.job_cache=&m->cache;
     io.is_terminated=term;io.termination_context=m;
@@ -42,6 +46,7 @@ static classic_original_process_modes23_io setup(mock*m){
 }
 static void begin(mock*m,unsigned mode,unsigned stride,unsigned height){
     memset(m,0,sizeof *m);
+    m->live_socket=-1;
     m->descriptor.packed_bytes_per_line=stride;
     m->descriptor.cups_height=(uint16_t)height;
     uint32_t op=mode;
@@ -284,6 +289,12 @@ int main(void){
         assert(memcmp(m.stream,expected,sizeof expected)==0);
     }
 
-    puts("OEM mode-2/3 normal ProcessPage command boundaries, progress and state passed");
+    begin(&m,3,2,1);io=setup(&m);
+    uint8_t live_pixels[2]={0x12,0x34};
+    m.change_socket_after_first=1;io.output.current_socket_fd=socket_now;
+    assert(classic_original_process_page_modes23(
+        &io,&m.descriptor,live_pixels,0)==0);
+    assert(m.calls==3 && m.socket_reads==3 && m.live_socket==19);
+    puts("OEM modes 2/3 fragment boundaries and live socket reads passed");
     return 0;
 }

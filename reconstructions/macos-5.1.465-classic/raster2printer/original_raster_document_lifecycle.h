@@ -17,6 +17,10 @@ typedef struct {
     uint32_t *job_size;
     int socket_fd;
     int (*terminated)(void *);
+    /* Original StartDocument 0x6c92/0x6d47, EndDocument 0x8b6b/0x8c4b
+     * load __ZL4sock directly before EACH independent _WriteData.
+     * NULL retains the snapshot fallback for isolated source fixtures. */
+    int (*current_socket_fd)(void *);
 } classic_original_document_ops;
 
 /* These functions represent the exact defined manufacturer call sequence.

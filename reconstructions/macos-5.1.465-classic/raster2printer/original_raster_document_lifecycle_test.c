@@ -13,7 +13,8 @@ typedef struct {
     size_t lengths[8];
     unsigned writes,flushes,closes;
     void *closed_handle;
-    int sock,terminate;
+    int sock,terminate,change_socket_after_first;
+    unsigned socket_reads;
     uint32_t job_size;
     char order[16];
     size_t order_len;
@@ -33,6 +34,7 @@ static int write_data(void *ctx,const uint8_t *p,size_t n,
     m->offsets[m->writes]=m->size;
     m->lengths[m->writes]=n;
     ++m->writes;
+    if(m->change_socket_after_first && m->writes==1)m->sock=29;
     memcpy(m->payload+m->size,p,n);
     m->size+=n;
     return -1; /* Manufacturer ignores WriteData errors. */
@@ -42,9 +44,10 @@ static void close_raster(void*ctx,void*handle){
     mock*m=ctx;event(m,'C');++m->closes;m->closed_handle=handle;
 }
 static int terminated(void*ctx){return ((mock*)ctx)->terminate;}
+static int socket_now(void*ctx){mock*m=ctx;++m->socket_reads;return m->sock;}
 static classic_original_document_ops setup(mock*m) {
     classic_original_document_ops io={m,write_data,flush,close_raster,
-                                      &m->job_size,m->sock,terminated};
+                                      &m->job_size,m->sock,terminated,NULL};
     return io;
 }
 static void begin(mock*m,int high_res,int cut,int term,unsigned initial) {
@@ -102,6 +105,18 @@ int main(void) {
     memset(m.descriptor,0,sizeof(void*));
     classic_original_end_document(&io,m.descriptor);
     assert(m.closed_handle==NULL && m.closes==1);
-    puts("OEM native StartDocument and EndDocument write/flush/CUPS lifecycle passed");
+    /* OEM native reads socket for each StartDocument WriteData. */
+    begin(&m,1,0,0,0);io=setup(&m);
+    m.change_socket_after_first=1;io.current_socket_fd=socket_now;
+    classic_original_start_document(&io,m.descriptor);
+    assert(m.writes==2 && m.socket_reads==2 && m.sock==29);
+    assert(m.size==124 && m.job_size==124);
+    /* EndDocument independently reloads before both sends too. */
+    begin(&m,0,0,0,0);io=setup(&m);
+    m.change_socket_after_first=1;io.current_socket_fd=socket_now;
+    classic_original_end_document(&io,m.descriptor);
+    assert(m.writes==2 && m.socket_reads==2 && m.sock==29);
+    assert(strcmp(m.order,"WFWC")==0);
+    puts("OEM native StartDocument/EndDocument live socket and I/O passed");
     return 0;
 }

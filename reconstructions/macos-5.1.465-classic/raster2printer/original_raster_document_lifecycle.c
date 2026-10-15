@@ -20,7 +20,8 @@ static void emit_oem(const classic_original_document_ops *io,
     memcpy(copy,descriptor,sizeof copy);
     *io->job_size += (uint32_t)length;
     (void)io->write_data(io->context,bytes,length,copy,sizeof copy,
-                         io->socket_fd);
+                         io->current_socket_fd ?
+                         io->current_socket_fd(io->context) : io->socket_fd);
 }
 void classic_original_start_document(const classic_original_document_ops *io,
                                      const unsigned char *descriptor) {

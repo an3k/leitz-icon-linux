@@ -22,7 +22,10 @@ static void send_original(const classic_original_page_lifecycle_ops *ops,
     memcpy(&by_value,descriptor,sizeof by_value);
     *ops->job_size+=(uint32_t)length;
     (void)ops->write_data(ops->context,bytes,length,&by_value,
-                          sizeof by_value,ops->socket_fd);
+                          sizeof by_value,
+                          ops->current_socket_fd ?
+                          ops->current_socket_fd(ops->context) :
+                          ops->socket_fd);
 }
 
 int classic_original_process_page_modes01(
