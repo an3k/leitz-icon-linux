@@ -70,6 +70,11 @@ jobs:
             $1 ~ /^000000010000[0-9a-f]+$/ &&
             $1 >= "0000000100006440" && $1 <= "0000000100006530" {print}
           '
+          echo "OEM raster job exit WriteData 6-byte reset / single ESC source of socket and job size"
+          otool -tvV "$bin" | awk '
+            $1 ~ /^000000010000[0-9a-f]+$/ &&
+            $1 >= "0000000100006510" && $1 <= "0000000100006740" {print}
+          '
           echo "OEM raster job tail pointer-slot initializer and original CUPS header page-size storage"
           otool -tvV "$bin" | awk '
             $1 ~ /^000000010000[0-9a-f]+$/ &&
