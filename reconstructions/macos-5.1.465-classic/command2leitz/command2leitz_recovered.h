@@ -54,7 +54,14 @@ int GetPrinterStatus(const classic_command_io *,int,double);
 int GetUnitedStatus(const classic_command_io *,int,double);
 int GetFirmvareVersion(const classic_command_io *,int,double);
 #endif
+/* The manufacturer exports _EndOfJob(bool). The callback-only
+ * implementation remains available under a separate name on Apple. */
+#if defined(__APPLE__)
+void EndOfJob(const classic_command_io *,int)
+    __asm__("_classic_command_callback_EndOfJob");
+#else
 void EndOfJob(const classic_command_io *,int);
+#endif
 
 /* Recovered from _main, 0x100000fe2..0x10000118f.
  * Each call consumes a command-file name/value pair. Return value 1 means

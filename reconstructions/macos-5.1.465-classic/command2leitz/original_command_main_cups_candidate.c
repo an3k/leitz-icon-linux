@@ -112,6 +112,10 @@ int classic_command_native_get_united_status(_Bool flag,double timeout) {
 int classic_command_native_get_firmware_version(_Bool flag,double timeout) {
   return classic_command_native_get_status('V',flag,"FIRMWARE_VERSION_",timeout);
 }
+void classic_command_native_end_of_job(_Bool flag) {
+  classic_command_io io={NULL,out_char,out_flush,back,msg,log_file,notify};
+  EndOfJob(&io,flag);
+}
 /* OEM _main routes ReportStatus to an immediate exit after the query;
  * the existing original_command_main_flow.c preserves that behavior. */
 static int query(void *ctx,char command,const char*prefix,int send,double timeout){

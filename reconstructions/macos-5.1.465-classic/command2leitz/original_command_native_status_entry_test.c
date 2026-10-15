@@ -5,12 +5,15 @@
 #include "original_command_native_status_entry.h"
 typedef int (*query_entry)(_Bool,double);
 typedef int (*status_entry)(char,_Bool,const char *,double);
+typedef void (*end_entry)(_Bool);
 static query_entry original_printer=classic_command_native_get_printer_status;
 static query_entry original_united=classic_command_native_get_united_status;
 static query_entry original_firmware=classic_command_native_get_firmware_version;
 static status_entry original_status=classic_command_native_get_status;
+static end_entry original_end=classic_command_native_end_of_job;
 int classic_command_native_status_abi_probe(_Bool flag,double timeout,
                                              const char *prefix) {
+  original_end(flag);
   return original_printer(flag,timeout)+original_united(flag,timeout)
        +original_firmware(flag,timeout)
        +original_status('U',flag,prefix,timeout);

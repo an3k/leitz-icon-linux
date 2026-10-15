@@ -11,6 +11,9 @@
  *   double timeout in %xmm0.
  * This recovers the native function signature, not every private
  * C++ global or instruction-level aspect of the OEM status routine.
+ * _GetStatus 0x1000019e0..0x1000019eb forwards the masked bool flag
+ * in %edi to _EndOfJob, which has one bool parameter. The existing
+ * recovered ESC Z / stdout flush body is reused without duplication.
  * The existing single recovered status body and CUPS callbacks are
  * reused; no alternate status algorithm is introduced.
  */
@@ -27,10 +30,13 @@ int classic_command_native_get_united_status(_Bool should_send_esc_a,
 int classic_command_native_get_firmware_version(_Bool should_send_esc_a,
                                                  double timeout)
     __asm__("_GetFirmvareVersion");
+void classic_command_native_end_of_job(_Bool should_send_esc_a)
+    __asm__("_EndOfJob");
 #else
 int classic_command_native_get_status(char,_Bool,const char *,double);
 int classic_command_native_get_printer_status(_Bool,double);
 int classic_command_native_get_united_status(_Bool,double);
 int classic_command_native_get_firmware_version(_Bool,double);
+void classic_command_native_end_of_job(_Bool);
 #endif
 #endif
