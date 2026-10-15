@@ -107,3 +107,39 @@ does not prove all original command paths or ABI equivalents.
 **Original raster global state recovery (2026-10-14):** [CI run 38638374211](https://github.com/an3k/leitz-icon-linux/actions/runs/38638374211) verifies the native joined CUPS raster candidate now declares and uses the original 32-bit `__ZL8job_size` (one shared _main/status/page counter), `__fd_stdout` (actual stdout-or-null FILE pointer), `__fd_dump` and `__fd_log` (existing PRN/log helper stream pointers). The manufacturer x86-64 disassembly confirms these labels and _WriteData's FILE pointer gate. Original algorithm bodies and CUPS stream bytes are unchanged in all defined parity cases. These recovered native symbol names and selected state transitions do not establish complete C++ calling ABI or exact private memory layout.
 
 **OEM command prefix data objects reconstructed (2026-10-15):** Native manufacturer `nm` reports four **local 8-byte __DATA,__data pointers** at `0x1000061d0..0x1000061e8`: `_kPIPrinterStatusCommandPrefix`, `_kPIUnitedStatusCommandPrefix`, `_kPIFirmawareVersionCommandPrefix` (original typo), `_kPILeitzIconDomain`. Recovered callback and joined native command path now use shared file-local pointer objects with precisely those Apple assembler labels; they previously used arrays/literals. [CI 38702024563](https://github.com/an3k/leitz-icon-linux/actions/runs/38702024563) checks their native object labels, unit tests and complete manufacturer command output parity. This establishes original source-level data object identity and textual values, not exact OEM relocations or machine code.
+
+## Original 5.1.465 native protocol-byte and error-stream data symbols (2026-10-15)
+
+These global data objects are **in addition** to the native function-symbol
+inventory above. Original addresses and sections come directly from the two
+checked-in SHA-256-verified Mach-O `*.symbols.txt` listings. The three
+read-only selector byte values derive from original Leitz Linux 1.0.3
+`raster_c_functions.c` for ESC/SYN and the original 5.1.465 mode-2
+raster disassembly and byte output for compressed selector 0x17.
+The source-level object types are reconstructions, not recovered C++
+type-declaration text.
+
+| Original binary | Symbol | Manufacturer address | Recovered state |
+|---|---|---|---|
+| raster2printer | `_ESC` | `0x10000a438` | 1-byte read-only `0x1b` in `original_raster_private_helpers.c` |
+| raster2printer | `_SYN` | `0x10000a439` | 1-byte read-only `0x16` |
+| raster2printer | `_SYN_COMPRESSED_RASTER` | `0x10000a43a` | 1-byte read-only `0x17`, original `_ProcessPage` uses symbol at `0x1000085ef` |
+| raster2printer | `__fd_err` | `0x1000114b0` | 8-byte zero-initialized writable native `FILE *` global, not conflated with `stderr` |
+| command2leitz | `_ESC` | `0x100004d68` | 1-byte read-only `0x1b` in `original_command_file_helpers.c` |
+| command2leitz | `_SYN` | `0x100004d69` | 1-byte read-only `0x16` |
+| command2leitz | `_SYN_COMPRESSED_RASTER` | `0x100004d6a` | 1-byte read-only `0x17` |
+| command2leitz | `__fd_err` | `0x100006210` | 8-byte zero-initialized native `FILE *` global; no new stderr routing inferred |
+
+[Code commits 2a03c08b](https://github.com/an3k/leitz-icon-linux/commit/2a03c08bd15dfd4f66a09c887210681d958e80a4)
+and [9f28594e](https://github.com/an3k/leitz-icon-linux/commit/9f28594ec34b0266e3fee607325afd7284f6a284)
+restore these objects independently in each reconstructed executable;
+unit tests assert all three protocol byte values, and native macOS
+`nm` checks require every original data-symbol name in **both**
+binaries. The OEM encoding, global stream operation and CUPS callback
+algorithms are **not** rewritten. [CI 38774571374](https://github.com/an3k/leitz-icon-linux/actions/runs/38774571374)
+passed all three jobs, the pre-existing 27 command and 90 connected
+raster/PRN/IPP parity-success records, with zero reported parity failures.
+
+A matching original data symbol and tested value are not evidence that
+all original C++ translation-unit lifetime, initialization, errors or
+hardware behavior have been reconstructed.
