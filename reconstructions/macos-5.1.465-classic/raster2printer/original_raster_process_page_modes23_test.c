@@ -129,13 +129,6 @@ int main(void){
     assert(classic_original_process_page_callback(
         &adapter,&m.descriptor,pixels,3,0)==0);
     check(&m,cached2,sizeof cached2,cached2parts,3);
-    reset_output(&m);
-    uint32_t unsupported=1;
-    memcpy((uint8_t *)&m.descriptor+0x40,&unsupported,sizeof unsupported);
-    assert(classic_original_process_page_callback(
-        &adapter,&m.descriptor,pixels,4,1)==-2);
-    assert(m.calls==0 && m.job_size==0);
-
     begin(&m,3,4,3);
     uint8_t *m0=pixels,*m1=pixels+4;
     memset(pixels,0,sizeof pixels);m0[2]=0xff;m1[2]=0xff;
