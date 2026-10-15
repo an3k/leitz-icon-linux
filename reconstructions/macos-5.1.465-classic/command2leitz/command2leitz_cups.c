@@ -92,7 +92,7 @@ int main(int argc,char **argv) {
   ppdClose(ppd);
 
   classic_command_io io={NULL,stdout_char,stdout_flush,backchannel,
-                         stderr_message,leitz_log,leitz_notify};
+                         stderr_message,leitz_log,leitz_notify,NULL};
   char command[1024];
   char *value=NULL;
   int lineno=0;

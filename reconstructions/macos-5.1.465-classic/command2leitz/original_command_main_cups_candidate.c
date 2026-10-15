@@ -94,13 +94,22 @@ static void notify(void *ctx,const char*domain){(void)ctx;
   (void)domain;
 #endif
 }
+/* Recovered _GetStatus calls _EndOfJob(bool) after any positive
+ * backchannel reply, per OEM 0x1000019e0..0x1000019eb.
+ * Delegate the callback core's termination boundary to that genuine
+ * native symbol, rather than leaving _EndOfJob an uncalled export. */
+static void end_job_native(void *ctx,int flag) {
+  (void)ctx;
+  classic_command_native_end_of_job((_Bool)flag);
+}
 /* True original function entrypoints now use the manufacturer's
  * register ABI, while the single already-verified callback algorithm
  * remains an internal implementation detail. These OEM-named functions
  * are the ones reached by the joined CUPS _main. */
 int classic_command_native_get_status(char command,_Bool flag,
                                        const char *prefix,double timeout) {
-  classic_command_io io={NULL,out_char,out_flush,back,msg,log_file,notify};
+  classic_command_io io={NULL,out_char,out_flush,back,msg,log_file,notify,
+                         end_job_native};
   return classic_command_get_status(&io,command,prefix,flag,timeout);
 }
 int classic_command_native_get_printer_status(_Bool flag,double timeout) {
@@ -113,7 +122,8 @@ int classic_command_native_get_firmware_version(_Bool flag,double timeout) {
   return classic_command_native_get_status('V',flag,"FIRMWARE_VERSION_",timeout);
 }
 void classic_command_native_end_of_job(_Bool flag) {
-  classic_command_io io={NULL,out_char,out_flush,back,msg,log_file,notify};
+  classic_command_io io={NULL,out_char,out_flush,back,msg,log_file,notify,
+                         NULL};
   EndOfJob(&io,flag);
 }
 /* OEM _main routes ReportStatus to an immediate exit after the query;

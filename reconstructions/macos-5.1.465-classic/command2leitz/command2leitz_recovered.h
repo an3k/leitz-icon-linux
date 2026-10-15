@@ -20,6 +20,12 @@ typedef struct {
    * otherwise 0. This is intentionally NOT a fatal condition. */
   int (*write_leitz_log)(void *context, const char *content);
   void (*post_notification)(void *context, const char *domain);
+  /* Source-level callback boundary only: the original native GetStatus
+   * calls _EndOfJob(bool) directly on a successful backchannel reply.
+   * The joined CUPS candidate uses the recovered native function here;
+   * earlier isolated callbacks preserve their original standalone path
+   * by setting this optional slot to NULL. */
+  void (*end_job)(void *context, int should_send_esc_a);
 } classic_command_io;
 
 /* Recovered from 0x100001440..0x100001a26 and 0x100001a30..0x100001a76.

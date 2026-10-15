@@ -104,7 +104,10 @@ int GetStatus(const classic_command_io *io, char command,
       }
     }
   }
-  EndOfJob(io, should_send_esc_a);
+  if (io->end_job)
+    io->end_job(io->context, should_send_esc_a);
+  else
+    EndOfJob(io, should_send_esc_a);
   return 1;
 }
 

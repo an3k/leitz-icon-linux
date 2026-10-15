@@ -15,6 +15,8 @@ struct capture {
   char log_text[2048];
   unsigned logged;
   unsigned notified;
+  unsigned native_end_calls;
+  int last_end_flag;
   int log_failure;
 };
 static int emit_byte(void *p, int c) {
@@ -49,6 +51,14 @@ static void notify(void *p,const char *domain) {
   assert(strcmp(domain,"com.xyron.Leitz-Icon-Software")==0);
   s->notified++;
 }
+static void delegated_end(void *p,int flag) {
+  struct capture *s=p;
+  ++s->native_end_calls;
+  s->last_end_flag=flag;
+  emit_byte(p,0x1b);
+  emit_byte(p,'Z');
+  (void)flush(p);
+}
 static void reset(struct capture *s) {
   memset(s,0,sizeof *s);
   s->length=1;
@@ -56,7 +66,7 @@ static void reset(struct capture *s) {
 int main(void) {
   struct capture s;
   reset(&s);
-  classic_command_io io={&s,emit_byte,flush,read_reply,log_line,write_log,notify};
+  classic_command_io io={&s,emit_byte,flush,read_reply,log_line,write_log,notify,NULL};
   s.response[0]=3;
   assert(classic_command_dispatch(&io,"reportstatus","",0)==1);
   assert(s.count==4 && memcmp(s.stream,"\033A\033Z",4)==0);
@@ -120,6 +130,23 @@ int main(void) {
   assert(s.count==2 && !memcmp(s.stream,"\033Z",2));
   assert(s.flushes==1);
 
-  puts("command2leitz active-path and original-named entry-point checks passed");
+  /* Native-only termination bridge on a successful reply: invoke
+   * the native boundary ONCE, suppress the callback fallback and
+   * preserve byte output, flush count and manufacturer flag. */
+  classic_command_io native_route=io;
+  native_route.end_job=delegated_end;
+  reset(&s);
+  s.response[0]=0x03;
+  assert(GetStatus(&native_route,'A',"PRINTER_STATUS_",1,7.0)==1);
+  assert(s.native_end_calls==1 && s.last_end_flag==1);
+  assert(s.count==4 && !memcmp(s.stream,"\033A\033Z",4));
+  assert(s.flushes==2);
+  /* No successful reply: original _EndOfJob is NOT called. */
+  reset(&s);
+  s.length=0;
+  assert(GetStatus(&native_route,'A',"PRINTER_STATUS_",0,7.0)==0);
+  assert(s.native_end_calls==0 && s.count==2 && s.flushes==1);
+
+  puts("command2leitz active-path and native EndOfJob delegation checks passed");
   return 0;
 }
