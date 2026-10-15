@@ -17,6 +17,24 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Actual original _ProcessPage file-local static C++ state:
+ * __ZZ11ProcessPageE26bytesPrintedInPreviousLine
+ * Native original raster2printer __DATA,__bss at 0x100011cdc.
+ * OEM 0x10000815f loads this 32-bit value for mode-2 ESC D test;
+ * OEM 0x10000821f stores the new trimmed width ONLY after sending
+ * ESC D. The initial zero is process-static, not page-local.
+ * C reconstruction exposes it across source modules using the exact
+ * Apple Mach-O name, without claiming C++ private linkage identity.
+ */
+#if defined(__APPLE__)
+uint32_t classic_original_mode2_static_width
+    __asm__("__ZZ11ProcessPageE26bytesPrintedInPreviousLine");
+#else
+uint32_t classic_original_mode2_static_width;
+#endif
+_Static_assert(sizeof(classic_original_mode2_static_width)==4,
+               "OEM ProcessPage static-width 32-bit type");
+
 static void emit(const classic_original_page_lifecycle_ops *ops,
                  const classic_oem_read_descriptor *descriptor,
                  const uint8_t *data,size_t length) {
@@ -109,6 +127,11 @@ int classic_original_process_page_modes23(
                 (mode==2u && first_nonblank && reprint);
             if (has_width) {
                 emit(&io->output,descriptor,encoded+at,3);
+                /* Original width cache is updated only by mode 2,
+                 * immediately after the 3-byte ESC D _WriteData,
+                 * not by blank rows, mode 3 or a suppressed width. */
+                if (mode==2u)
+                    classic_original_mode2_static_width=new_width;
                 at+=3;
             }
             if (mode==2u) {

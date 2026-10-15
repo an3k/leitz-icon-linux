@@ -31,6 +31,18 @@ int classic_original_process_page_callback(
             &adapter->modes01,descriptor,pixels,page_index);
     }
     if (mode==2u || mode==3u) {
+        /* For mode 2 the OEM's sole width source is the original
+         * process-static 32-bit symbol (read at native 0x815f).
+         * The independently recovered row algorithm continues to
+         * consume its existing cache value; synchronize that field
+         * from the authentic named global, never initialize the
+         * OEM static cache to zero at every new page/job.
+         * The OEM width store at 0x821f is reproduced at the exact
+         * ESC D output site in the original modes23 source module.
+         * Mode 3 still owns its separate descriptor-width cache. */
+        if (mode==2u)
+            adapter->cache.mode2_previous_width=
+                classic_original_mode2_static_width;
         /* Page-specific OEM flag, not persistent job state. Keep the
          * shared width cache; do not leak reprint into later pages. */
         classic_original_process_modes23_io page_io=adapter->modes23;

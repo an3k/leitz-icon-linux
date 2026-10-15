@@ -105,8 +105,11 @@ int main(void){
     assert(classic_original_process_page_modes23(&io,&m.descriptor,r3,3)==0);
     check(&m,cached2,sizeof cached2,cached2parts,3);
 
-    /* Integration regression: the public ProcessPage dispatcher must
-     * preserve cached width while forwarding the isolated reprint flag. */
+    /* Integration regression: the native ProcessPage static cache is
+     * separate from this fixture's standalone row-encoder cache.
+     * The live OEM static begins zero, persists across ProcessPage
+     * invocations and is not reset by adapter initialization. */
+    classic_original_mode2_static_width=0;
     begin(&m,2,4,1);
     memset(pixels,0,sizeof pixels);
     pixels[1]=0x55;pixels[2]=0x55;
@@ -117,6 +120,7 @@ int main(void){
     assert(classic_original_process_page_callback(
         &adapter,&m.descriptor,pixels,0,0)==0);
     check(&m,forced2,sizeof forced2,forced2parts,4);
+    assert(classic_original_mode2_static_width==2);
     reset_output(&m);
     assert(classic_original_process_page_callback(
         &adapter,&m.descriptor,pixels,1,0)==0);
@@ -129,6 +133,18 @@ int main(void){
     assert(classic_original_process_page_callback(
         &adapter,&m.descriptor,pixels,3,0)==0);
     check(&m,cached2,sizeof cached2,cached2parts,3);
+
+    /* OEM 0x815f MUST read the actual process-static symbol, not an
+     * earlier synthetic job-cache snapshot. Simulate a changed OEM
+     * global while preserving the adapter's old width=2 and verify
+     * another ESC D is sent, followed by OEM 0x821f updating global. */
+    classic_original_mode2_static_width=0;
+    reset_output(&m);
+    assert(classic_original_process_page_callback(
+        &adapter,&m.descriptor,pixels,4,0)==0);
+    check(&m,forced2,sizeof forced2,forced2parts,4);
+    assert(classic_original_mode2_static_width==2);
+
     begin(&m,3,4,3);
     uint8_t *m0=pixels,*m1=pixels+4;
     memset(pixels,0,sizeof pixels);m0[2]=0xff;m1[2]=0xff;

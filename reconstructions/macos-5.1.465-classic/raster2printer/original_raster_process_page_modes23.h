@@ -4,6 +4,12 @@
 #include "original_raster_page_lifecycle.h"
 #include "classic_process_page_modes_23.h"
 
+/* OEM _ProcessPage static local persisted across page invocations:
+ * native C++ mangled label __ZZ11ProcessPageE26bytesPrintedInPreviousLine.
+ * Its memory width and read/write sites are verified in original Mach-O.
+ */
+extern uint32_t classic_original_mode2_static_width;
+
 /* Native macOS 5.1.465 ProcessPage: modes 2/3 and the verified
  * mode-2 reprint-first-row width-command exception.
  * This bridge preserves the independently reconstructed row encoder.
