@@ -144,7 +144,7 @@ static classic_original_raster_connected_io setup(mock*m) {
     classic_oem_page_output_io page={m,dither,startpage,process,endpage};
     classic_original_raster_finish_ops finish={
         m,classic_original_bridge_end_document,close_fd,close_debug,
-        send_prn,doc_write};
+        send_prn,doc_write,NULL};
     classic_original_document_ops doc={
         m,doc_write,doc_flush,doc_close,&m->job_size,-1,terminated};
     m->bridge.original=doc;
