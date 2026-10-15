@@ -13,6 +13,10 @@
  * These are actual function surfaces, not the internal callback ABI.
  * OEM private C++ data layout and other function ABIs remain partial.
  */
+/* OEM _raster2printer call 0x100005f9e..0x100005fb9:
+ * rdi=descriptor, rsi=RGB, rdx=monochrome, ecx=quality. */
+void DitherPage(classic_oem_read_descriptor *descriptor,
+                const uint8_t *rgb,uint8_t *monochrome,unsigned quality);
 void StartPage(classic_oem_read_descriptor *descriptor);
 int ProcessPage(classic_oem_read_descriptor *descriptor,
                 const uint8_t *pixels,unsigned page_index,int reprint);

@@ -3,6 +3,10 @@
 #include "original_raster_native_page_entry.h"
 _Static_assert(sizeof(classic_oem_read_descriptor)==0x10a8,
                "Original stack/by-value document image size");
+_Static_assert(_Generic(&DitherPage,
+               void (*)(classic_oem_read_descriptor *,const uint8_t *,
+                        uint8_t *,unsigned):1,default:0),
+               "OEM DitherPage takes exactly four register arguments");
 _Static_assert(_Generic(&StartPage,
                void (*)(classic_oem_read_descriptor *):1,default:0),
                "OEM StartPage is one descriptor pointer");

@@ -395,7 +395,7 @@ static int send_prn(void *ctx) {
  * _StartPage 0x100007399, _EndPage 0x1000089bb. The OEM-named
  * StartPage, ProcessPage and EndPage use their original call surfaces.
  * Unmodified source-only callback adapters remain below.
- * Other OEM exports (e.g. DitherPage/StartDocument) are still bridged.
+ * Other OEM exports (e.g. StartDocument/EndDocument) remain bridged.
  */
 void StartDocument(void *ctx,const unsigned char *descriptor,unsigned length) {
     classic_original_bridge_start_document(ctx,descriptor,length);
@@ -403,10 +403,9 @@ void StartDocument(void *ctx,const unsigned char *descriptor,unsigned length) {
 void EndDocument(void *ctx,const void *descriptor,size_t length) {
     classic_original_bridge_end_document(ctx,descriptor,length);
 }
-void DitherPage(void *ctx,classic_oem_read_descriptor *descriptor,
+void DitherPage(classic_oem_read_descriptor *descriptor,
                 const uint8_t *rgb,uint8_t *monochrome,unsigned quality) {
-    classic_original_raster_dither_bridge(
-        ctx,descriptor,rgb,monochrome,quality);
+    classic_original_dither_page(descriptor,rgb,monochrome,quality);
 }
 void StartPage(classic_oem_read_descriptor *descriptor) {
     classic_original_start_page(&candidate.page_io,descriptor);
@@ -422,6 +421,12 @@ void EndPage(classic_oem_read_descriptor descriptor) {
 /* The connected-job callback ABI is ours, not the original's. These
  * bridges call the actual OEM-signature exports above, rather than
  * attaching a private context argument to OEM-named symbols. */
+static void connected_dither_page(void *ctx,classic_oem_read_descriptor *d,
+                                  const uint8_t *rgb,uint8_t *mono,
+                                  unsigned quality) {
+    (void)ctx;
+    DitherPage(d,rgb,mono,quality);
+}
 static void connected_start_page(void *ctx,classic_oem_read_descriptor *d) {
     (void)ctx;
     StartPage(d);
@@ -464,7 +469,7 @@ int raster2printer(int argc,char **argv) {
         open_debug,select_stdout,StartDocument
     };
     classic_oem_page_output_io pages={
-        c,DitherPage,
+        c,connected_dither_page,
         connected_start_page,connected_process_page,connected_end_page
     };
     classic_original_raster_finish_ops finish={

@@ -53,3 +53,15 @@ jobs:
             /^0000000100006090/ {show=0;print "END_PAGE_CALLERS"}
             show {print}
           '
+          echo "Original document lifecycle ABI and caller: StartDocument / EndDocument"
+          otool -tvV "$bin" | awk '
+            /^0000000100005370/ {show=1;print "BEGIN_START_DOCUMENT_CALLER"}
+            /^0000000100005510/ {show=0;print "END_START_DOCUMENT_CALLER"}
+            /^00000001000062e0/ {show=1;print "BEGIN_END_DOCUMENT_CALLER"}
+            /^0000000100006350/ {show=0;print "END_END_DOCUMENT_CALLER"}
+            /^0000000100006890/ {show=1;print "BEGIN_START_DOCUMENT"}
+            /^0000000100006dd0/ {show=0;print "END_START_DOCUMENT"}
+            /^0000000100008ac0/ {show=1;print "BEGIN_END_DOCUMENT"}
+            /^0000000100008cf0/ {show=0;print "END_END_DOCUMENT"}
+            show {print}
+          '
