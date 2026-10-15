@@ -4,8 +4,9 @@
  * Connects the already reconstructed OEM _main/_raster2printer,
  * _StartDocument, _DitherPage, _StartPage, all four _ProcessPage choices,
  * _EndPage, _EndDocument, original CUPS/PPD parsing, and OEM write/PRN
- * behavior to Apple's real CUPS API. The connections are analysis-level
- * C callbacks, NOT the original x86_64 C++ calling convention.
+ * behavior to Apple's real CUPS API. The original-named page/document
+ * boundaries use verified native signatures; the job coordinator and
+ * internal callback adapters are NOT the original full C++ ABI.
  *
  * This binary is for OFFLINE comparison only. It retains unsafe original
  * conditions: modes 0/1 read four bytes beyond packed rows, and native
@@ -23,6 +24,7 @@
 #include "original_device_uri.h"
 #include "original_raster_native_status_entry.h"
 #include "original_raster_native_page_entry.h"
+#include "original_raster_native_document_entry.h"
 #include "original_raster_native_write_data_entry.h"
 #include "original_status_exchange.h"
 #include "original_read_page.h"
@@ -395,13 +397,18 @@ static int send_prn(void *ctx) {
  * _StartPage 0x100007399, _EndPage 0x1000089bb. The OEM-named
  * StartPage, ProcessPage and EndPage use their original call surfaces.
  * Unmodified source-only callback adapters remain below.
- * Other OEM exports (e.g. StartDocument/EndDocument) remain bridged.
+ * Original StartDocument/EndDocument also accept a 0x10a8-byte
+ * descriptor by value (verified OEM caller 0x100005463..0x10000548e,
+ * 0x1000062eb..0x10000632d and callee rbp+0x10 entry accesses).
+ * Reuse their existing, independently reconstructed algorithms.
  */
-void StartDocument(void *ctx,const unsigned char *descriptor,unsigned length) {
-    classic_original_bridge_start_document(ctx,descriptor,length);
+void StartDocument(classic_oem_read_descriptor descriptor) {
+    classic_original_start_document(
+        &candidate.bridge.original,(const unsigned char *)&descriptor);
 }
-void EndDocument(void *ctx,const void *descriptor,size_t length) {
-    classic_original_bridge_end_document(ctx,descriptor,length);
+void EndDocument(classic_oem_read_descriptor descriptor) {
+    classic_original_end_document(
+        &candidate.bridge.original,(unsigned char *)&descriptor);
 }
 void DitherPage(classic_oem_read_descriptor *descriptor,
                 const uint8_t *rgb,uint8_t *monochrome,unsigned quality) {
@@ -421,6 +428,25 @@ void EndPage(classic_oem_read_descriptor descriptor) {
 /* The connected-job callback ABI is ours, not the original's. These
  * bridges call the actual OEM-signature exports above, rather than
  * attaching a private context argument to OEM-named symbols. */
+static void connected_start_document(void *ctx,
+                                     const unsigned char *descriptor,
+                                     unsigned size) {
+    (void)ctx;
+    if(size==CLASSIC_OEM_DOCUMENT_DESCRIPTOR_SIZE) {
+        classic_oem_read_descriptor by_value;
+        memcpy(&by_value,descriptor,sizeof by_value);
+        StartDocument(by_value);
+    }
+}
+static void connected_end_document(void *ctx,const void *descriptor,
+                                   size_t size) {
+    (void)ctx;
+    if(size==CLASSIC_OEM_DOCUMENT_DESCRIPTOR_SIZE) {
+        classic_oem_read_descriptor by_value;
+        memcpy(&by_value,descriptor,sizeof by_value);
+        EndDocument(by_value);
+    }
+}
 static void connected_dither_page(void *ctx,classic_oem_read_descriptor *d,
                                   const uint8_t *rgb,uint8_t *mono,
                                   unsigned quality) {
@@ -466,14 +492,14 @@ int raster2printer(int argc,char **argv) {
     };
     classic_oem_option_initialization_io initialization={
         preflight,marked_choice,free_options,close_ppd,
-        open_debug,select_stdout,StartDocument
+        open_debug,select_stdout,connected_start_document
     };
     classic_oem_page_output_io pages={
         c,connected_dither_page,
         connected_start_page,connected_process_page,connected_end_page
     };
     classic_original_raster_finish_ops finish={
-        c,EndDocument,close_fd,close_debug,
+        c,connected_end_document,close_fd,close_debug,
         send_prn,write_data
     };
     classic_original_raster_connected_io io={
