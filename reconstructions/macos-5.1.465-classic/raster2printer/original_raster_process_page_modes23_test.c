@@ -290,7 +290,9 @@ int main(void){
     }
 
     begin(&m,3,2,1);io=setup(&m);
-    uint8_t live_pixels[2]={0x12,0x34};
+    /* A leading white byte forces ESC B; then ESC D and pixels are
+     * three separate OEM WriteData calls with live socket reloads. */
+    uint8_t live_pixels[2]={0,0x34};
     m.change_socket_after_first=1;io.output.current_socket_fd=socket_now;
     assert(classic_original_process_page_modes23(
         &io,&m.descriptor,live_pixels,0)==0);
