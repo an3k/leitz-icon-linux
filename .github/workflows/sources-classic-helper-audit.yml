@@ -53,6 +53,13 @@ jobs:
             /^0000000100006090/ {show=0;print "END_PAGE_CALLERS"}
             show {print}
           '
+          echo "OEM ProcessPage file-local 32-bit width-cache symbol: all native instructions referencing static local"
+          otool -tvV "$bin" | grep -F 'ProcessPageE26bytesPrintedInPreviousLine' || true
+          echo "OEM ProcessPage width-cache compare and update neighborhood"
+          otool -tvV "$bin" | awk '
+            $1 ~ /^000000010000[0-9a-f]+$/ &&
+            $1 >= "00000001000080d0" && $1 <= "0000000100008250" {print}
+          '
           echo "Original document lifecycle ABI and caller: StartDocument / EndDocument"
           otool -tvV "$bin" | awk '
             /^0000000100005370/ {show=1;print "BEGIN_START_DOCUMENT_CALLER"}
