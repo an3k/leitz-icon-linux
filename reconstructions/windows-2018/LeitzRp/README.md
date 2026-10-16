@@ -39,3 +39,16 @@ The combined `rle_pipeline_test.c` exercises the existing prefix writer,
 full RLE byte run computation and 0x16/0x17 payload selector together,
 including byte-level output commands and their separate callback calls.
 No production Linux code or COM entry point is changed.
+
+
+The x64 OEM start-of-job media/length initializer RVA 0x16f7–0x1c4e
+has now been reconstructed in label_setup.[ch]. It initializes the
+already-existing row controller without reimplementing its output
+functions, reading original paper-name flags ("Continuous" and
+"CUSTOMSIZE"), ModeAuto, iLabelLength, dmOrientation and the GDI
+raster-width/raster-height pair. It reproduces the conditional
+landscape swap, diecut/custom-size flags, configured-versus-
+automatic length and 16-bit native state truncation. No fixed length
+cap is introduced. The original OEM +0x18 flag used by ESC w is
+now positively identified as IsCustomSize. Its original C++ ABI
+and all run-time Windows APIs are not duplicated or claimed.

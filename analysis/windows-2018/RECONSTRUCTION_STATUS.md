@@ -252,3 +252,68 @@ passes the raw-data candidate and its actual length in that case,
 rather than manufacturing an empty encoded candidate. The original
 fragment module is left untouched. These are offline deterministic
 tests, not claims of native Windows DLL execution parity.
+
+
+## Windows 2018 LeitzRp initial media/label length states (x64 RVA 0x16f7–0x1c4e)
+
+**Work-state check:** inspected actual sources HEAD
+52923a334170eba0b8b8dfb2e8058f148524fc1f
+and previously successful Windows CI 38885136374. The complete
+row-count/ESC f/G and RLE implementations already exist and have
+not been rewritten.
+
+**Original manufacturer facts:** Offline disassembly of the
+SHA-256-authenticated LeitzRp.dll 2.17.4.112 x64 shows:
+
+- 0x16fa: native state DWORD at offset +0x08 initialized
+  to 0x0001ffff (16-bit previous width=0xffff; label counter=1);
+  0x1701 clears DWORD +0x0e (current row and queued blank rows);
+  0x1793 writes QWORD 1 to native state +0x14
+  (IsDieCut=1, IsCustomSize=0 initially).
+- 0x18b6–0x18ed uses case-sensitive wide-character substring
+  searches: "Continuous" => IsDieCut DWORD +0x14 becomes 0,
+  "CUSTOMSIZE" => IsCustomSize DWORD +0x18 becomes 1.
+  This is not an exact-name equality test.
+- 0x19a2–0x19d4 calls GDI GetDeviceCaps(10=VERTRES,
+  8=HORZRES). OEM controls are read from source pointer +0x30:
+  WORD +0x12 is ModeAuto; WORD +0x0e is iLabelLength.
+- 0x1b33–0x1b77: only when (IsDieCut OR IsCustomSize)
+  and DEVMODE WORD +0x4c (dmOrientation) == 2, output
+  width WORD +0x1c is the VERTRES low 16 bits and paper
+  height WORD +0x0c the HORZRES low 16 bits. Otherwise,
+  0x1bb7–0x1bd7 sets these fields in the normal order.
+- 0x1b7a–0x1bab / 0x1c12–0x1c3b: when ModeAuto==0,
+  IsDieCut==0 and IsCustomSize==0, label-length WORD
+  +0x12 is taken directly from the OEM iLabelLength WORD
+  +0x0e. Otherwise label-length is the chosen page
+  height after any landscape swap. This is conditional,
+  NOT a global fixed-label length.
+- OEM debug strings at original RVA 0x46b0, 0x4a60,
+  0x49e0, 0x4b00 and 0x4b80 corroborate the names
+  IsDieCut, IsCustomSize, ModeAuto and iLabelLength.
+
+**Source implementation:** label_setup.h/.c adds a portable,
+separate media-state initializer connected to existing
+leitz_win2018_row_control fields. The existing field
+send_width_flag is now documented to map to original
+IsCustomSize at native +0x18 (row OEM 0x20f9, ESC w).
+The external OEM medium +0x10 flag is intentionally preserved,
+not invented or reset. Source API accepts already-resolved
+GetDeviceCaps raster dimensions, input name and ModeAuto/
+iLabelLength options: it neither calls Windows APIs nor
+replaces the Linux CUPS media catalog. Error/null handling
+is deliberately safer than unspecified manufacturer behavior.
+
+**Regression cases:** standard, custom-size, fixed die-cut and
+continuous media; landscape rotation versus intentionally
+non-rotating continuous material; ModeAuto off/on; explicit
+job-dependent iLabelLength; case-sensitive substring;
+native 16-bit dimension truncation; state reset and external
+flag preservation; invalid pointers. Tests run under GCC
+and Clang in the existing Windows-only CI workflow.
+
+**Boundary:** No native Windows DLL execution parity, Windows
+private COM structure equivalence, mechanical hardware tests
+or productive driver modifications are asserted. The original
+Windows option names remain untouched. No 170-mm universal
+restriction or guessed media-ID conversions introduced.

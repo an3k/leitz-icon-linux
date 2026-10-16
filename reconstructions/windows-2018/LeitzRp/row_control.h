@@ -15,7 +15,7 @@ typedef struct {
     uint16_t row_index;              /* OEM state +0x0e, updated by caller */
     uint16_t queued_blank_rows;      /* OEM state +0x10 */
     uint16_t label_height;           /* OEM state +0x12 */
-    uint32_t send_width_flag;        /* OEM state +0x18 */
+    uint32_t send_width_flag;        /* OEM +0x18 IsCustomSize; ESC w gate */
     uint16_t physical_width;         /* OEM state +0x1c */
     uint16_t medium_switch_flag;    /* OEM medium +0x10 */
 } leitz_win2018_row_control;
