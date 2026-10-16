@@ -52,5 +52,14 @@ jobs:
             "$cc" -std=c11 -Wall -Wextra -Werror -pedantic -O2 wifi_managed.c wifi_managed_test.c -o /tmp/leitz-wifi-managed-test
             /tmp/leitz-wifi-managed-test
           done
+      - name: GCC and Clang - original .NET WiFi password Regex policy
+        run: |
+          set -eu
+          cd reconstructions/windows-2018/WiFiHTTP
+          for cc in gcc clang; do
+            "$cc" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+              wifi_password.c wifi_password_test.c -o /tmp/leitz-wifi-password-test
+            /tmp/leitz-wifi-password-test
+          done
       - name: Python - Windows application XML and GPD inventory regression
         run: python3 -m unittest discover -s analysis/windows-2018 -p 'test_inventory_windows_label_sizes.py' -v

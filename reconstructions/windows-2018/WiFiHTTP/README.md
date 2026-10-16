@@ -142,3 +142,52 @@ exact XML root/wrapping/error semantics, retrieval and
 authentication handling, true OEM application execution
 comparison and physical device tests. Original managed scan
 and security-mode policies were not duplicated or modified.
+
+
+## Original Windows AddPrinterTool WiFi password validation patterns
+
+Pre-write verification: branch sources HEAD
+70d6203592e101b436cfd0de40a2781d27b91d89;
+the prior Windows managed scan/HTTP form, XML replies and raster
+reconstructions already exist and are left unchanged.
+
+Primary source: the user-provided Windows 2018 installer
+LeitzIconAddPrinterTool.exe (SHA-256
+e27663457368f529cc64322a7550431ec2ff6b28e4d640a87419b837df924435).
+Its managed MethodDef 285 CheckWiFiPasswordPattern, RVA 0x6c34,
+contains direct calls to security-code getter (MethodDef 292)
+and Regex.IsMatch. Its static initializer MethodDef 286,
+RVA 0x6d18, builds **five** Regex instances with exact literals:
+- ^[0-9a-fA-F]{10}$
+- ^.{5}$
+- ^[0-9a-fA-F]{26}$
+- ^.{13}$
+- ^.{8,63}$
+
+IL branch reconstruction:
+- mode 0: returns TRUE before checking password;
+- other modes: null/empty returns FALSE and resource key
+  AddPrinterToolEnterPassword;
+- mode == 1: accepts ANY of first four patterns above,
+  otherwise resource key AddPrinterToolPasswordIncorrect;
+- mode > 1 (signed comparison): requires final ^.{8,63}$
+  match, otherwise incorrect-password resource;
+- a negative numeric mode with nonempty password returns TRUE.
+This differs from the separately reconstructed method
+GetSecurityModeString (MethodDef 271): that mapping calls only
+5, 9, 13 "WPA", while password validation applies 8..63
+to *all* mode codes > 1. Never silently combine those decisions.
+
+New portable, standalone C wifi_password.c/.h and test use
+UTF-16 code-unit input to match .NET code-unit counts and support
+the original Regex '$' before trailing LF, with explicit
+input bounds. They do not store, log, send or modify the secret.
+New error return for unterminated input is a safety extension.
+No claim of identical .NET regex exceptions, case-folding for
+other scripts, UI localization, printer security support,
+managed-runtime parity or hardware authentication.
+
+Locally tested with GCC and Clang -std=c11 -Wall -Wextra
+-Werror -pedantic -O2, AddressSanitizer and
+UndefinedBehaviorSanitizer; CI runs the same deterministic
+functional cases without sanitizer dependencies.
