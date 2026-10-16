@@ -16,5 +16,8 @@ for compiler in gcc clang; do
     "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
         status_probe.c status_probe_test.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        sendrecv_result.c sendrecv_result_test.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done

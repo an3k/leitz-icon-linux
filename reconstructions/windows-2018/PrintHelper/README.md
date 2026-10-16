@@ -100,3 +100,76 @@ separate decisions, NOT the native Win32 API, COM ABI or a USB
 implementation. It does not issue \`ESC V\` or contact the printer.
 \`status_probe_test.c\` covers both decisions and bounded BOOT parsing
 under GCC/Clang. No production driver changes or hardware tests.
+
+
+## SendRecvData native COM call order and safe positive-result transfer
+
+Native \`PrintHelper.dll\` i386 RVA 0x1720–0x191D was analyzed
+offline from the supplied manufacturer's binary (SHA-256
+\`0b57ad5584fabe69610158347bace1647935e85d014d775753d0aa436734871a\`).
+No executable was launched. The original Export \`SendRecvData\`
+accepts at least five 32-bit stack parameters at offsets
++0x08, +0x0c, +0x10, +0x14 and +0x18 (the last two are output
+pointer destinations, assigned only in the nonempty result branch).
+Source-level meanings of private COM methods are NOT presumed.
+
+Confirmed CoCreateInstance pairs, using the native Win32 GUID
+byte order (all GUIDs decoded from actual RVAs):
+- Class at 0x443c: 2a614240-a4c5-4c33-bd87-1bc709331639
+  with interface ID at 0x43ec:
+  d580dc0e-de39-4649-baa8-bf0b85a03a97.
+- Class at 0x441c: b9162a23-45f9-47cc-80f5-fe0fe9b9e1a2
+  with interface ID at 0x43cc:
+  8f348bd7-4b47-4755-8a9d-0f422df3dc89.
+
+Original instructions and distinct vtable offsets:
+1. 0x1762–0x179f: CoInitialize, CoInitializeEx, create
+   first COM object, invoke vtable+0x0c with original first
+   argument and literal 2. HRESULTs of object creation
+   are not adequately guarded against invalid pointers.
+2. 0x179f–0x17d7: create second COM object; invoke its
+   vtable+0x0c using the exact UTF-16 text
+   \`ReadWriteUserData\` at original RVA 0x41cc,
+   **not** the formerly truncated \`ReadWriteUse\`.
+   Invoke second object's vtable+0x10 with the literal 7
+   and the original input buffer/length parameters.
+3. 0x17d7–0x1822: invoke first object's vtable+0x14
+   with the UTF-16 literal \`Get\` at original RVA 0x41f0.
+   Invoke second object's vtable+0x14 and check BOTH its
+   HRESULT and a separately returned zero DWORD at stack
+   -0x18. Only when both are zero invoke the second
+   object's vtable+0x18. The latter's result must equal
+   zero to follow the positive-data branch.
+4. 0x187c–0x18bb: only when the returned byte count at
+   -0x2c is nonzero, allocate that number of bytes with
+   HeapAlloc(GetProcessHeap,0,n), set the caller's
+   output pointer and output length, and copy the COM
+   buffer at -0x28 using memcpy. Original does not
+   adequately verify HeapAlloc's result or the private
+   COM-returned size; potential invalid reads/writes
+   are NOT portable features to reproduce.
+5. 0x18bb–0x18ec: free the COM-allocated source with
+   CoTaskMemFree, release two COM objects and uninitialize
+   COM. Native boolean return is true only if the COM
+   returned a nonzero byte count; a zero-length or failed
+   operation returns false. The Windows heap result has
+   a distinct ownership and cannot be treated as borrowed
+   memory.
+
+\`sendrecv_result.[ch]\` is a NEW portable, bounded model of
+**only** the positive-data result/length decision. It tests
+all three required zero status/result fields, requires
+nonzero reply length, transfers bytes only into an explicitly
+bounded caller-owned destination, and leaves destination and
+published length unchanged on failure. It never calls COM,
+never allocates an unverified Windows heap block, and does
+not claim the original DLL's ABI or wire protocol. Unit tests
+exercise independent COM failure gates, positive binary data,
+empty reply, invalid pointers/capacity and overlapping buffers.
+
+No registration/IDL files identifying these private
+interface methods were found in the uploaded ZIP. The
+GUIDs and invocation slots are therefore **proven**,
+whereas method names, internal call semantics and the
+actual USB payload framing remain **unknown**. No device
+command, firmware or Wi-Fi operation is performed.
