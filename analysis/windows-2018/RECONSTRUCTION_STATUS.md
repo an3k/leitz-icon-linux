@@ -229,3 +229,26 @@ caller-maintained variable-length/die-cut/copy modes, unusual
 buffer and Windows exception paths, original execution parity,
 and hardware validation. Productive driver, main and cups
 branches remain unchanged.
+
+
+### Separate assembled command-stream tests
+
+After the native x64/i386-derived RLE implementation, a separate
+test assembles the existing width/margin fragment functions with the
+new compressor and the original selector. Original-instruction-derived
+expected byte streams:
+- Two leading white bytes + four black bytes:
+  \`1b 44 04 1b 42 02 17 9f\`, four WriteData chunks (3/3/1/1).
+- The next line has identical dimensions but alternating bit content:
+  \`1b 42 02 16 aa 55 aa 55\`, three chunks (3/1/4);
+  repeated ESC D is suppressed.
+- 33 valid pixels with seven unused low bits cleared on a COPY:
+  \`1b 44 05 1b 42 00 17 a0 06\`, four chunks.
+
+The standalone helper returns USE_RAW with encoded-length zero when
+compression does not improve. The existing selector's contract is
+a *candidate length comparison*; the integrated caller therefore
+passes the raw-data candidate and its actual length in that case,
+rather than manufacturing an empty encoded candidate. The original
+fragment module is left untouched. These are offline deterministic
+tests, not claims of native Windows DLL execution parity.

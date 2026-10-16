@@ -13,7 +13,8 @@ transition at x64 RVA 0x2060–0x237a. The original state offsets
 +0x08/+0x0a/+0x0e/+0x10/+0x12/+0x18/+0x1c are documented
 individually; its C struct is a new portable interface, not the native
 C++ object. The row_index is managed by the original's outside caller.
-An encoder callback represents the still-unrecovered full compressor.
+An encoder callback is preserved in the standalone row controller; the RLE
+codec itself is independently recovered and tested below.
 
 The original x64 and x86 RLE body is now implemented in the independent
 `rle_windows_2018.[ch]` module. It accepts already-trimmed byte rows,
@@ -33,3 +34,8 @@ Remaining: caller-owned row index lifecycle, custom-length ModeAuto and
 IsDieCut decisions, and original COM entry points. None of these
 experimental fragments replaces the Linux CUPS driver. This code does not replace the active
 Linux CUPS filter. See `analysis/windows-2018/RECONSTRUCTION_STATUS.md`.
+
+The combined `rle_pipeline_test.c` exercises the existing prefix writer,
+full RLE byte run computation and 0x16/0x17 payload selector together,
+including byte-level output commands and their separate callback calls.
+No production Linux code or COM entry point is changed.
