@@ -756,3 +756,81 @@ This comparison does not replace the pending full four-way
 inventory of Linux OEM, macOS OEM, Windows OEM and Linux
 development; it exposes an additional INTERNAL Windows
 source that had been missing. No changes to driver/main/cups.
+
+
+## Original Windows 2018 AddPrinterTool HTTP WLAN control-panel protocol
+
+**State check:** inspected HEAD
+\`f6f8040953885d228539bb4f2eb02b40f93e8a50\`, with the prior
+Windows-only application LabelSizes.xml/GPD comparison and passing
+CI run 38920033343 already present. No earlier driver, parser,
+Wi-Fi payload, status, COM or media work was repeated.
+
+**New manufacturer PRIMARY evidence:** user-provided Windows
+ZIP \`LeitzIconLabelSetup(4).zip\` contains managed
+\`LeitzIconAddPrinterTool.exe\` (522,752 bytes, SHA-256
+\`e27663457368f529cc64322a7550431ec2ff6b28e4d640a87419b837df924435\`).
+The .NET CLR metadata #~ MethodDef table, #US user string
+heap and method IL \`ldstr 0x70xxxxxx\` tokens were parsed
+offline without executing the installer. The following
+strings were located INSIDE the specific live method bodies,
+not inferred merely from the file's unassociated strings:
+
+- \`GetBaseUri\` MethodDef 263, RVA 0x62bb: \`http://\`.
+- \`GetWiFiScanInfo\` MethodDef 267, RVA 0x6548:
+  \`Scan.xml?scan=1\`, \`Scan.xml\`, \`ScanInProgress\`,
+  \`NumScanResults\`, \`MySsid\`. Indicates scan initiation
+  and response attributes; actual response examples unavailable.
+- \`GetWiFiNetworkInfo\` MethodDef 269, RVA 0x67e4:
+  \`ScanRow.xml?ScanRow=\`, \`response/bss\`, \`Valid\`,
+  \`Name\`, \`SecurityMode\`, \`NetworkType\`, \`Strength\`.
+  Names are genuine XML element/attribute lookups in the OEM
+  application. XML structure cannot be certified from bare
+  text constants alone.
+- \`SetWiFiNetwork\` MethodDef 270, RVA 0x6960:
+  \`Main.html\`, \`POST\`, \`application/x-www-form-urlencoded\`,
+  literal \`&\` and \`%26\`, plus the EXACT form template:
+  \`HiddenName=&HiddenSecurity=None&HiddenPassword=&DHCP=DHCP&WifiSetup=Connect&NetworkType=Infrastructure&Name={0}&SecurityMode={1}&SecurityKey={2}\`.
+  This is a separate network-control-panel mechanism from
+  PrintHelper's direct-device \`SetPrinterWirelessNetwork\`.
+  The method uses three form substitutions (network name,
+  security mode, key); the full argument-specific escaping
+  behavior is not yet proven. Do not assert full parity
+  for arbitrary strings, characters or Windows codepages.
+- The same assembly also contains \`WEP\`, \`WEP40\`,
+  \`WEP104\`, \`WPA\`, \`ScanInProgress\`, \`MySsid\`,
+  \`WlanConnect\` and a separate SoftAP workflow, confirming
+  the Windows installer supports more than a blind USB write.
+  No general claim of printer firmware support for every
+  wireless security mode or implicit credential validity.
+
+**Offline C code:** \`reconstructions/windows-2018/WiFiHTTP/\`
+contains \`wifi_http.c/h\` and tests. The two scan URIs
+are reconstructed exactly (relative paths, not hardcoded
+device addresses). The infrastructure POST builder emits
+the complete proven OEM field names/order and uses a
+bounded, standards-compliant percent-encoder for supplied
+UTF-8 byte strings. It does NOT claim that the OEM's
+original code percent-encodes every special character the
+same way; byte parity is limited to unreserved ASCII
+arguments. The module contains no HTTP or device access,
+checks capacities, rejects embedded NULs, and supplies a
+scratch zeroization helper because the result contains
+a sensitive Wi-Fi key.
+
+**Verification:** strict GCC and Clang C tests cover exact
+manufacturer scan paths, maximal decimal scan index,
+literal form-body parity for unreserved ASCII, safe encoding
+for delimiter-containing inputs, short output capacity,
+invalid buffers and result zeroization. Tests are offline
+and synthetic: no OEM .NET code executed, no actual
+manufacturer HTTP response captured, no WLAN configuration
+sent, no firmware operations performed. Complete OEM
+HTTP error semantics, authentication, actual XML samples
+and private COM method meanings remain open.
+
+**Next work:** crosscheck the actual HTTP response fields
+and authentication/session handling with ORIGINAL managed
+IL, then integrate supported controls behind opt-in
+authenticated transport and physical device tests, without
+disturbing the working Linux CUPS raster printer.
