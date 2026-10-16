@@ -424,3 +424,63 @@ GetPaperDefs paper-capability mapping, further PrintHelper
 functions, original DLL dynamic parity, and real hardware tests.
 Do not substitute this Windows-only DEVMODE manipulation for
 the existing Linux CUPS custom-length and media logic.
+
+## PrintHelper GDI paper geometry and spooler-stored data
+
+Work-state check: sources HEAD 172d83bb0b2a5431dca734c134fc142d4b7f1409,
+last complete Windows CI 38899970271 successful. Existing
+LeitzRp, LeitzLm and PrintHelper DEVMODE implementations remain
+unchanged.
+
+Original i386 DLL: PrintHelper.dll, SHA-256
+0b57ad5584fabe69610158347bace1647935e85d014d775753d0aa436734871a,
+PE ImageBase 0x10000000. Imported GDI32 CreateDCW, GetDeviceCaps,
+DeleteDC and WINSPOOL.DRV SetPrinterW/GetPrinterDataW directly establish
+that these two exports act on Windows printer properties, NOT on
+the Leitz Icon USB protocol.
+
+GetPaperDefs original RVA 0x1210..0x1500: argument +0x0c is a caller
+array of paper-ID WORDs, +0x10 its entry count; output array
+pointer arguments at +0x14/+0x18/+0x1c/+0x20/+0x24/+0x28 each
+receive count DWORDs. At 0x13c3..0x13e6 the code sets
+PRINTER_INFO_9.DEVMODEW.dmFields = 2 and dmPaperSize from each
+caller-supplied paper ID, then calls SetPrinterW level 9. It creates
+a DC at 0x13ee..0x1400 and calls GetDeviceCaps six times at
+0x1402..0x1464 in the exact order
+112 PHYSICALOFFSETX, 113 PHYSICALOFFSETY, 110 PHYSICALWIDTH,
+111 PHYSICALHEIGHT, 8 HORZRES, 10 VERTRES. It then destroys the
+DC. These are physical/printable **page and raster properties**,
+not an automatic cassette or label-type lookup. The original
+loop does not explicitly restore the previous selected paper.
+No new hardware command is established by this export.
+
+RetrieveStatus original RVA 0x15f0..0x1715 invokes GetPrinterDataW
+at 0x169f for the **caller-provided Windows printer data value
+name**, using a 128-byte local buffer. It obtains pcbNeeded via
+the last argument, then allocates based on that length and copies
+pcbNeeded bytes from the local buffer at 0x16e0..0x16f2, without
+checking that the result is within 128 bytes or that the API
+returned success. This is a safety defect in exceptional cases,
+not valid evidence for a larger device response or a USB status
+protocol. Exact stored value names and meanings remain open.
+
+Added separate portable C implementations in
+reconstructions/windows-2018/PrintHelper:
+- paper_geometry.[ch]: callback-driven, side-effect-free GDI geometry
+  retrieval for supplied paper IDs, preserving the six independent
+  values. Does not call SetPrinterW, Windows GDI or any device.
+- printer_data.[ch]: safe, bounded retrieval analogue for a named
+  spooler property. Error and over-capacity responses do not modify
+  destination buffers. Uses no Windows API, USB or CUPS I/O.
+
+Offline GCC/Clang tests exercise exact query order, distinct
+physical-versus-printable dimensions, selection/query failures,
+partial-record protection, 128-byte limits and unchanged output
+on failed named-value retrieval. These are source-derived mocked
+tests, not original DLL execution parity. No originals were
+modified or committed. The active driver, main, cups and tests
+branches remain unchanged.
+
+Outstanding: SendRecvData COM protocol and response framing, direct
+OEM DLL runtime comparisons, real hardware tests, complete four-source
+media inventory mapping and true cassette capabilities.

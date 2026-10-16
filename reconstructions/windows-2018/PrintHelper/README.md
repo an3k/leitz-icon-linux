@@ -32,3 +32,38 @@ independent job-dependent custom-size handling.
 
 Run \`sh test.sh\` for GCC/Clang fixed-vector checks. No OEM binary,
 firmware, driver changes, or hardware commands are committed.
+
+## GetPaperDefs and RetrieveStatus — original Windows spooler functions
+
+The manufacturer PrintHelper.dll 2.17.4.112 i386 exports
+GetPaperDefs (RVA 0x1210–0x1500) and RetrieveStatus
+(RVA 0x15f0–0x1715). These are **Windows spooler/GDI functions**.
+
+GetPaperDefs takes caller-specified paper IDs and a count. For each
+paper it sets DEVMODEW dmPaperSize, invokes SetPrinterW level 9, creates
+a new GDI device context and calls GetDeviceCaps in the exact order
+112 (PHYSICALOFFSETX), 113 (PHYSICALOFFSETY), 110 (PHYSICALWIDTH),
+111 (PHYSICALHEIGHT), 8 (HORZRES) and 10 (VERTRES), storing each
+in its own integer array. This is per-paper **raster geometry**, not
+paper cassette inventory or confirmed physical printable stock.
+The original routine does not explicitly restore the previous paper
+selection in its normal iteration. The new paper_geometry.[ch] is
+an isolated, callback-driven **offline model**. It does not call
+SetPrinterW or modify any printer settings. A failure leaves the
+current incomplete record unchanged.
+
+RetrieveStatus invokes Winspool GetPrinterDataW for the supplied
+named printer property. This is a **spooler-stored value**, not an
+immediate USB ESC A/U/V status exchange. The original reads up to
+128 bytes into a stack buffer but then copies pcbNeeded bytes without
+validating the returned length. The new printer_data.[ch] preserves
+the documented retrieval relationship using a safe 128-byte limit,
+rejecting Win32 errors and overlong buffers. No registry value names
+or response meanings are invented; test keys are synthetic.
+
+These new portable APIs do not claim binary compatibility with the
+OEM DLL, Windows allocation ownership or direct Windows execution
+parity. Their purpose is to preserve the proven GDI/status boundaries
+for later Linux integration. The existing Linux driver is not changed.
+
+Run sh test.sh for independent strict GCC and Clang regression tests.

@@ -7,5 +7,11 @@ for compiler in gcc clang; do
     "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
         devmode_patch.c devmode_patch_test.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        paper_geometry.c paper_geometry_test.c -o "$binary"
+    "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        printer_data.c printer_data_test.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done
