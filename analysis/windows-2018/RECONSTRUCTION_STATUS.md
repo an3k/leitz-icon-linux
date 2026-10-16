@@ -686,3 +686,73 @@ as part of discovery, print status or WLAN setup. Firmware
 flashing remains expressly excluded from offline reconstruction
 execution; it requires independent verification and physical
 recovery provisions before integration.
+
+
+## Windows application LabelSizes.xml versus Windows GPD (distinct OEM inventories)
+
+Checked sources HEAD 4902026bd1a4c6ebe452857c50e6bb7ba7fa3495
+and Windows CI run 38916773516 (success) before continuing.
+The Windows GPD parsing, x86/x64 reconstruction and all
+existing tests were retained; no earlier code was replaced.
+
+A second ORIGINAL Windows paper-format source occurs in the same
+user-provided 2018 ZIP:
+\`LeitzIconLabelSetup/SourceDir/Leitz Icon Software/LabelSizes.xml\`,
+11,827 bytes, SHA-256
+\`3e0ce0029cb864daa1100b2e15816ec66705e2246b26fe6af14707350e9bf2e1\`.
+This is separate from
+\`Drivers/LeitzIcon.gpd\` (SHA-256
+\`f81130f358b6dbc6099812d8ab243958854436be4b1e8c0c0ef8ec7fb60954b7\`).
+No binaries were executed.
+
+Exact inventories for these particular manufacturer files:
+- Windows application XML: **37 unique label sizes**, including
+  **10 continuous** entries (no fixed height).
+- Original Windows GPD: **77 options** = 76 fixed plus CUSTOMSIZE.
+- Exact matching internal identifiers: **36**.
+- Present only in the application XML: **Continuous112**.
+  It is already present in the Linux-development media catalog,
+  sourced there to Original Linux 1.0.3 / macOS 1.2.190 PPD.
+  Its absence from the Windows GPD is NOT evidence that the
+  hardware lacks that cartridge/size.
+- Present only in the GPD: **41** options, including the
+  Leitz-prefixed variants, rotation variants, Wristband,
+  and CUSTOMSIZE. These are not silently discarded.
+- Of the 27 shared FIXED (non-continuous) XML entries,
+  **9** have direct width/height agreement with GPD and
+  **18** have transposed width/height agreement, after
+  applying exactly the declared GPD \`*MasterUnits: PAIR(300,600)\`
+  and a 1 mm tolerance for catalog rounding.
+  **0** fixed shared entries have a larger difference.
+- Among the original metric versus imperial UI strings,
+  \`NameBadgeLabel70060001\` is a distinct manufacturer
+  inconsistency: metric values 76×50 mm but inch fields
+  2×3 inches (equivalent to 50.8×76.2 mm), i.e. swapped.
+  Do NOT change original labels or swap axes globally.
+
+The Windows application dimensions describe catalog labels,
+the GPD dimensions are printer page/raster geometry; neither is
+automatically the cartridge's physical feed width, the CUPS media
+dimensions, nor the printable imageable area. GPD PrintableArea
+and PrintableOrigin are retained as separate original values.
+The 64000/65535-style GPD lengths for continuous media must
+not be treated as an absolute hardware length limit.
+
+Added \`analysis/windows-2018/inventory_windows_label_sizes.py\`
+which REUSES the already-committed GPD reader rather than
+implementing a second GPD parser. It inventories original XML
+and GPD with SHA-256 provenance, retains literal manufacturer
+IDs, original metric/imperial strings, GPD OptionID and
+page/printable/origin values, and distinguishes orientation.
+The parser rejects invalid dimensions/duplicates and
+unrecognized printer MasterUnits instead of guessing.
+\`test_inventory_windows_label_sizes.py\` is a standalone
+Python unittest suite with synthetic fixtures, and CI runs
+it without distributing any OEM installer or media file.
+A full original-file inventory was executed locally and
+its counts verified before committing the parser.
+
+This comparison does not replace the pending full four-way
+inventory of Linux OEM, macOS OEM, Windows OEM and Linux
+development; it exposes an additional INTERNAL Windows
+source that had been missing. No changes to driver/main/cups.
