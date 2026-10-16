@@ -111,3 +111,63 @@ veröffentlichungsreif > Golden Sample**.
 
 **Keine Herstellerbinaries im Git. Keine Änderung an `driver`,
 `main`, `cups`. Keine Firmware- oder Geräteoperationen.**
+
+
+## OEM row-state machine from Windows LeitzRp x64 RVA 0x2060–0x237a
+
+**Verified existing work first:** sources HEAD 0691484d3455800e4babc7eb8ec30c492cbb6ae8.
+The earlier filter_graphics_fragments.c already reconstructs ESC D,
+ESC B and the 0x16/0x17 payload selector; none of these were rewritten.
+
+**Manufacturer evidence:** User-provided ZIP cc6e175fb3f183d211cd1b4610ca2d096ec958421bc45b4bc8fc2740be3034ca,
+Drivers/amd64/LeitzRp.dll SHA-256
+876f3fb48829420fad03692d6d613c28f0150d797c928ba45c021e7edf640787.
+Static Intel x64 disassembly, DLL ImageBase 0x180000000.
+Native function 0x180002060–0x18000237a:
+- 0x20f2–0x212a: when state+0x0e <= 1 and DWORD state+0x18 is
+  nonzero, send ESC w + two-byte big-endian WORD state+0x1c;
+  the OEM does not inspect this WriteData HRESULT.
+- 0x215a–0x2187: if medium+0x10 WORD is nonzero, label
+  count WORD state+0x0a is not 1, and WORD state+0x0e is 1,
+  send ESC E, again not checking its HRESULT.
+- 0x218c–0x21e5: scan leading 0x00 bytes.
+- 0x21eb–0x2258: if the row is nonwhite and pending blank
+  counter state+0x10 is nonzero, issue ESC f followed by a
+  two-byte big-endian pending count, clear the counter BEFORE
+  checking for precisely 0x80004005 (E_FAIL), and abort only on
+  that HRESULT.
+- 0x225d–0x226d: call the separate row/filter routine at RVA
+  0x26a0 with original bytes, total length and leading-zero
+  offset. The caller does NOT inspect that routine's HRESULT.
+- 0x22b3: on all-white or zero-length row, increment the
+  16-bit queued blank counter; if row index == label-height
+  WORD at +0x12, flush its ESC f.
+- 0x2272–0x22ae and 0x231e–0x2352: at exact equality
+  row index == target height, reset DWORD at state+0x0e
+  (both row index and pending count), set previous-width
+  state+0x08 to 0xffff BEFORE sending two-byte ESC G, then
+  increment label counter +0x0a; ESC G HRESULT ignored.
+
+**Implementation:** reconstructed row_control.[ch] is a separate
+portable C module implementing defined state transitions with an
+independent row encoder callback; exact internal C++ type and COM
+linkage are NOT claimed. It avoids unsafe original zero-length
+reads. The caller owns the row counter; original automatic
+counter updates and complete Windows compression are not claimed.
+Existing raster command helpers, protocol modules, media profiles
+and unrelated branches are unchanged.
+
+**Offline verification:** GCC and Clang (-std=c11 -Wall -Wextra
+-Werror -pedantic -O2) passed isolated C unit tests covering:
+queued blank-row count, nonblank flush, blank-page ESC f/ESC G,
+width and medium prefix commands, pending counter reset timing,
+E_FAIL abort before pixels, other HRESULT ignored, callback
+error ignored at final row, and state reset before ESC G.
+The tests are static manufacturer-instruction-derived vectors,
+NOT executable dynamic parity against the original DLL or actual
+hardware. The sources Windows CI workflow runs the same checks.
+
+**Still open:** complete Windows compressor, caller-owned
+row-counter / ModeAuto / IsDieCut / CUSTOMSIZE logic, exact
+COM ABI, bidirectional status framing, and printer hardware.
+Only sources is modified.

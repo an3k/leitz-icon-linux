@@ -1,0 +1,21 @@
+name: Sources - Windows 2018 Reconstruction
+
+on:
+  push:
+    branches: [sources]
+    paths:
+      - 'reconstructions/windows-2018/**'
+      - 'analysis/windows-2018/**'
+      - '.github/workflows/sources-windows-reconstruction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-static-c-recovery:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: GCC and Clang - offline Windows OEM raster fragment regressions
+        run: sh reconstructions/windows-2018/LeitzRp/test.sh

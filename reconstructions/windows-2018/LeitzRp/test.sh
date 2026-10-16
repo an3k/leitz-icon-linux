@@ -7,5 +7,8 @@ for compiler in gcc clang; do
     "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
         filter_graphics_fragments.c filter_graphics_fragments_test.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        row_control.c row_control_test.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done
