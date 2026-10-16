@@ -30,6 +30,14 @@ jobs:
           for cc in gcc clang; do
             "$cc" -std=c11 -Wall -Wextra -Werror -pedantic -O2 wifi_http.c wifi_http_test.c -o /tmp/leitz-wifi-http-test
             /tmp/leitz-wifi-http-test
+      - name: GCC and Clang - managed OEM WiFi security / scan / form parity vectors
+        run: |
+          set -eu
+          cd reconstructions/windows-2018/WiFiHTTP
+          for cc in gcc clang; do
+            "$cc" -std=c11 -Wall -Wextra -Werror -pedantic -O2 wifi_managed.c wifi_managed_test.c -o /tmp/leitz-wifi-managed-test
+            /tmp/leitz-wifi-managed-test
+          done
           done
       - name: Python - Windows application XML and GPD inventory regression
         run: python3 -m unittest discover -s analysis/windows-2018 -p 'test_inventory_windows_label_sizes.py' -v
