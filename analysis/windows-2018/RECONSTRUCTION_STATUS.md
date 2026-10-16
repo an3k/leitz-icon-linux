@@ -331,3 +331,39 @@ the exact specified `iLabelLength=4` yields
 ModeAuto=1 produces `1b 66 00 02 1b 47` instead. No guessed 170mm
 cap, no row-counter hidden increments, no direct manufacturer DLL
 execution parity. The existing modules are unchanged.
+
+
+## Windows LeitzLm 2018 language monitor dispatch and bounded response collection
+
+Sources branch inspected at 0a79146fbe15f7236a3ab09a39d2a53d5fc92ac0
+before execution; LeitzRp raster, RLE, ModeAuto and ESC f/G work
+already complete and untouched. New static OEM evidence from
+SHA-256 8d58d21fdfedae812863a4efae30c6132a196d563c3e3a2f018667d3bd29561d
+(\`Drivers/amd64/LeitzLm.dll\`; PE32+, ImageBase 0x180000000):
+
+- RVA 0x100d..0x1094: exact UTF-16 \`lstrcmpW\` names at
+  RVAs 0x34d0, 0x34f8, 0x3520. Returns FALSE for unrecognized
+  requests with no worker call; supported calls send exactly
+  two bytes ESC A, ESC U, ESC V respectively, then store
+  the numerical worker result (reported reply size) and
+  return TRUE independently of the worker's size.
+- RVA 0x1750..0x1851: common helper calls underlying write
+  callback, creates the read thread, waits 5000 ms and
+  forcibly terminates it. This dangerous Win32 behavior
+  was NOT copied into our Linux-facing code.
+- RVA 0x1860..0x1aee: ReadPort worker initializes a 1024-byte
+  aggregate, requests 1023 bytes, sums returned read sizes,
+  and stops if accumulated count equals the expected size
+  or the final byte is NUL. The native worker uses full-size
+  read requests even after some bytes accumulate: unsafe
+  exceptional overflow behavior is intentionally not copied.
+
+\`reconstructions/windows-2018/LeitzLm/status_dispatch.[ch]\`
+reconstructs the three documented command bytes and the
+bounded collection predicate behind a new portable callback
+interface. Dedicated GCC/Clang tests cover recognized and
+unrecognized requests, exact casing, worker failures,
+nonblocking segments, exact-size and NUL termination, and
+buffer-bounds checks. No USB I/O, firmware modifications,
+status parsing or native Windows DLL dynamic parity.
+Response framing per command remains unestablished.
