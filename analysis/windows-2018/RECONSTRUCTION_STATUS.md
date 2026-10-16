@@ -1003,3 +1003,77 @@ Locally tested with GCC and Clang -std=c11 -Wall -Wextra
 -Werror -pedantic -O2, AddressSanitizer and
 UndefinedBehaviorSanitizer; CI runs the same deterministic
 functional cases without sanitizer dependencies.
+
+
+## Windows AddPrinter and LeitzIconCommon HTTP credential decisions
+
+**Preflight:** verified sources HEAD
+45c83b26738e5408c533eb334626aff6b9bded32,
+Windows CI 38940378698 successful and all previous WLAN scan,
+XML, form and password validation files already committed.
+This phase does not modify those files or production Linux branches.
+
+**Primary OEM evidence:** original user-uploaded Windows 2018
+LeitzIconAddPrinterTool.exe SHA-256
+e27663457368f529cc64322a7550431ec2ff6b28e4d640a87419b837df924435,
+and the independently shipped LeitzIconCommon.dll SHA-256
+1cc54e495fae83dae22ea94559a6963d4a3d22f4abcb883550a81f7902758c00.
+Decoded ECMA-335 MethodDef table, IL bodies and #US/#Strings streams
+from each actual binary offline, without launching Windows/.NET code.
+
+**Evidence by exact method RVA:**
+- AddPrinter MethodDef 263 GetBaseUri RVA 0x62bb concatenates
+  literal "http://" and the \`_host\` string, constructing Uri.
+  This is cleartext HTTP, not authenticated TLS.
+- AddPrinter MethodDef 264 IsPrinterControlPanelAvailable RVA 0x62d4
+  creates Uri from GetBaseUri + literal "Main.html", then invokes
+  the external WebSiteIsAvailable with numeric authentication
+  flag 1 and the exact \`_user\`/\`_pwd\` fields; its catch returns 2.
+- **Located and decoded the actual called implementation** in
+  LeitzIconCommon.dll MethodDef 183 WebSiteIsAvailable RVA 0x3820:
+  WebRequest.Create, cast HttpWebRequest, set 15000ms timeout,
+  add new NetworkCredential(username,password) if flag true,
+  set method GET, call GetResponse. Successful response returns 3.
+  The WebException catch checks WebExceptionStatus == 7
+  (ProtocolError), then HttpWebResponse.StatusCode == 401:
+  in that exact case return 1. All other WebExceptions and
+  general exceptions yield 2 (name-resolution failure has an
+  explicit log branch, but same numeric return). Response is
+  disposed in the finally path.
+- AddPrinter MethodDef 460 IsConnectedToNetwork RVA 0x8334
+  calls GetCurrentSSID, rejects null/empty current SSID,
+  then performs an ordinal case-sensitive String.Equals
+  against its supplied argument.
+- AddPrinter MethodDef 280 IsConnectedToSameWiFi RVA 0x6bab
+  passes its \`_host\` property to IsConnectedToNetwork.
+  The same value also supplies GetBaseUri; we do NOT assume
+  host and wireless SSID are always semantically identical.
+- AddPrinter MethodDef 281 CheckLogin RVA 0x6bb8 first
+  calls IsConnectedToSameWiFi: false => immediate status 2;
+  true => return the actual IsPrinterControlPanelAvailable status.
+- AddPrinter MethodDef 279 ProcessCredentials RVA 0x6b60 calls
+  CheckLogin, immediately returns if status==3, else performs a
+  **second** IsConnectedToSameWiFi observation. If the second
+  check is false return 4; if true return the original status.
+  The two connection checks are not logically interchangeable.
+- AddPrinter MethodDefs 266 and 267 (GetPrinterConnectedWiFiName
+  and GetWiFiScanInfo, RVAs 0x64b4 / 0x6548) create a separate
+  web client with a **18000ms** timeout and set
+  NetworkCredential(_user,_pwd) before DownloadString.
+  This is distinct from LeitzLm's 5000ms status-reader timeout.
+
+**Implementation:** new standalone portable \`wifi_auth.[ch]\`
+models UTF-16 string comparison, WebException/HTTP status mapping
+and both login/connection decisions with an independent C API.
+It does not issue GET/POST, handle plaintext credentials,
+configure Wi-Fi or change CUPS. No credentials are stored.
+Invalid enum and pointer cases are rejected rather than copied
+from unspecified OEM exceptional behavior.
+
+**Tests:** strict GCC and Clang standalone tests cover
+case-sensitive code-unit comparisons, missing SSID, HTTP 401
+with ProtocolError, HTTP 403 / other exception values,
+successful HTTP response, both network observations, status 3
+short-circuit, and 15s/18s timeouts. Locally passed offline.
+Native .NET execution parity, real HTTP transport and hardware
+validation remain outstanding.
