@@ -52,3 +52,9 @@ automatic length and 16-bit native state truncation. No fixed length
 cap is introduced. The original OEM +0x18 flag used by ESC w is
 now positively identified as IsCustomSize. Its original C++ ABI
 and all run-time Windows APIs are not duplicated or claimed.
+
+Integration of label setup with previously recovered row control: `label_setup_row_test.c` checks that original-derived
+`CUSTOMSIZE` enables per-row ESC w and terminates at raster height;
+continuous manual-length sends ESC f/G at the provided iLabelLength;
+continuous automatic-length terminates at raster height instead.
+No encoder or USB backend changes are involved.

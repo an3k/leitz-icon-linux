@@ -317,3 +317,17 @@ private COM structure equivalence, mechanical hardware tests
 or productive driver modifications are asserted. The original
 Windows option names remain untouched. No 170-mm universal
 restriction or guessed media-ID conversions introduced.
+
+
+### Media setup -> row output end-to-end regression
+
+In a separate regression linking `label_setup.c` with the already
+reconstructed `row_control.c`, a CUSTOMSIZE page emits
+`1b 77 00 05 1b 66 00 01 1b 47` (ESC w / ESC f / ESC G) over
+three independent native-shaped callbacks; the existing encoder callback
+is a counted stub. With non-diecut continuous stock and ModeAuto=0,
+the exact specified `iLabelLength=4` yields
+`1b 66 00 04 1b 47`, notwithstanding raster-height=2. Setting
+ModeAuto=1 produces `1b 66 00 02 1b 47` instead. No guessed 170mm
+cap, no row-counter hidden increments, no direct manufacturer DLL
+execution parity. The existing modules are unchanged.
