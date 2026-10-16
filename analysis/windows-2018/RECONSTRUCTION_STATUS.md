@@ -367,3 +367,60 @@ nonblocking segments, exact-size and NUL termination, and
 buffer-bounds checks. No USB I/O, firmware modifications,
 status parsing or native Windows DLL dynamic parity.
 Response framing per command remains unestablished.
+
+
+## Windows PrintHelper 2018 native DEVMODE editor: SetPaper and SetCustomPaper
+
+Duplicate-work check: sources HEAD 023e7dda705dc7a4c38f7e1e6eca2a142d30c382
+and most recent Windows CI 38888936221 success. LeitzRp RLE,
+ModeAuto and LeitzLm dispatch/response parsing already recovered;
+none rewritten in this phase.
+
+Original binary: PrintHelper.dll i386 SHA-256
+0b57ad5584fabe69610158347bace1647935e85d014d775753d0aa436734871a.
+Disassembled PE32 image base 0x10000000, 9 exported functions
+(including CanReadFromPrinter, GetPaperDefs, IsPrinterOnline,
+RetrieveStatus, SendRecvData, SetPaper, SetCustomPaper,
+SetPrinterWirelessNetwork and ReflashPrinter).
+Only these two entry points were implemented here:
+
+- \`SetCustomPaper\` RVA 0x1930..0x1b24: open Windows printer,
+  fetch DEVMODEW via DocumentPropertiesW, replace DWORD
+  \`dmFields\` at +0x48 with 0x2402, patch DEVMODEW WORD at
+  +0x4e (dmPaperSize), +0x60 (dmYResolution), +0x5a
+  (dmPrintQuality). Original 0x1a6d..0x1a8d computes end
+  pointer using 16-bit fields dmSize (+0x44) and
+  dmDriverExtra (+0x46), then patches OEM-private WORDs
+  at end-0x0a, end-0x0e and end-0x10 respectively from
+  exported function parameters at +0x18,+0x1c,+0x20.
+- \`SetPaper\` RVA 0x1b30..0x1d2d: same Windows DEVMODE
+  preparation, but original 0x1c43 first checks the existing
+  DM_PAPERSIZE bit (0x02) in dmFields and takes a failure
+  path if absent. It then sets dmFields=0x2402, the same
+  three public WORD fields and OEM-private end-0x0a from
+  parameter +0x18, end-0x10 from parameter +0x1c.
+  Original 0x1c90 writes the constant WORD 1 at end-0x0c
+  and does not modify end-0x0e in this branch.
+- Both write back via DocumentPropertiesW and SetPrinterW
+  level 9. These are *spooler-side settings*, not
+  additional ESC/device transport commands.
+
+The independent portable \`reconstructions/windows-2018/PrintHelper/\`
+module performs these strictly bounded DEVMODEW patches only.
+Its public signature is NOT the original Windows DLL ABI.
+The OEM does not perform equivalent bounds validation; our code
+rejects dmSize < 0x62, private-extra length < 16, and buffers
+too short for the advertised size before any write.
+Tests verify public offsets, original-private negative offsets,
+explicit DM_PAPERSIZE gate, preserved untouched bytes,
+little-endian data, nulls and malformed length descriptors.
+GCC and Clang offline passed before commit. A separate
+Windows CI job runs it beside the already passing raster and
+language-monitor tests.
+
+**Outstanding:** Original Windows spooler/COM linkage and
+all exception paths, response framing/status semantics,
+GetPaperDefs paper-capability mapping, further PrintHelper
+functions, original DLL dynamic parity, and real hardware tests.
+Do not substitute this Windows-only DEVMODE manipulation for
+the existing Linux CUPS custom-length and media logic.

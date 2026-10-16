@@ -21,3 +21,5 @@ jobs:
         run: sh reconstructions/windows-2018/LeitzRp/test.sh
       - name: GCC and Clang - offline Windows OEM language monitor status regressions
         run: sh reconstructions/windows-2018/LeitzLm/test.sh
+      - name: GCC and Clang - offline Windows PrintHelper DEVMODE regressions
+        run: sh reconstructions/windows-2018/PrintHelper/test.sh
