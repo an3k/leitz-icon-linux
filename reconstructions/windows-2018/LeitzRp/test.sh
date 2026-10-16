@@ -10,5 +10,8 @@ for compiler in gcc clang; do
     "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
         row_control.c row_control_test.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        rle_windows_2018.c rle_windows_2018_test.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done

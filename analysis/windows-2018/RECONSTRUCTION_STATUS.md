@@ -171,3 +171,61 @@ hardware. The sources Windows CI workflow runs the same checks.
 row-counter / ModeAuto / IsDieCut / CUSTOMSIZE logic, exact
 COM ABI, bidirectional status framing, and printer hardware.
 Only sources is modified.
+
+
+## Reconstructed Windows x64/i386 native RLE bit codec
+
+**No duplicate work:** confirmed existing sources HEAD
+4c1524d199332fa0b068a675e0c1904be97633af and prior passing Windows
+CI run 38882692199. The previous ESC D/B raw-vs-compressed framing
+helpers and ESC w/E/f/G counted-row controller remain untouched.
+
+**Original evidence:** From the user-provided Windows 2018
+Drivers/amd64/LeitzRp.dll (SHA-256
+876f3fb48829420fad03692d6d613c28f0150d797c928ba45c021e7edf640787)
+and Drivers/i386/LeitzRp.dll (SHA-256
+7586da2d722f76991002fce4062c45625b733dc01902484e117c5bf748f5cd33),
+disassembled without executing either binary:
+
+- x64 RVA 0x274c–0x2905 and x86 RVA 0x2800–0x2910 accumulate
+  contiguous identical raster bits, MSB first. The previous run
+  starts with a special sentinel 0xff. Each emitted run is
+  1..128 bits; low seven encoded bits are run length minus one,
+  high bit is run color (1=black, 0=white).
+- x64 RVA 0x27fe–0x283b and x86 RVA 0x2836–0x288b implement
+  a shortcut for full 0x00 or 0xff bytes while the 128-bit
+  limit remains satisfied; otherwise bits are counted individually.
+- x64 RVA 0x2907–0x2925 / x86 RVA 0x2910–0x2944 select
+  compressed bytes only when strictly shorter than raw bytes,
+  otherwise raw selector 0x16. The existing, independently
+  reconstructed fragment-selection/WriteData code is not modified.
+- x64 RVA 0x2774–0x27cc conditionally clears unused low bits
+  of the final raster byte when the source row's byte length
+  exactly equals ceil(physical bit width / 8). The original
+  mutates its own source buffer. The portable C helper instead
+  copies the row and masks only the copy.
+
+**Scope and design:** rle_windows_2018.h/.c reconstructs the
+defined compressed-byte codec with an entirely new portable C
+API. The function takes already-trimmed bytes, requires
+adequate caller-provided output storage, stops when compression
+cannot beat raw length and allocates no memory. The optional
+clipping helper rejects physical width zero and out-of-range
+inputs, rather than imitating original undefined memory
+behaviors. It does not claim the original private COM ABI or
+unsafe side effects.
+
+**Tests:** GCC/Clang strict warnings with a separate bitwise
+run reference, exhaustive deterministic lengths 0..96 for 25
+patterns per length, explicit runs crossing 128 bits,
+compressed/nonbeneficial selection, malformed pointer/capacity,
+and final-byte mask cases. This is offline
+*instruction-derived source behavioral verification*, not a
+direct Windows-native DLL oracle, not a live printer test,
+and not complete label-length/ModeAuto functionality.
+
+**Still open:** native Windows private COM semantics,
+caller-maintained variable-length/die-cut/copy modes, unusual
+buffer and Windows exception paths, original execution parity,
+and hardware validation. Productive driver, main and cups
+branches remain unchanged.
