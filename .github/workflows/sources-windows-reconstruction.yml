@@ -21,6 +21,19 @@ jobs:
         run: sh reconstructions/windows-2018/LeitzRp/test.sh
       - name: GCC and Clang - offline Windows OEM language monitor status regressions
         run: sh reconstructions/windows-2018/LeitzLm/test.sh
+      - name: GCC and Clang - bounded XML replies (Expat)
+        run: |
+          set -eu
+          if ! pkg-config --exists expat; then
+            sudo apt-get update
+            sudo apt-get install -y libexpat1-dev pkg-config
+          fi
+          cd reconstructions/windows-2018/WiFiHTTP
+          for cc in gcc clang; do
+            "$cc" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+              wifi_xml.c wifi_xml_test.c -lexpat -o /tmp/leitz-wifi-xml
+            /tmp/leitz-wifi-xml
+          done
       - name: GCC and Clang - offline Windows PrintHelper DEVMODE regressions
         run: sh reconstructions/windows-2018/PrintHelper/test.sh
       - name: GCC and Clang - original Windows AddPrinter HTTP WiFi offline vectors

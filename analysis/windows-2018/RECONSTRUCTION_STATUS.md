@@ -901,3 +901,56 @@ ASCII form including unescaped SSID '&', insufficient buffers,
 non-ASCII rejection, first scan, polling exhaustion, and immediate
 completion. No network configuration, device requests, personal
 Wi-Fi credentials, firmware changes or productive Linux code.
+
+
+## OEM AddPrinter managed scan and BSS XML response selection
+
+**Pre-write check:** sources HEAD a11679f61568ac948dfe6ead514f482d6bdbb0a8.
+Previous managed GetWiFiScanInfo retry (50 attempts, 300 ms),
+GetWiFiNetworkInfo selectors, original security mapping,
+ASCII form-encoding implementation and all existing tests already
+present. No existing source routines were overwritten.
+
+**Primary evidence:** user-supplied original Windows 2018
+LeitzIconAddPrinterTool.exe, SHA-256
+e27663457368f529cc64322a7550431ec2ff6b28e4d640a87419b837df924435.
+.NET IL MethodDef 267 RVA 0x6548 uses the literal child names
+ScanInProgress, NumScanResults, MySsid. MethodDef 269 RVA 0x67e4
+selects response/bss, its first child, then literal child
+names Valid, Name, SecurityMode, NetworkType, Strength.
+The original compares progress/valid with the **exact** string
+"1" (StringComparison.Ordinal), and parses the three latter
+BSS numeric texts as signed Int32 values. Actual OEM responses,
+XML schemas, namespace conventions and missing-node semantics
+are not available in the user upload.
+
+**New offline code:** wifi_xml.[ch] models only those SELECTED
+XML fields in portable C using Expat. The fixture envelope
+\`<response>...\` and row wrapper \`<response><bss><row>...\`
+are **inferred** from the managed selector paths; no claim of
+actual response-schema parity. XML is decoded with entity
+handling, rejects DTD, does not fetch network resources,
+bounds input to 64 KiB, individual field text to 255 bytes,
+and rejects repeated known fields, invalid integers,
+malformed XML and over-nesting. It treats in-progress scans
+as having no result count and invalid BSS rows as having no
+detail values. All original source-code modifications are
+standalone in sources, not the production Linux driver.
+
+**Offline verification:** GCC and Clang -std=c11 -Wall -Wextra
+-Werror -pedantic -O2, with local AddressSanitizer and
+UndefinedBehaviorSanitizer runs, passed. Synthetic cases
+include XML entity decoding, exact "1" versus whitespace-
+padded text, signed fields, missing/invalid/overflow integer
+fields, DTD injection, repeated field, truncated document,
+unknown fields and unchanged caller output after errors.
+The GitHub Windows-only workflow separately compiles/runs
+the same C tests with system Expat. No real HTTP request,
+printer reply capture, credentials, COM calls, USB writes
+or firmware operations were performed.
+
+**Still open:** OEM-authenticated HTTP response examples,
+exact XML root/wrapping/error semantics, retrieval and
+authentication handling, true OEM application execution
+comparison and physical device tests. Original managed scan
+and security-mode policies were not duplicated or modified.
