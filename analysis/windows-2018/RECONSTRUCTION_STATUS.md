@@ -485,3 +485,61 @@ branches remain unchanged.
 Outstanding: SendRecvData COM protocol and response framing, direct
 OEM DLL runtime comparisons, real hardware tests, complete four-source
 media inventory mapping and true cassette capabilities.
+
+
+## Queue work-offline attribute and direct ESC V version probe
+
+Duplicate-work check: before modifying sources, verified the actual
+sources HEAD \`047b450c218fbcd5b8b50dde4da9e4a55696c312\`, the
+previous Windows CI 38902630112 (success) and existing
+PrintHelper DEVMODE, GetPaperDefs and RetrieveStatus source
+implementations. None of these components was overwritten.
+
+Original user-provided PrintHelper.dll PE32 i386 SHA-256
+\`0b57ad5584fabe69610158347bace1647935e85d014d775753d0aa436734871a\`:
+
+- \`IsPrinterOnline\` at 0x10001510..0x100015ef opens a spooler
+  queue, obtains \`PRINTER_INFO_2\` via two GetPrinterW(level 2)
+  calls, then checks \`[record+0x34] & 0x400\` at 0x100015a2.
+  On 32-bit Windows this is
+  \`PRINTER_INFO_2.Attributes & PRINTER_ATTRIBUTE_WORK_OFFLINE\`.
+  It does NOT inspect \`PRINTER_INFO_2.Status\` at +0x48 and does
+  NOT communicate with the physical USB/network printer.
+  Calling its outcome hardware online status would be wrong.
+- \`CanReadFromPrinter\` at 0x10001110..0x1000114a calls the
+  internal routine at 0x10002270 and returns true precisely
+  if that internal return value equals 1. The helper writes
+  the two bytes \`1b 56\` (ESC V) at 0x100022b3, requests a
+  64-byte reply at 0x100022d5..0x100022e7, and searches that
+  reply for ASCII \`BOOT\` at 0x100022f1..0x10002304. It sets
+  a separate boot flag only if the substring is present;
+  otherwise it leaves that flag unchanged. The helper
+  returns 1 at 0x10002324 on successful transfer
+  regardless of whether BOOT matched, and returns 101 at
+  0x1000234c after an unsuccessful transfer. This is a
+  version/boot-mode query, NOT a complete status parser.
+  The original uses \`strstr\` on a 64-byte fixed response and
+  could overread if the data is not NUL-terminated.
+- Distinct from the earlier \`LeitzLm\` status command selectors
+  ESC A, ESC U and ESC V. The identical ESC V command does not
+  make the Windows spooler work-offline attribute a hardware
+  response. The actual returned version layout and BOOT
+  meaning beyond the case-sensitive substring are still unknown.
+
+New isolated portable \`status_probe.[ch]\` checks only these
+defined boolean decisions, with bounded NUL-aware substring
+scanning. GCC and Clang unit tests validate queue attributes,
+success independent of BOOT, case sensitivity, preservation of
+preexisting BOOT state and malformed response bounds. No
+Windows calls, USB writes, firmware changes, native DLL execution
+parity, direct hardware tests or driver integration.
+
+\`SendRecvData\` remains incompletely reconstructed: native RVA
+0x1720..0x191d initializes COM and creates two different
+CoCreateInstance objects using UUID constants at RVAs 0x443c,
+0x43ec, 0x441c and 0x43cc; it sets the UTF-16 string
+\`ReadWriteUse\`, then uses COM vtable dispatch and conditionally
+allocates/copies a response. Without authenticated interface
+definitions or runtime traces we must not invent protocol frames
+or claim its private COM methods are known. Firmware and Wi-Fi
+exports are not exercised.
