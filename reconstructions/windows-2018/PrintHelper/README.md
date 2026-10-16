@@ -173,3 +173,71 @@ GUIDs and invocation slots are therefore **proven**,
 whereas method names, internal call semantics and the
 actual USB payload framing remain **unknown**. No device
 command, firmware or Wi-Fi operation is performed.
+
+
+## Windows PrintHelper SetPrinterWirelessNetwork: ANSI payload transfer
+
+**Duplicate-work check:** sources HEAD
+38ca610ae4b165c5763190e97f949a9d061dff72, prior passing
+Windows CI 38911116602. No prior SetPrinterWirelessNetwork source
+implementation was present. All existing LeitzRp, LeitzLm and
+PrintHelper files/behaviors are preserved.
+
+**Original manufacturer instructions:** \`PrintHelper.dll\` from
+original uploaded ZIP, SHA-256
+\`0b57ad5584fabe69610158347bace1647935e85d014d775753d0aa436734871a\`,
+PE32 i386 ImageBase 0x10000000. Export \`SetPrinterWirelessNetwork\`
+RVA 0x1150–0x120a uses arguments +0x08 (device-path string) and
++0x0c (configuration string). At RVA 0x1157 it calls helper 0x2140,
+which wraps \`CreateFileW\` with \`GENERIC_READ|GENERIC_WRITE\`
+for the supplied device path. At RVA 0x116b it creates an internal
+UTF-16/BSTR-like holder for the configuration, then when needed
+at RVA 0x1183 invokes helper 0x2ad0 to convert to bytes.
+The helper uses \`WideCharToMultiByte(CP_ACP=0, flags=0)\` with
+the UTF-16 input string length INCLUDING its trailing NUL;
+the ANSI code page is selected by the Windows host and not a
+fixed encoding supplied by the manufacturer.
+
+At RVA 0x1194–0x11b1, the original computes \`strlen\` on the
+converted byte string and passes that length (EXCLUDING NUL)
+and the byte pointer directly to the common \`WriteFile\` wrapper
+at 0x1e20. No ESC or proprietary prefix is assembled within
+this export. The bytes are **opaque configuration data** supplied
+by the caller; the content structure and firmware processing
+remain unknown. A direct write to a chosen device path is NOT
+the previously reconstructed \`SendRecvData\` private COM path.
+The writer uses an overlapped event and may block on
+\`ERROR_IO_PENDING\` via \`WaitForSingleObject(INFINITE)\`,
+then calls \`GetOverlappedResult\`. There are native error
+and null-pointer hazards; \`CloseHandle\` occurs after attempting
+the write. No new USB command frames can be inferred from this.
+
+**New portable bounded reconstruction:** the
+\`wireless_payload.[ch]\` model accepts a bounded UTF-16 string,
+a platform-provided ANSI conversion callback, and a synthetic
+writer callback. It preserves the manufacturer's
+\`WideCharToMultiByte\` then \`strlen\` boundary, including
+truncation on converted embedded NUL and excluding the trailing
+NUL from transmission. Unlike the OEM, missing terminators,
+invalid conversion length and null pointers are rejected.
+Temporary bytes are zeroized after conversion/delivery.
+Non-ASCII handling is delegated to a codepage-aware callback,
+not guessed to be UTF-8 or Latin-1.
+
+**Proof boundary:** GCC and Clang strict compilation and
+offline tests cover ASCII, a synthetic non-ASCII mapping,
+early NUL, zero-byte payload, writer error, conversion error,
+missing termination, oversize reports, buffer/pointer errors
+and temporary-byte zeroization. These tests prove the new
+portable wrapper's behavior against instruction-derived cases,
+NOT full native Windows DLL execution parity, the unknown
+configuration syntax, actual WLAN association or printer access.
+No user credentials, network communication, firmware flashing
+or actual device commands occur in tests.
+
+**Separate firmware feature:** \`ReflashPrinter\` is the native
+firmware-changing export at RVA 0x29a0, which must not be called
+as part of discovery, print status or WLAN setup. Firmware
+flashing remains expressly excluded from offline reconstruction
+execution; it requires independent verification and physical
+recovery provisions before integration.
