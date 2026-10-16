@@ -3,6 +3,8 @@
 #include <stddef.h>
 #include <stdint.h>
 /* New portable test API, not the native OEM COM/Windows ABI.
+ * Native paper IDs occupy 4-byte cells, with the low WORD selected
+ * at base + index*4 (RVA 0x13d3); this API accepts compact uint16_t IDs.
  * Win32 PrintHelper.dll GetPaperDefs RVA 0x1210..0x1500:
  * SetPrinterW chooses each paper, then GetDeviceCaps reads six values.
  * Neither device nor printer settings are accessed by this module. */

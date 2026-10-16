@@ -439,8 +439,9 @@ DeleteDC and WINSPOOL.DRV SetPrinterW/GetPrinterDataW directly establish
 that these two exports act on Windows printer properties, NOT on
 the Leitz Icon USB protocol.
 
-GetPaperDefs original RVA 0x1210..0x1500: argument +0x0c is a caller
-array of paper-ID WORDs, +0x10 its entry count; output array
+GetPaperDefs original RVA 0x1210..0x1500: argument +0x0c points to paper IDs in 4-byte slots
+(the OEM loads the low WORD at base + index*4 at RVA 0x13d3),
++0x10 is the entry count; output array
 pointer arguments at +0x14/+0x18/+0x1c/+0x20/+0x24/+0x28 each
 receive count DWORDs. At 0x13c3..0x13e6 the code sets
 PRINTER_INFO_9.DEVMODEW.dmFields = 2 and dmPaperSize from each

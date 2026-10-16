@@ -39,7 +39,10 @@ The manufacturer PrintHelper.dll 2.17.4.112 i386 exports
 GetPaperDefs (RVA 0x1210–0x1500) and RetrieveStatus
 (RVA 0x15f0–0x1715). These are **Windows spooler/GDI functions**.
 
-GetPaperDefs takes caller-specified paper IDs and a count. For each
+GetPaperDefs takes caller-specified paper IDs and a count. The native
+x86 caller ID array uses 4-byte cells (RVA 0x13d3 reads the low WORD
+at base + index*4); the new portable C interface accepts compact
+normalized 16-bit IDs and does NOT claim the native input ABI. For each
 paper it sets DEVMODEW dmPaperSize, invokes SetPrinterW level 9, creates
 a new GDI device context and calls GetDeviceCaps in the exact order
 112 (PHYSICALOFFSETX), 113 (PHYSICALOFFSETY), 110 (PHYSICALWIDTH),
