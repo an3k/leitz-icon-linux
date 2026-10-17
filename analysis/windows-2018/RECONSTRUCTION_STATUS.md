@@ -1077,3 +1077,37 @@ successful HTTP response, both network observations, status 3
 short-circuit, and 15s/18s timeouts. Locally passed offline.
 Native .NET execution parity, real HTTP transport and hardware
 validation remain outstanding.
+
+
+## Windows AddPrinter complete credentials decision ordering (offline)
+
+Pre-write check: `sources` HEAD
+`780e8abb1cd596fd5a21055ac5d61be2952de801` before this
+new work, with `wifi_auth.[ch]` and its tests already committed.
+Their existing code was not modified.
+
+Original evidence: Windows 2018 AddPrinter MethodDefs
+279 (`ProcessCredentials`, RVA 0x6b60), 281 (`CheckLogin`,
+RVA 0x6bb8), 280 (`IsConnectedToSameWiFi`, RVA 0x6bab),
+264 (`IsPrinterControlPanelAvailable`, RVA 0x62d4),
+and LeitzIconCommon MethodDef 183 (`WebSiteIsAvailable`, RVA 0x3820).
+Method instructions and numeric status mappings were documented
+in the previous section and are not re-derived here.
+
+New `reconstructions/windows-2018/WiFiHTTP/wifi_auth_flow.[ch]`
+composes the previously isolated observations and statuses in the
+original observable order. It distinguishes the first and second
+wireless observation; it skips panel access if the first fails;
+it omits the second observation only for status 3; and it reports
+status 4 for a subsequent wireless mismatch. The companion
+`wifi_auth_flow_test.c` checks call ordering and error/HTTP cases
+with synthetic observations. New CI step builds/runs it with
+GCC and Clang. Local GCC/Clang `-std=c11 -Wall -Wextra
+-Werror -pedantic -O2` checks, AddressSanitizer and
+UndefinedBehaviorSanitizer all passed.
+
+No original Windows application executed; no actual HTTP transport,
+credentials, network association, COM call, USB operation or firmware
+write was attempted. The portable callback boundaries are new,
+not original Windows ABI. Complete Windows DLL reconstruction,
+OEM execution comparison and physical tests remain open.
