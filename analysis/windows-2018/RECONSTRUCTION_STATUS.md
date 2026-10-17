@@ -1623,3 +1623,34 @@ x64, Linux and macOS checks. C tests passed GCC/Clang/ASan/UBSan.
 The original verifier can be run with ZIP arguments outside CI;
 CI checks self-consistency and runs all C regressions. Existing
 OEM DLL reconstructs, driver/main/cups and printer are untouched.
+
+
+## Original x86/x64 LeitzRp IUnknown reference lifecycle
+
+Verified preflight: `sources` HEAD
+`c012d5d0508955926c43425d451e329a82224305`,
+previous CI success. All three original ZIP archives available
+and SHA-256 confirmed. The original Windows i386/amd64
+`LeitzRp.dll` disassemblies establish AddRef/Release
+at x86 RVAs `0x1070/0x1290` and
+x64 `0x1060/0x1290`. Native raster object reference-count
+offset is x86 `+4`, x64 `+8`, initial count 1.
+Native object count is incremented during successful
+CreateInstance and decremented on final destruction:
+global RVA x86 `0x643c`, x64 `0x76f0`.
+The final release also calls `IUnknown::Release`
+for any saved host interface at x86 `+8`, x64 `+16`.
+
+This tracked raster-object count differs from both
+`LockServer`'s global and the two `DllCanUnloadNow`
+globals. The new separate portable `LeitzRp/oem_lifetime.[ch]`
+models this OEM reference lifecycle with atomic counts and
+safe input validation. It does NOT substitute the native
+Windows COM heap/vtable ABI; no actual printer operation occurs.
+
+Strict GCC, Clang and ASan/UBSan offline tests passed,
+including original AddRef/Release return semantics, final
+host callback exactly once, factory/raster counter separation,
+invalid state and overflow/underflow. The original
+`LeitzRp/test.sh` is extended; previous reconstructions
+and all production branches remain unchanged.

@@ -227,3 +227,60 @@ The VTable data is for future exact ABI integration and is NOT an
 actual Windows COM object/vtable, nor a full native Windows driver.
 All previous source fragments, production Linux driver and
 printer hardware are unchanged.
+
+
+## Reconstructed IUnknown object references (original LeitzRp.dll)
+
+The new `oem_lifetime.[ch]` is an **isolated portable reference-count
+model**, not an implementation of a native COM allocation or vtable.
+It complements, but does not change, the already recovered
+`oem_factory` and `oem_host` modules.
+
+**Direct original observations** (both x86/i386 and x64/amd64 DLLs
+from the uploaded Windows OEM ZIP):
+- x86 `AddRef` at RVA `0x1070` applies
+  `InterlockedIncrement` to the raster reference DWORD at object
+  offset `+0x04`. x64 at RVA `0x1060` uses an atomic
+  `lock xadd` at object offset `+0x08` and returns the new count.
+- x86 raster `Release` RVA `0x1290` calls
+  `InterlockedDecrement` on `+0x04`; x64 RVA `0x1290`
+  uses `lock dec` on `+0x08`. Nonzero references return
+  their remaining count without destroying the object.
+- x86 `CreateInstance` RVA `0x10f4` initializes
+  refcount `1`, increments tracked DLL-global RVA `0x643c`
+  and clears cached host interface `+0x08`.
+  x64 RVA `0x10dd` initializes refcount `1`, increments
+  tracked DLL-global RVA `0x76f0`, and clears host `+0x10`.
+- At the final raster release, native x86 destructor RVA
+  `0x12d0` and x64 release RVA `0x129f` invoke
+  the cached host's `IUnknown::Release` once if non-NULL,
+  clear the host pointer, decrement the **tracked object global**
+  and free the native raster object.
+- Factory objects follow the same reference-count transitions
+  but do not modify the raster-object global. Original native
+  factory allocations are 8 bytes on x86, 16 bytes on x64.
+
+**Critical distinction:** x86 `LockServer` uses global `0x6430`,
+while `DllCanUnloadNow` reads `0x6438/0x6434`;
+the *raster object tracker* is `0x643c`. x64 uses
+`0x76e4`, `0x76ec/0x76e8`, and `0x76f0` respectively.
+These addresses are individually observed in the original.
+A conventional one-counter COM implementation would not be
+source-equivalent here.
+
+The new C code provides reference-count transitions, the
+separate tracked global and one-time host-release callback with
+explicit overflow/underflow checks. Unlike the manufacturer
+implementation, it **does not free the caller's object memory**
+or make native COM vtable calls; its behavior is deliberately
+safe if called again after reaching zero. Actual multi-threaded
+COM object ownership and release/destruction concurrency
+are not claimed reproduced.
+
+`oem_lifetime_test.c` checks factory/raster references,
+AddRef/Release return values, one-time host cleanup, independent
+counters, invalid buffers and overflow/underflow. Both GCC/Clang
+(strict C11) and GCC ASan/UBSan passed locally. The existing
+`LeitzRp/test.sh` now includes the new test, with no changes
+to preexisting C implementations. OEM DLLs were disassembled
+offline only; no Windows program or physical printer ran.
