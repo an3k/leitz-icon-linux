@@ -1,0 +1,407 @@
+{
+  "source": "Original Windows 2018 2.17.4.112 LeitzUSRes.dll RT_STRING 0x0409",
+  "sha256": {
+    "amd64/LeitzUSRes.dll": "bdb4de0b39750c9391f6626bbc487977b5f6e60c1c2ec357fc2877b90b0cb4c4",
+    "i386/LeitzUSRes.dll": "0d7c5064b373490a8db1649a0cb74d9dd46691dd84ac4aa8cd3caae7362494b0",
+    "LeitzIcon.gpd": "f81130f358b6dbc6099812d8ab243958854436be4b1e8c0c0ef8ec7fb60954b7"
+  },
+  "language_id": 1033,
+  "resource_id_min": 259,
+  "resource_id_max": 335,
+  "resource_count": 77,
+  "fixed_paper_count": 76,
+  "fixed_paper_strings": [
+    {
+      "gpd_name": "Continuous70030001",
+      "rcNameID": 259,
+      "windows_display_name": "Continuous - 3 1/2\""
+    },
+    {
+      "gpd_name": "PackageShippingLabel",
+      "rcNameID": 260,
+      "windows_display_name": "Package Label 6\" x 3 1/2\""
+    },
+    {
+      "gpd_name": "Multipurpose70030001",
+      "rcNameID": 261,
+      "windows_display_name": "Multipurpose 2\" x 3 1/2\""
+    },
+    {
+      "gpd_name": "NameBadgeLabel70030001",
+      "rcNameID": 262,
+      "windows_display_name": "Name Badge 2 1/3\" x 3 1/2\""
+    },
+    {
+      "gpd_name": "Continuous70040001",
+      "rcNameID": 263,
+      "windows_display_name": "Continuous - 2 2/5\""
+    },
+    {
+      "gpd_name": "WideLeverArchLabelShort",
+      "rcNameID": 264,
+      "windows_display_name": "Wide Lever Arch Label - Short"
+    },
+    {
+      "gpd_name": "WideLeverArchLabelLong",
+      "rcNameID": 265,
+      "windows_display_name": "Wide Lever Arch Label - Long"
+    },
+    {
+      "gpd_name": "Continuous70060001",
+      "rcNameID": 266,
+      "windows_display_name": "Continuous - 2\""
+    },
+    {
+      "gpd_name": "LargePendaflexTab",
+      "rcNameID": 267,
+      "windows_display_name": "Large Pendaflex Tab"
+    },
+    {
+      "gpd_name": "NameBadgeLabel70060001",
+      "rcNameID": 268,
+      "windows_display_name": "Name Badge Label 2\" x 3\""
+    },
+    {
+      "gpd_name": "NarrowLeverArchLabelShort",
+      "rcNameID": 269,
+      "windows_display_name": "Narrow Lever Arch Label, Short"
+    },
+    {
+      "gpd_name": "NarrowLeverArchLabelLong",
+      "rcNameID": 270,
+      "windows_display_name": "Narrow Lever Arch Label, Long"
+    },
+    {
+      "gpd_name": "Continuous70090001",
+      "rcNameID": 271,
+      "windows_display_name": "Continuous - 1\""
+    },
+    {
+      "gpd_name": "Multipurpose70090001",
+      "rcNameID": 272,
+      "windows_display_name": "Multipurpose 1\" x 1 1/2\""
+    },
+    {
+      "gpd_name": "ReturnAddressLabelLarge",
+      "rcNameID": 273,
+      "windows_display_name": "Return Address Label, Large"
+    },
+    {
+      "gpd_name": "Continuous70100001",
+      "rcNameID": 274,
+      "windows_display_name": "Continuous - 3/4\""
+    },
+    {
+      "gpd_name": "ReturnAddressLabelSmall",
+      "rcNameID": 275,
+      "windows_display_name": "Return Address Label, Small"
+    },
+    {
+      "gpd_name": "Multipurpose70100001",
+      "rcNameID": 276,
+      "windows_display_name": "Multipurpose 3/4\" x 2 1/2\""
+    },
+    {
+      "gpd_name": "Continuous70110001",
+      "rcNameID": 277,
+      "windows_display_name": "Continuous - 1/2\""
+    },
+    {
+      "gpd_name": "Multipurpose70110001",
+      "rcNameID": 278,
+      "windows_display_name": "Multipurpose 1/2\" x 1 7/8\""
+    },
+    {
+      "gpd_name": "FileFolderLabel",
+      "rcNameID": 279,
+      "windows_display_name": "File Folder Label"
+    },
+    {
+      "gpd_name": "SuspensionFileLabel",
+      "rcNameID": 280,
+      "windows_display_name": "Suspension File Label"
+    },
+    {
+      "gpd_name": "InternationalAddressLabel",
+      "rcNameID": 281,
+      "windows_display_name": "Large Address Label"
+    },
+    {
+      "gpd_name": "StandardAddressLabel",
+      "rcNameID": 282,
+      "windows_display_name": "Standard Address Label"
+    },
+    {
+      "gpd_name": "ShippingLabel70130001",
+      "rcNameID": 283,
+      "windows_display_name": "Shipping Label 2 1/3\" x 4\""
+    },
+    {
+      "gpd_name": "ShippingLabel70180001",
+      "rcNameID": 284,
+      "windows_display_name": "Shipping Label 2\" x 3 1/2\""
+    },
+    {
+      "gpd_name": "NameBadgeCard70190001",
+      "rcNameID": 285,
+      "windows_display_name": "Name Badge Card 2 1/4\" x 3 1/2\""
+    },
+    {
+      "gpd_name": "NameBadgeCard8214",
+      "rcNameID": 331,
+      "windows_display_name": "Name Badge Card - Durable© 8214"
+    },
+    {
+      "gpd_name": "AppointmentCard",
+      "rcNameID": 286,
+      "windows_display_name": "Appointment Card"
+    },
+    {
+      "gpd_name": "LeitzLeverArchFile1005",
+      "rcNameID": 332,
+      "windows_display_name": "*Lever Arch File 1005"
+    },
+    {
+      "gpd_name": "WideLeverArchCardShort",
+      "rcNameID": 287,
+      "windows_display_name": "Wide Lever Arch Card - Short"
+    },
+    {
+      "gpd_name": "NarrowLeverArchCardShort",
+      "rcNameID": 288,
+      "windows_display_name": "Narrow Lever Arch Card - Short"
+    },
+    {
+      "gpd_name": "Continuous70070001",
+      "rcNameID": 289,
+      "windows_display_name": "Continuous - 1.54\""
+    },
+    {
+      "gpd_name": "Continuous70080001",
+      "rcNameID": 290,
+      "windows_display_name": "Continuous - 1.25\""
+    },
+    {
+      "gpd_name": "Continuous70050001",
+      "rcNameID": 291,
+      "windows_display_name": "Continuous - 2.25\""
+    },
+    {
+      "gpd_name": "Continuous70190001",
+      "rcNameID": 292,
+      "windows_display_name": "Continuous - 3.6\""
+    },
+    {
+      "gpd_name": "LeitzContinuous70030001",
+      "rcNameID": 293,
+      "windows_display_name": "*Continuous - 3.5\""
+    },
+    {
+      "gpd_name": "LeitzPackageShippingLabel",
+      "rcNameID": 294,
+      "windows_display_name": "*Package Label 6\"x3.5\""
+    },
+    {
+      "gpd_name": "LeitzMultipurpose70030001",
+      "rcNameID": 295,
+      "windows_display_name": "*Multipurpose 2\"x3.5\""
+    },
+    {
+      "gpd_name": "LeitzNameBadgeLabel70030001",
+      "rcNameID": 296,
+      "windows_display_name": "*Name Badge 2.33\"x3.5\""
+    },
+    {
+      "gpd_name": "LeitzContinuous70040001",
+      "rcNameID": 297,
+      "windows_display_name": "*Continuous - 2.4\""
+    },
+    {
+      "gpd_name": "LeitzWideLeverArchLabelShort",
+      "rcNameID": 298,
+      "windows_display_name": "*Wide Lever Arch Label Short"
+    },
+    {
+      "gpd_name": "LeitzWideLeverArchLabelLong",
+      "rcNameID": 299,
+      "windows_display_name": "*Wide Lever Arch Label Long"
+    },
+    {
+      "gpd_name": "LeitzContinuous70060001",
+      "rcNameID": 300,
+      "windows_display_name": "*Continuous - 2\""
+    },
+    {
+      "gpd_name": "LeitzLargePendaflexTab",
+      "rcNameID": 301,
+      "windows_display_name": "*Large Pendaflex Tab"
+    },
+    {
+      "gpd_name": "LeitzNameBadgeLabel70060001",
+      "rcNameID": 302,
+      "windows_display_name": "*Name Badge Label 2\"x3\""
+    },
+    {
+      "gpd_name": "LeitzNarrowLeverArchLabelShort",
+      "rcNameID": 303,
+      "windows_display_name": "*Narrow Lever Arch Label Short"
+    },
+    {
+      "gpd_name": "LeitzNarrowLeverArchLabelLong",
+      "rcNameID": 304,
+      "windows_display_name": "*Narrow Lever Arch Label Long"
+    },
+    {
+      "gpd_name": "LeitzContinuous70090001",
+      "rcNameID": 305,
+      "windows_display_name": "*Continuous - 1\""
+    },
+    {
+      "gpd_name": "LeitzMultipurpose70090001",
+      "rcNameID": 306,
+      "windows_display_name": "*Multipurpose 1\"x1.5\""
+    },
+    {
+      "gpd_name": "LeitzReturnAddressLabelLarge",
+      "rcNameID": 307,
+      "windows_display_name": "*Return Address Label Large"
+    },
+    {
+      "gpd_name": "LeitzContinuous70100001",
+      "rcNameID": 308,
+      "windows_display_name": "*Continuous - 0.75\""
+    },
+    {
+      "gpd_name": "LeitzReturnAddressLabelSmall",
+      "rcNameID": 309,
+      "windows_display_name": "*Return Address Label Small"
+    },
+    {
+      "gpd_name": "LeitzMultipurpose70100001",
+      "rcNameID": 310,
+      "windows_display_name": "*Multipurpose 0.75\"x2.5\""
+    },
+    {
+      "gpd_name": "LeitzContinuous70110001",
+      "rcNameID": 311,
+      "windows_display_name": "*Continuous - 0.5\""
+    },
+    {
+      "gpd_name": "LeitzMultipurpose70110001",
+      "rcNameID": 312,
+      "windows_display_name": "*Multipurpose 0.5\"x1.875\""
+    },
+    {
+      "gpd_name": "LeitzFileFolderLabel",
+      "rcNameID": 313,
+      "windows_display_name": "*File Folder Label"
+    },
+    {
+      "gpd_name": "LeitzSuspensionFileLabel",
+      "rcNameID": 314,
+      "windows_display_name": "*Suspension File Label"
+    },
+    {
+      "gpd_name": "LeitzInternationalAddressLabel",
+      "rcNameID": 315,
+      "windows_display_name": "*Large Address Label"
+    },
+    {
+      "gpd_name": "LeitzStandardAddressLabel",
+      "rcNameID": 316,
+      "windows_display_name": "*Standard Address Label"
+    },
+    {
+      "gpd_name": "LeitzShippingLabel70130001",
+      "rcNameID": 317,
+      "windows_display_name": "*Shipping Label 2.33\"x4\""
+    },
+    {
+      "gpd_name": "LeitzShippingLabel70180001",
+      "rcNameID": 318,
+      "windows_display_name": "*Shipping Label 2\"x3.5\""
+    },
+    {
+      "gpd_name": "LeitzNameBadgeCard70190001",
+      "rcNameID": 319,
+      "windows_display_name": "*Name Badge Card 2.25\"x3.5\""
+    },
+    {
+      "gpd_name": "LeitzAppointmentCard",
+      "rcNameID": 320,
+      "windows_display_name": "*Appointment Card"
+    },
+    {
+      "gpd_name": "LeitzWideLeverArchCardShort",
+      "rcNameID": 321,
+      "windows_display_name": "*Wide Lever Arch Card Short"
+    },
+    {
+      "gpd_name": "LeitzNarrowLeverArchCardShort",
+      "rcNameID": 322,
+      "windows_display_name": "*Narrow Lever Arch Card Short"
+    },
+    {
+      "gpd_name": "LeitzContinuous70070001",
+      "rcNameID": 323,
+      "windows_display_name": "*Continuous - 1.54\""
+    },
+    {
+      "gpd_name": "LeitzContinuous70080001",
+      "rcNameID": 324,
+      "windows_display_name": "*Continuous - 1.25\""
+    },
+    {
+      "gpd_name": "LeitzContinuous70050001",
+      "rcNameID": 325,
+      "windows_display_name": "*Continuous - 2.25\""
+    },
+    {
+      "gpd_name": "LeitzContinuous70190001",
+      "rcNameID": 326,
+      "windows_display_name": "*Continuous - 3.6\""
+    },
+    {
+      "gpd_name": "LeitzLargePendaflexTabRotated",
+      "rcNameID": 327,
+      "windows_display_name": "*Large Pendaflex Tab R"
+    },
+    {
+      "gpd_name": "LeitzMultipurpose70030001Rotated",
+      "rcNameID": 328,
+      "windows_display_name": "*Multipurpose 2\"x3.5\" R"
+    },
+    {
+      "gpd_name": "LeitzNameBadgeCard70190001Rotated",
+      "rcNameID": 329,
+      "windows_display_name": "*Name Badge Card 2.25\"x3.5\" R"
+    },
+    {
+      "gpd_name": "LeitzShippingLabel70180001Rotated",
+      "rcNameID": 330,
+      "windows_display_name": "*Shipping Label 2\"x3.5\" R"
+    },
+    {
+      "gpd_name": "Wristband",
+      "rcNameID": 334,
+      "windows_display_name": "Wristband 277.5 x 28.5 mm"
+    },
+    {
+      "gpd_name": "DHLShippingLabel",
+      "rcNameID": 335,
+      "windows_display_name": "*Package Label 7\"x3.5\""
+    }
+  ],
+  "unreferenced_resource_strings": [
+    {
+      "id": 333,
+      "text": "*Custom paper size"
+    }
+  ],
+  "customsize": {
+    "gpd_name": "CUSTOMSIZE",
+    "rcNameID_symbol": "=USER_DEFINED_SIZE_DISPLAY",
+    "windows_display_name": null,
+    "note": "GPD references StdNames.gpd; do not substitute resource ID 333."
+  }
+}

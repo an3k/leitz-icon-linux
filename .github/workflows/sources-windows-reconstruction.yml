@@ -35,6 +35,12 @@ jobs:
         run: python3 analysis/windows-2018/test_windows_gpd_full_inventory.py _pinned_driver/media/media.json
       - name: Check original-derived Windows C media table
         run: python3 analysis/windows-2018/generate_gpd_media_catalog.py --check
+      - name: Verify original x86/x64 Windows PE UI resource labels
+        run: python3 analysis/windows-2018/test_windows_ui_labels.py
+      - name: Verify original resource strings C catalog generation
+        run: python3 analysis/windows-2018/generate_windows_ui_strings_c.py --check
+      - name: GCC and Clang - recovered Windows LeitzDevMode.dll OEM modes
+        run: sh reconstructions/windows-2018/LeitzDevMode/test.sh
       - name: GCC and Clang - original Windows GPD commands and declared static job sequencing
         run: sh reconstructions/windows-2018/GPD/test.sh
       - name: GCC and Clang - offline Windows OEM language monitor status regressions

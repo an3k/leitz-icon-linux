@@ -1344,3 +1344,44 @@ private COM/Unidrv interface, physical printer, Linux production branch
 or firmware was run. Do not conflate the static GPD command ordering
 with an observed Windows runtime output stream; that integration remains
 open.
+
+
+## 2026-10-17: actual Windows OEM DevMode and paper UI DLLs finally inspected
+
+Pre-work actual sources HEAD `27c8437c5d596b752244ea762abd12d3b6593886` and CI were checked. All three
+explicitly uploaded original ZIP archives were opened and their SHA-256
+values computed; full archive and individual original checksum evidence
+is in `VERIFIED_UPLOADED_ORIGINAL_ARCHIVES.md`. Unlike previous runs,
+raw binaries were **available** and were statically analyzed (never
+executed).
+
+Original `Drivers/i386/LeitzDevMode.dll` and
+`Drivers/amd64/LeitzDevMode.dll` both export `hrOEMDevMode` at
+RVA 0x1080. Native instruction analysis proved all four operations:
+SIZE (writes 28 to OEMDMPARAM), DEFAULT (first 20 bytes of a 28-byte
+OEM record only), CONVERT/MERGE (same helper at RVA 0x1000: compare
+signatures at +4, copy min private lengths, force output size=28 and
+field +8=1; mismatch logs "Unknown signature" and resets first
+20 bytes). The new `LeitzDevMode/oem_devmode.[ch]` preserves these
+decisions under a new bounded portable C API; x86/x64 OEMDMPARAM
+layout and actual spooler callbacks remain unimplemented. Native
+invalid-mode error 87/E_FAIL is preserved via optional callback.
+Offline C tests passed GCC/Clang/ASan/UBSan.
+
+The Windows original x86/x64 `LeitzUSRes.dll` binaries were read from
+their **PE RT_STRING resource trees**, both giving identical 77 original
+en-US strings with IDs 259..335. The 76 fixed PaperSize entries
+point to exactly 76 of those names. DLL ID333 was deliberately kept
+distinct from GPD CUSTOMSIZE's symbolic StdNames string. All original
+UI spellings are archived in `windows_2018_original_ui_strings.json`;
+`FOUR_SOURCE_WITH_WINDOWS_UI_NAMES.md` provides the complete
+87-ID media comparison with original Windows readable names alongside
+Linux, macOS and development IDs/names. An independent
+`GPD/gpd_ui_resources` C lookup module reuses the preserved GPD
+catalog and verifies all 76 mappings, while keeping numeric original
+IDs separate from UI text. The unmodified manufacturer binaries are
+NOT uploaded to GitHub.
+
+Neither the original Windows DLLs nor actual printer communications
+were executed. Production branches, preexisting C reconstructions
+and source-original files are unchanged.

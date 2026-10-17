@@ -99,3 +99,33 @@ passed. CI compiles the new adapter against the **real already existing**
 catalog and command modules. This does **not** prove actual Windows
 Unidrv/OEM plug-in execution order, write-call framing or firmware
 behavior and is not a CUPS filter.
+
+
+## New: exact original Windows localized UI strings (US English)
+
+The actual Windows installer archive was newly uploaded and inspected,
+rather than relying on prior GPD-only records. Both original manufacturer
+DLLs `Drivers/amd64/LeitzUSRes.dll` and `Drivers/i386/LeitzUSRes.dll`
+contain identical RT_STRING data (language 0x0409), IDs 259..335.
+
+All **76** numeric `PaperSize/rcNameID` references were resolved to
+the exact manufacturer UI strings, including punctuation, leading stars,
+the trademark/copyright character and original physical labels.
+`DHLShippingLabel` resolves to `*Package Label 7"x3.5"`, NOT the
+development catalog's translated label. Windows CUSTOMSIZE instead
+references `=USER_DEFINED_SIZE_DISPLAY` in `StdNames.gpd`, not DLL
+resource ID 333 (although ID 333 holds `*Custom paper size`).
+
+`gpd_ui_resources.[ch]` is a separate bounded read-only C lookup
+reusing the **existing** `gpd_media_catalog`. Its 77-string data
+initializer comes from
+`analysis/windows-2018/windows_2018_original_ui_strings.json` and
+can be regenerated/verified with
+`analysis/windows-2018/generate_windows_ui_strings_c.py --check`.
+C regression checks every one of the 76 GPD fixed-paper lookups, exact
+DHL/Wristband/durable badge text, resource 333 and CUSTOMSIZE
+non-assignment. CI also verifies the extended 87-row four-source table.
+
+These are only the *en-US* original Windows strings. No new hardware
+support, printer spooler, physical cassette equivalence or Unidrv
+layout has been inferred.
