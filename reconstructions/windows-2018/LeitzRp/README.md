@@ -284,3 +284,68 @@ counters, invalid buffers and overflow/underflow. Both GCC/Clang
 `LeitzRp/test.sh` now includes the new test, with no changes
 to preexisting C implementations. OEM DLLs were disassembled
 offline only; no Windows program or physical printer ran.
+
+## Original Windows Raster-Methodenaufruf #15 – gestanzt versus endlos
+
+**Zuvor offene Schnittstelle:** Die bestehenden Module
+`raster_stream.[ch]` und `row_control.[ch]` modellieren die
+Zeilenroutine des Windows-OEM bei x64 RVA `0x2060`, erwarten
+aber bereits extern erhöhten `row_index`. Die Unit-Tests setzen
+diesen Wert bisher manuell; das war **noch kein Originalbeleg für
+den Endlosmaterial-Aufrufpfad**.
+
+Die Hersteller-DLLs `LeitzRp.dll` aus dem Original-Windows-ZIP
+(SHA-256 des ZIP:
+`cc6e175fb3f183d211cd1b4610ca2d096ec958421bc45b4bc8fc2740be3034ca`)
+belegen jetzt den unmittelbaren VTable-Einstieg der Rasterzeile:
+
+| Herstellerpfad | x86 RVA | x64 RVA |
+| --- | --- | --- |
+| Original COM-Rastermethode, Slot 15 | `0x1FF0` | `0x2040` |
+| 16-Bit `row_index++` | `0x1FFF` (Medium +0x0A) | `0x2044` (Medium +0x0E) |
+| IsDieCut-Prüfung | Medium +0x10 | Medium +0x14 |
+| IsDieCut != 0: gestanztes Material | `0x2020` | `0x2060` |
+| IsDieCut == 0: Endlosmaterial | `0x2380` | `0x2380` |
+
+**Neu:** `oem_row_dispatch.[ch]` ergänzt nur den im Original
+belegten 16-Bit-Zeilenindex-Inkrement und die originale
+`IsDieCut`-Auswahl. Der gestanzte Pfad ruft das **unveränderte**
+`leitz_win2018_stream_counted_row` auf; damit gibt es keine
+Duplikation des RLE-Encoders oder des ESC-G/ESC-E-Zeilencontrollers.
+
+**Wichtig für Endlosmaterial:** Die native Methode bei `0x2380`
+ist ein eigenständiger Rasterverarbeitungspfad. Dessen komplette
+Logik wurde noch **nicht** nachgebaut. Deshalb verlangt der
+portable Dispatcher für `IsDieCut == 0` einen eigens
+bereitgestellten Callback; fehlt er, gibt er
+`E_NOTIMPL` zurück und erzeugt **keine erfundenen Druckbytes**.
+Die vorexistierenden Tests für manuelle Endloslänge beim
+separaten `row_control` prüfen lediglich die bereits rekonstruierte
+Teilroutine, nicht diese neue tatsächliche Windows-Aufrufverzweigung.
+
+Offline-Tests:
+- `oem_row_dispatch_test.c` isoliert die Aufrufsteuerung:
+  Zählerinkrement vor der ausgewählten Routine, Rückgabewerte,
+  16-Bit-Überlauf, ungültige Eingaben und nicht implementierter
+  Endloszweig.
+- `oem_row_dispatch_integration_test.c` bindet das **bestehende**
+  `label_setup`, `raster_stream`, `row_control`, `RLE`
+  und das Bytefiltermodul ein: Ein dreizeiliges `CUSTOMSIZE`
+  erzeugt `ESC w`, `ESC f` und `ESC G`, ohne dass der
+  Aufrufer den Zeilenindex manuell setzt. Endlosmaterial
+  löst dagegen explizit den separaten Callback aus.
+- Der kleine Dispatcher und sein isolierter Test wurden lokal
+  mit GCC, Clang und ASan/UBSan ausgeführt. GitHub CI baut
+  den zusätzlichen Integrationstest gegen die unveränderten
+  realen Rekonstruktionsmodule.
+
+Die Originalarchive `LeitzIconDriversForLinux1.0.3(4).zip`,
+`LeitzIconLabelSetup(5).zip` und
+`LeitzIconSoftware-Installer_5.1.465.dmg(2).zip`
+wurden erneut aus ihren tatsächlichen ZIP-Bytes geprüft.
+`raster2printer.c` (Linux), `LeitzIcon.gpd` (Windows)
+und `raster2printer` (macOS Classic) stimmen jeweils in der
+SHA-256 mit den zuvor gespeicherten Originalbelegen überein.
+
+Es werden keine Windows-COM-Objekte, keine Hardwarefunktionen,
+kein USB-Datenstrom und keine produktiven Linux-Branches verändert.

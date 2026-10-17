@@ -1654,3 +1654,35 @@ host callback exactly once, factory/raster counter separation,
 invalid state and overflow/underflow. The original
 `LeitzRp/test.sh` is extended; previous reconstructions
 and all production branches remain unchanged.
+
+## Original-Rasteraufruf Slot 15: IsDieCut trennt zwei OEM-Pfade
+
+Vor Änderungen wurde `sources` HEAD `aaf3d295a294d09ae6924721dacbcd6b3d622b0b`
+mit erfolgreicher letzter Windows-CI geprüft. Die drei
+Originalarchive waren lokal verfügbar und die SHA-256-Prüfungen
+der Hersteller-Linux-C-, Windows-GPD- und macOS-Mach-O-Dateien
+wurden erfolgreich wiederholt. Aus den originalen Windows
+`LeitzRp.dll`-Binärdateien beider Architekturen ist für
+Slot 15 erstmals die bis dahin externe Zeilenzähler-Aktualisierung
+und die `IsDieCut`-Verzweigung direkt nachgewiesen:
+x86 `0x1FF0`: Inkrement WORD +0x0A, Test DWORD +0x10,
+dann `0x2020` oder `0x2380`; x64 `0x2040`: Inkrement
+WORD +0x0E, Test DWORD +0x14, dann `0x2060` oder `0x2380`.
+
+Neues `LeitzRp/oem_row_dispatch.[ch]` ruft für gestanzte
+Etiketten den existierenden, **unveränderten** Rasterstream
+nach Zählerinkrement auf. Für `IsDieCut==0` (Endlosmaterial)
+muss ein eigener, bisher nicht rekonstruierter
+Routinen-Callback vorhanden sein: ohne diesen keine Ausgabe.
+Damit wird der früher in Teiltests mögliche Aufruf desselben
+Zeilencontrollers für kontinuierliches Material ausdrücklich
+nicht als vollständige native Windows-Pfadgleichheit ausgegeben.
+Das ursprüngliche `label_setup` liefert `is_die_cut`,
+und der neue Integrationstest verbindet die bereits vorhandenen
+realen OEM-Teilmodule erstmals hinter dem rekonstruierten
+externen Dispatch. Keine feste Etikettenlänge eingeführt.
+
+GCC/Clang und lokale Sanitizer-Tests für den neuen Dispatcher
+bestanden. Der CI-Test kompiliert den Integrationstest gegen die
+existierenden Raster- und RLE-Module. Ein echter
+Windows-/Unidrv-/Drucker-Abgleich steht weiter aus.
