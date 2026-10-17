@@ -1111,3 +1111,29 @@ credentials, network association, COM call, USB operation or firmware
 write was attempted. The portable callback boundaries are new,
 not original Windows ABI. Complete Windows DLL reconstruction,
 OEM execution comparison and physical tests remain open.
+
+
+## Windows LeitzRp combined multi-label raster stream (offline)
+
+Existing `label_setup`, `row_control`, `filter_graphics_fragments` and
+`rle_windows_2018` functions were confirmed already present on sources
+HEAD `dec4052a41c662ec048ac3909cc686be2b368413` and were
+not changed. A new isolated `raster_stream.[ch]` adapter links these
+reconstructed OEM-derived fragments under the same counted-row C API,
+without adding guessed protocol bytes or any CUPS/USB code.
+
+Synthetic stream regression checks two successive CUSTOMSIZE labels
+(including conditional ESC w/E/f/G, ESC D/B widths and margins,
+0x16 raw versus 0x17 RLE selection and 19 separate WriteData calls),
+manual-length continuous material, unmodified source after final-bit
+masking and the ignored FilterGraphics HRESULT versus diagnostic output.
+Caller scratch storage is bounded and independently owned.
+GCC, Clang, AddressSanitizer and UndefinedBehaviorSanitizer passed locally;
+the Windows CI raster test script now runs the new case with both compilers.
+
+Original 2018 Windows ZIP exists in the user's Library but its raw
+bytes were not materializable in this session. Therefore there is no
+fresh disassembly or dynamic vendor binary comparison, and the new
+cross-module vectors prove only offline consistency with *previously*
+recorded manufacturer-instruction-derived behavior. No production
+branch, OEM source, firmware, credentials or hardware was modified.

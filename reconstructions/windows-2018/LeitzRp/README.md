@@ -58,3 +58,25 @@ Integration of label setup with previously recovered row control: `label_setup_r
 continuous manual-length sends ESC f/G at the provided iLabelLength;
 continuous automatic-length terminates at raster height instead.
 No encoder or USB backend changes are involved.
+
+
+## Complete counted-row stream (offline adapter)
+
+The standalone `raster_stream.[ch]` composes the previously
+reconstructed media initialization, original-derived row state, prefix
+width/margin commands, bit RLE encoder and raw/compressed selector into
+one bounded C callback stream. It does not rewrite those source modules.
+Its encoder uses caller-owned, separate scratch buffers and masks unused
+final bits only in a copy. A per-row diagnostic captures an ignored
+FilterGraphics result without changing the native-inspired row return.
+
+`raster_stream_test.c` covers two consecutive synthetic labels,
+raw versus RLE paths, blank-run feeding, medium switches, cache reset,
+manual continuous length, conditional final-bit clipping, separate
+WriteData call boundaries and failure/buffer behavior.
+
+The vectors are derived from already documented OEM fragments; **neither
+the Windows original nor a physical printer was executed**. This is not
+the Windows COM/Unidrv caller, and the physical USB backend, native
+exception semantics and OEM-vs-reconstruction parity remain open.
+Run `sh test.sh` for GCC and Clang checks.

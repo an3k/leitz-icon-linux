@@ -23,5 +23,9 @@ for compiler in gcc clang; do
     "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
         label_setup.c row_control.c label_setup_row_test.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        raster_stream.c raster_stream_test.c row_control.c label_setup.c \
+        filter_graphics_fragments.c rle_windows_2018.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done
