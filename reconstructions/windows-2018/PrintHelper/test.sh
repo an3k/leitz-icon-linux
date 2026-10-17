@@ -22,5 +22,8 @@ for compiler in gcc clang; do
     "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
         wireless_payload.c wireless_payload_test.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        sendrecv_sequence.c sendrecv_result.c sendrecv_sequence_test.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done

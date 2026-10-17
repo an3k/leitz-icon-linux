@@ -241,3 +241,31 @@ as part of discovery, print status or WLAN setup. Firmware
 flashing remains expressly excluded from offline reconstruction
 execution; it requires independent verification and physical
 recovery provisions before integration.
+
+
+## SendRecvData complete documented COM callback ordering
+
+After the earlier isolated result-copy module, new standalone
+`sendrecv_sequence.[ch]` joins the recorded native x86
+RVA 0x1720..0x191d COM call ordering with that existing
+`sendrecv_result.c` transfer. It preserves two distinct
+CLSID/IID pairs, first-object slots 0x0c/0x14 and second-object slots
+0x0c/0x10/0x14/0x18, literal flags 2/7 and exact UTF-16
+`ReadWriteUserData` / `Get` arguments. It checks both the
+second-object status HRESULT and its separate zero DWORD before calling
+slot 0x18. Borrowed reply data is copied into caller-bounded storage,
+then released via a separate callback before COM objects.
+
+**Safety deviations:** Unexpected early callback failures stop safely
+without dereferencing uninitialized COM pointers. The native
+CoInitialize/CoInitializeEx, Windows BSTR/object ownership and precise
+release order are abstracted into callbacks, not reproduced as Win32
+functions or claimed byte-for-byte equivalent. In particular, this
+is not a real private COM implementation or a printer transport.
+
+`sendrecv_sequence_test.c` verifies original-identified GUIDs,
+slots, flags, literal UTF-16 strings, successful nonempty and empty
+replies, secondary status short circuit, all nine fail positions,
+safe partial-resource cleanup, overlong replies, and validation.
+GCC/Clang, AddressSanitizer and UndefinedBehaviorSanitizer passed
+offline on test fixtures. No original DLL execution or hardware I/O.

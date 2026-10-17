@@ -1137,3 +1137,31 @@ fresh disassembly or dynamic vendor binary comparison, and the new
 cross-module vectors prove only offline consistency with *previously*
 recorded manufacturer-instruction-derived behavior. No production
 branch, OEM source, firmware, credentials or hardware was modified.
+
+
+## Windows PrintHelper SendRecvData: previously missing COM call sequence
+
+Work-state check: `sources` HEAD
+`a18e78c6575f5151ca8888ca18183a1539c2c41b`, with existing
+`sendrecv_result.[ch]`, native GUID evidence and PrintHelper
+tests present; none were replaced. Original PrintHelper.dll i386
+SHA-256 `0b57ad5584fabe69610158347bace1647935e85d014d775753d0aa436734871a`
+was previously analyzed and the COM sequence documented at RVA
+0x1720..0x191d (see above). Its raw bytes were unavailable to this
+session; no fresh disassembly or Windows execution is claimed.
+
+Added `sendrecv_sequence.[ch]`: callback-driven, standalone
+C reconstruction of the *documented* first/second COM object
+creation, vtable offsets, GUID pairs, literal arguments and two-result
+status gate, using the already recovered bounded result transfer.
+Previously unguarded pointer hazards intentionally take a safe path.
+All acquired resources are cleaned on exit, including COM-owned
+borrowed output. Not a native Windows COM implementation or new
+USB protocol; calling semantics and native exceptional cleanup are
+not claimed equivalent.
+
+Offline regression: successful nonempty transfer, empty reply,
+reported-status gate, nine independent callback-failure stages,
+resource cleanup and overlong output rejection under GCC/Clang,
+ASan/UBSan. Existing source modules and production branches
+(`driver`, `main`, `cups`) untouched.
