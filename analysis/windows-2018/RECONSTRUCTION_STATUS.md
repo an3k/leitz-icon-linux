@@ -1514,3 +1514,45 @@ of unsafe native short buffers. Existing LeitzUI CI script is extended
 to run this third independent offline regression. Other branches
 and reconstructed modules are not modified; hardware printing and
 physical cutter operations remain unverified.
+
+
+## 2026-10-17: original OEM UI driver-interface acquisition / release
+
+Pre-write check: branch `sources` was
+`8a4c9ba39b734788443deb98ec704c6fd02ce745`, last Windows
+CI successful; LeitzUI/GetInfo, property sheets, GUID class factory
+already existed and remain unchanged. The three original
+user-supplied archives were actually opened and SHA-256-checked
+again: Linux
+`54e1a92b830e1281975ca8b1f7018275327fa8f214f8bb440fda6e83d80abe17`,
+Windows
+`cc6e175fb3f183d211cd1b4610ca2d096ec958421bc45b4bc8fc2740be3034ca`,
+macOS
+`6a3d6cdd617947dcb33b1d58dd7dc2fc1427601091a8ff7079a013fb7ffa4210`.
+The prior original Linux C, Windows GPD and macOS Mach-O
+SHA-256 findings matched the newly opened ZIP contents.
+
+From *actual x86/x64* OEM LeitzUI.dll disassembly, the previously
+unimplemented method at RVA `0x1100` checks a cached
+driver-interface pointer (x86 object +8, x64 object +16).
+When NULL it calls supplied IUnknown's QueryInterface
+(vtable first method) with actual OEM driver interface UUID
+`92b05d50-78bc-11d1-9480-00a0c90640b8`
+(x86 .rdata RVA `0x313c`,
+x64 RVA `0x3210`), caches successful nonnegative
+HRESULT output; maps negative HRESULT to E_FAIL and clears
+cache. The original object's final Release path (x86
+`0x10a0`, x64 `0x1080`)
+invokes IUnknown::Release on a non-NULL cached interface.
+This is not a derived or guessed USB printer protocol.
+
+New isolated `ui_driver_interface.[ch]` uses safe
+callback-based, caller-owned C state rather than opaque Win32
+pointers. It does not replace existing COM class factory,
+Win32 native ABI, reference counts, property sheets, UI
+callbacks, printer traffic, or any production Linux driver.
+Tests for both C compilers, AddressSanitizer and
+UndefinedBehaviorSanitizer passed locally; precise source
+blob SHA-1 values were compared to the locally tested C files
+before commit. The existing LeitzUI/test.sh is amended
+without re-running or rewriting earlier C implementation.

@@ -214,3 +214,57 @@ alongside its old callback and COM factory modules. No changes to
 Linux/CUPS production code or original binaries, no physical
 printer use. Actual Windows property dialogs and real Unidrv COM
 pointer callbacks remain unimplemented.
+
+
+## Original IPrintOemUI driver-interface publication and cleanup
+
+**New, previously unreconstructed** portable model:
+`ui_driver_interface.[ch]`, validated against the original
+Windows **x86 and x64** LeitzUI.dll binaries. Both versions contain
+the same acquisition routine at **RVA 0x1100**:
+- x86 LeitzUI.dll original SHA-256
+  `b6f066d87ac18aff5d37c6b4ac0c3c13d6e0cd58bb2afb5fb74152e3e99a5293`
+- x64 LeitzUI.dll original SHA-256
+  `7d514bd5bb4c7610569c0aacd7b37cc74318e5fce858bf4fadba9bb554de0a10`
+
+The original calls the supplied unknown object's **vtable slot 0**
+(`IUnknown::QueryInterface`) with this exact GUID:
+
+`92b05d50-78bc-11d1-9480-00a0c90640b8`
+
+Native little-endian GUID bytes:
+`50 5D B0 92 BC 78 D1 11 94 80 00 A0 C9 06 40 B8`
+(x86 original RVA `0x313c`, x64 original RVA `0x3210`).
+The interface is stored in the object at **+0x08 on x86** and
+**+0x10 on x64**. If that slot is already non-NULL, the
+routine returns S_OK **without invoking QueryInterface again**.
+Otherwise it invokes QueryInterface, accepts any **nonnegative**
+signed HRESULT, and caches the returned interface pointer.
+For a **negative HRESULT**, it clears the pointer and returns
+**E_FAIL (0x80004005)** rather than the original QueryInterface
+HRESULT. Even a nonnegative result with a NULL output pointer
+causes S_OK; the next call can query again.
+
+The object's final Release/destruction path (original x86 RVA
+`0x10a0`, x64 RVA `0x1080`) invokes the cached
+interface's **IUnknown::Release** vtable slot and clears the
+cache. The original also frees the OEM object itself and may
+assert its reference count. Those native lifetime details are
+**not** simulated by this new, caller-owned binding object.
+
+The new C interface uses explicit query/release callbacks and
+preserves the observed one-time query, HRESULT mapping, cache
+transition and cleanup. It deliberately rejects NULL callbacks
+rather than triggering the original's unchecked pointer
+dereferences. It is **not** the full Windows IPrintOemUI
+binary interface; calling convention, actual COM object ownership,
+COM reference counts, Unidrv invocation and real UI/device behavior
+still require integration.
+
+Offline checks: strict GCC/Clang C11 (Werror), AddressSanitizer,
+UndefinedBehaviorSanitizer, correct GUID, skip-on-existing,
+negative HRESULT mapping, NULL result on success, repeated release,
+error preflight and callback counts. The existing LeitzUI
+test script and CI now compile/run the new module alongside the
+earlier UI callback, class factory and property-sheet tests,
+without modifying any preexisting C reconstruction.
