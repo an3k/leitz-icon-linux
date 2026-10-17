@@ -1207,3 +1207,16 @@ LeitzRp COM/Unidrv filter, full 77-option Windows media mapping,
 OEM runtime equality and physical printer operations remain unproven.
 The new module does **not** send bytes to hardware or modify
 the Linux production driver or any non-sources branches.
+
+
+## Exact-name cross-source paper audit (partial Windows inventory)
+
+Pre-write verification: sources HEAD f845265772ee53eb50727d4d9d86721e687748d1 and driver HEAD 3289f1bd644b19618b84a68931c8dd78a74e54ad. Previous C reconstructions, vendor files and all production branches are unchanged.
+
+The new read-only PAPER_FORMATS_CROSS_SOURCE.md compares all 40 original Linux 1.0.3 PageSize IDs, 41 original macOS Classic PageSize IDs and 86 development media IDs using unchanged original readable labels. Exact matching internal names are used only for alignment, not proof of physical cassette equivalence. All 40 Linux IDs also appear in the macOS and development catalogs; macOS adds only DHLShippingLabel. The development catalog adds 45 IDs that are absent from both original PPDs.
+
+The Windows 2018 GPD has 77 entries (76 fixed + CUSTOMSIZE) according to the previously authenticated ZIP; only two names are presently recoverable from the persisted findings: DHLShippingLabel with OptionID 335, and CUSTOMSIZE. The remaining 75 Windows names are expressly unknown, not omitted as presumed absent. The original archive bytes were not accessible in this session. Other Windows format equalities are not asserted.
+
+Source discrepancies: Continuous70050001 is named "Continuous - 2 1/5\"" in Linux but "Continuous - 2 1/4\"" in macOS. The development media JSON incorrectly labels DHLShippingLabel as "not present in Windows GPD" despite original GPD evidence. No code/configuration correction of the development branch was made without separate verification.
+
+Added test_paper_cross_sources.py, whose GitHub CI step checks every one of the 87 reported IDs (86 development + distinct Windows CUSTOMSIZE) against original Linux/macOS PPDs and the **pinned** development media catalog checked out read-only. It checks duplicate IDs, exact labels, subset relationships and known provenance contradictions. No new OEM commands or hardware capabilities are inferred.
