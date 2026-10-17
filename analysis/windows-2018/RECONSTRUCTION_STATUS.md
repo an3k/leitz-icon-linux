@@ -1601,3 +1601,25 @@ sent, and no source of the active Linux driver was modified.
 Local strict GCC, Clang, ASan/UBSan tests passed. Existing
 LeitzRp/test.sh is extended to run the new modules and GitHub
 CI must confirm integration with existing source regressions.
+
+
+## Windows 2018 original raster COM 26-slot VTable inventory
+
+Preflight: sources HEAD 375df14e6499e704f25a3fa0454e1b102732ec10, latest Windows CI successful.
+Three OEM original archives reopened and hashed, original Linux C
+and macOS Classic raster2printer SHA256 verified. Windows i386
+and amd64 LeitzRp.dll were parsed directly from original ZIP;
+their PE VTable RVAs 0x509c and 0x5298 both contain exactly 26
+methods. Direct original instruction bytes prove 12 E_NOTIMPL
+stubs (slots 13,14,16–25), slot 5 direct 0, slot 9 direct 1 and
+slot 11 literal FilterGraphics string comparison (0 for equal,
+1 for unequal). No method name is inferred for unrecognized slots.
+Not a statement about hardware capabilities.
+
+New isolated oem_method_map C and regenerated constant initializer,
+arch-specific inventory JSON and original-PE verifier. The verifier
+was actually run against all three original ZIPs and passed x86,
+x64, Linux and macOS checks. C tests passed GCC/Clang/ASan/UBSan.
+The original verifier can be run with ZIP arguments outside CI;
+CI checks self-consistency and runs all C regressions. Existing
+OEM DLL reconstructs, driver/main/cups and printer are untouched.

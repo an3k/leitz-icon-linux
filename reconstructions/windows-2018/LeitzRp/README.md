@@ -190,3 +190,40 @@ GCC/Clang strict C11 and GCC AddressSanitizer/UndefinedBehaviorSanitizer
 passed locally. The original LeitzRp `test.sh` is
 extended to run both new cases alongside all existing raster tests.
 CI on `sources` is the authoritative shared regression.
+
+
+## Original LeitzRp 26-slot raster COM method vtable
+
+Original Windows i386 LeitzRp.dll SHA-256
+7586da2d722f76991002fce4062c45625b733dc01902484e117c5bf748f5cd33;
+amd64 SHA-256
+876f3fb48829420fad03692d6d613c28f0150d797c928ba45c021e7edf640787.
+From original PE binary VTables (i386 RVA 0x509c; amd64 RVA 0x5298),
+**both** have exactly 26 slots. This is a new part, separate from
+previously reconstructed OEM factory and COM host binding.
+
+Direct opcode checks: slot 5 returns 0, slot 9 returns 1,
+slots 13, 14 and 16–25 (12 total) return E_NOTIMPL (0x80004001).
+Slot 11 compares a name against exact literal FilterGraphics;
+the original result is 0 on exact equality and 1 on mismatch.
+No assumption of a COM capability boolean is made from this return.
+The other slots are labelled native_method, NOT treated as
+implemented or unsupported hardware features.
+
+New portable C oem_method_map.[ch] and generated initializer preserve
+the x86/x64 original RVA values and proven direct return decisions.
+Original raw binary verification:
+analysis/windows-2018/verify_original_rp_vtable.py optionally receives
+--windows-zip, --linux-zip and --macos-zip. It independently reads the
+Windows ZIP and original PE section tables, verifies 26 x86 and 26
+x64 method addresses, native return opcodes and both original
+FilterGraphics strings. It also verifies Linux 1.0.3 and macOS
+5.1.465 original raster2printer SHA256s. All three archive checks
+**passed in this session**. GitHub CI only checks committed JSON/C
+consistency, since OEM ZIPs are intentionally not committed.
+GCC, Clang, AddressSanitizer and UndefinedBehaviorSanitizer passed.
+
+The VTable data is for future exact ABI integration and is NOT an
+actual Windows COM object/vtable, nor a full native Windows driver.
+All previous source fragments, production Linux driver and
+printer hardware are unchanged.

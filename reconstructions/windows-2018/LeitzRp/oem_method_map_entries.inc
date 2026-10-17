@@ -1,0 +1,27 @@
+/* GENERATED FROM Original LeitzRp.dll x86/x64 vtables; see leitzrp_vtable_original_2018.json */
+    {0x1220u, 0x1230u, LEITZ_RP_METHOD_NATIVE}, /* slot  0 */
+    {0x1070u, 0x1060u, LEITZ_RP_METHOD_NATIVE}, /* slot  1 */
+    {0x1290u, 0x1290u, LEITZ_RP_METHOD_NATIVE}, /* slot  2 */
+    {0x1ed0u, 0x1f20u, LEITZ_RP_METHOD_NATIVE}, /* slot  3 */
+    {0x15d0u, 0x15f0u, LEITZ_RP_METHOD_NATIVE}, /* slot  4 */
+    {0x1330u, 0x1310u, LEITZ_RP_METHOD_S_OK}, /* slot  5 */
+    {0x1340u, 0x1320u, LEITZ_RP_METHOD_NATIVE}, /* slot  6 */
+    {0x1370u, 0x1350u, LEITZ_RP_METHOD_NATIVE}, /* slot  7 */
+    {0x14e0u, 0x14f0u, LEITZ_RP_METHOD_NATIVE}, /* slot  8 */
+    {0x1170u, 0x1160u, LEITZ_RP_METHOD_ONE}, /* slot  9 */
+    {0x1f80u, 0x1ff0u, LEITZ_RP_METHOD_NATIVE}, /* slot 10 */
+    {0x1e80u, 0x1f00u, LEITZ_RP_METHOD_FILTER_NAME}, /* slot 11 */
+    {0x15f0u, 0x1600u, LEITZ_RP_METHOD_NATIVE}, /* slot 12 */
+    {0x1fc0u, 0x1fe0u, LEITZ_RP_METHOD_NOTIMPL}, /* slot 13 */
+    {0x1f70u, 0x1fe0u, LEITZ_RP_METHOD_NOTIMPL}, /* slot 14 */
+    {0x1ff0u, 0x2040u, LEITZ_RP_METHOD_NATIVE}, /* slot 15 */
+    {0x1fd0u, 0x1fe0u, LEITZ_RP_METHOD_NOTIMPL}, /* slot 16 */
+    {0x2b00u, 0x1fe0u, LEITZ_RP_METHOD_NOTIMPL}, /* slot 17 */
+    {0x2b10u, 0x1fe0u, LEITZ_RP_METHOD_NOTIMPL}, /* slot 18 */
+    {0x1fc0u, 0x1fe0u, LEITZ_RP_METHOD_NOTIMPL}, /* slot 19 */
+    {0x1fe0u, 0x1fe0u, LEITZ_RP_METHOD_NOTIMPL}, /* slot 20 */
+    {0x1fc0u, 0x1fe0u, LEITZ_RP_METHOD_NOTIMPL}, /* slot 21 */
+    {0x1fe0u, 0x1fe0u, LEITZ_RP_METHOD_NOTIMPL}, /* slot 22 */
+    {0x1fc0u, 0x1fe0u, LEITZ_RP_METHOD_NOTIMPL}, /* slot 23 */
+    {0x1fe0u, 0x1fe0u, LEITZ_RP_METHOD_NOTIMPL}, /* slot 24 */
+    {0x2b20u, 0x1fe0u, LEITZ_RP_METHOD_NOTIMPL}, /* slot 25 */

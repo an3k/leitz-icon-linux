@@ -33,5 +33,8 @@ for compiler in gcc clang; do
     "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
         oem_factory.c oem_host.c oem_factory_test.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        oem_method_map.c oem_method_map_test.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done

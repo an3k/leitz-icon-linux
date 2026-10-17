@@ -1,0 +1,172 @@
+{
+  "source": {
+    "name": "LeitzRp.dll",
+    "version": "2.17.4.112",
+    "x86_sha256": "7586da2d722f76991002fce4062c45625b733dc01902484e117c5bf748f5cd33",
+    "x64_sha256": "876f3fb48829420fad03692d6d613c28f0150d797c928ba45c021e7edf640787",
+    "x86_vtable_rva": 20636,
+    "x64_vtable_rva": 21144,
+    "x86_filtergraphics_ascii_rva": 19676,
+    "x64_filtergraphics_ascii_rva": 20128,
+    "original_zip_sha256": "cc6e175fb3f183d211cd1b4610ca2d096ec958421bc45b4bc8fc2740be3034ca"
+  },
+  "notes": "All RVA values are exact original DLL vtable target addresses; role native_method does not imply functional support or an understood signature. Both architectures implement 26 entries.",
+  "records": [
+    {
+      "slot": 0,
+      "x86_rva": 4640,
+      "x64_rva": 4656,
+      "observed_implementation": "native_method"
+    },
+    {
+      "slot": 1,
+      "x86_rva": 4208,
+      "x64_rva": 4192,
+      "observed_implementation": "native_method"
+    },
+    {
+      "slot": 2,
+      "x86_rva": 4752,
+      "x64_rva": 4752,
+      "observed_implementation": "native_method"
+    },
+    {
+      "slot": 3,
+      "x86_rva": 7888,
+      "x64_rva": 7968,
+      "observed_implementation": "native_method"
+    },
+    {
+      "slot": 4,
+      "x86_rva": 5584,
+      "x64_rva": 5616,
+      "observed_implementation": "native_method"
+    },
+    {
+      "slot": 5,
+      "x86_rva": 4912,
+      "x64_rva": 4880,
+      "observed_implementation": "fixed_s_ok"
+    },
+    {
+      "slot": 6,
+      "x86_rva": 4928,
+      "x64_rva": 4896,
+      "observed_implementation": "native_method"
+    },
+    {
+      "slot": 7,
+      "x86_rva": 4976,
+      "x64_rva": 4944,
+      "observed_implementation": "native_method"
+    },
+    {
+      "slot": 8,
+      "x86_rva": 5344,
+      "x64_rva": 5360,
+      "observed_implementation": "native_method"
+    },
+    {
+      "slot": 9,
+      "x86_rva": 4464,
+      "x64_rva": 4448,
+      "observed_implementation": "fixed_one"
+    },
+    {
+      "slot": 10,
+      "x86_rva": 8064,
+      "x64_rva": 8176,
+      "observed_implementation": "native_method"
+    },
+    {
+      "slot": 11,
+      "x86_rva": 7808,
+      "x64_rva": 7936,
+      "observed_implementation": "filter_name_comparison"
+    },
+    {
+      "slot": 12,
+      "x86_rva": 5616,
+      "x64_rva": 5632,
+      "observed_implementation": "native_method"
+    },
+    {
+      "slot": 13,
+      "x86_rva": 8128,
+      "x64_rva": 8160,
+      "observed_implementation": "e_notimpl"
+    },
+    {
+      "slot": 14,
+      "x86_rva": 8048,
+      "x64_rva": 8160,
+      "observed_implementation": "e_notimpl"
+    },
+    {
+      "slot": 15,
+      "x86_rva": 8176,
+      "x64_rva": 8256,
+      "observed_implementation": "native_method"
+    },
+    {
+      "slot": 16,
+      "x86_rva": 8144,
+      "x64_rva": 8160,
+      "observed_implementation": "e_notimpl"
+    },
+    {
+      "slot": 17,
+      "x86_rva": 11008,
+      "x64_rva": 8160,
+      "observed_implementation": "e_notimpl"
+    },
+    {
+      "slot": 18,
+      "x86_rva": 11024,
+      "x64_rva": 8160,
+      "observed_implementation": "e_notimpl"
+    },
+    {
+      "slot": 19,
+      "x86_rva": 8128,
+      "x64_rva": 8160,
+      "observed_implementation": "e_notimpl"
+    },
+    {
+      "slot": 20,
+      "x86_rva": 8160,
+      "x64_rva": 8160,
+      "observed_implementation": "e_notimpl"
+    },
+    {
+      "slot": 21,
+      "x86_rva": 8128,
+      "x64_rva": 8160,
+      "observed_implementation": "e_notimpl"
+    },
+    {
+      "slot": 22,
+      "x86_rva": 8160,
+      "x64_rva": 8160,
+      "observed_implementation": "e_notimpl"
+    },
+    {
+      "slot": 23,
+      "x86_rva": 8128,
+      "x64_rva": 8160,
+      "observed_implementation": "e_notimpl"
+    },
+    {
+      "slot": 24,
+      "x86_rva": 8160,
+      "x64_rva": 8160,
+      "observed_implementation": "e_notimpl"
+    },
+    {
+      "slot": 25,
+      "x86_rva": 11040,
+      "x64_rva": 8160,
+      "observed_implementation": "e_notimpl"
+    }
+  ]
+}

@@ -19,6 +19,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: GCC and Clang - offline Windows OEM raster fragment regressions
         run: sh reconstructions/windows-2018/LeitzRp/test.sh
+      - name: Original Windows raster COM vtable inventory and C synchronization
+        run: python3 analysis/windows-2018/verify_original_rp_vtable.py --check
       - name: Checkout pinned development catalog without modifying driver
         uses: actions/checkout@v4
         with:
