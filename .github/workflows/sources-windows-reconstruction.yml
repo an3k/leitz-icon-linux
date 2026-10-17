@@ -31,6 +31,10 @@ jobs:
         run: python3 analysis/windows-2018/test_windows_gpd_names.py _pinned_driver/media/media.json
       - name: Python - complete original Windows GPD four-source comparison logic
         run: python3 -m unittest discover -s analysis/windows-2018 -p 'test_compare_windows_gpd_four_sources.py' -v
+      - name: Verify all 77 OEM GPD records and four-source geometry
+        run: python3 analysis/windows-2018/test_windows_gpd_full_inventory.py _pinned_driver/media/media.json
+      - name: Check original-derived Windows C media table
+        run: python3 analysis/windows-2018/generate_gpd_media_catalog.py --check
       - name: GCC and Clang - original Windows GPD byte commands
         run: sh reconstructions/windows-2018/GPD/test.sh
       - name: GCC and Clang - offline Windows OEM language monitor status regressions

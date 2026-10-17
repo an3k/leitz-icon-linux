@@ -35,3 +35,34 @@ Linux/macOS format. The host-side **timing/order of GPD expansion relative
 to the OEM `LeitzRp` plug-in** has not been reconstructed, nor have the
 specific paper-selection logic and resolution commands. No device writes,
 Win32 DLL execution, CUPS/USB integration or firmware changes occur.
+
+
+## Current extension: entire original Windows GPD media catalog
+
+The earlier paragraph stating that only four GPD byte sequences were
+represented describes the former fragment-only scope. The new
+`gpd_media_catalog.[ch]` + generated `gpd_media_catalog_entries.inc`
+extends that scope to **all 77 OEM GPD media selections**, while the
+unchanged `gpd_commands.[ch]` still owns the document/page-level commands.
+
+Original source records are preserved under
+`analysis/windows-2018/windows_2018_original_media_inventory.json`,
+with their independently parsed GPD text transcription in
+`LeitzIcon_2018_GPD_text_transcription.gpd.txt`. The latter is *not*
+a byte-identical raw OEM archive file. Every OptionID, rcNameID,
+page/printable geometry, optional CUSTOMSIZE bound and CmdSelect byte
+sequence is transferred directly; no geometry heuristic regenerates
+the OEM command. The exact-generation script verifies correspondence
+to both saved representations before checking the committed C table.
+
+The original has **20 continuous selections** with ESC L FFFF and
+**two length exceptions**: AppointmentCard and LeitzAppointmentCard
+specify ESC L 023A even though their page height is 1200 (not 1140).
+All Windows vendor UI strings must still be resolved independently
+from LeitzUSRes.dll; numeric resource IDs are not display strings.
+
+`GPD/test.sh` compiles and runs the added catalog under GCC/Clang.
+CI also checks all 77 original records, all 76 fixed-geometry records
+against a pinned development catalog and reproduces the complete
+87-ID four-source comparison. This is an offline read-only data/command
+reconstruction; no OEM Unidrv/COM ABI or hardware-printing parity.

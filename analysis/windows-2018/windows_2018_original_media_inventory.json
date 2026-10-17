@@ -1,0 +1,1626 @@
+{
+  "source": "LeitzIconLabelSetup/SourceDir/Leitz Icon Software/Drivers/LeitzIcon.gpd",
+  "gpd_sha256": "f81130f358b6dbc6099812d8ab243958854436be4b1e8c0c0ef8ec7fb60954b7",
+  "inf_sha256": "d88d40d73d64c845a7f7b0e20fe7d1a18acdf7522f603168a6f1a66bf262c85f",
+  "driver_version_line": "03/15/2018,2.17.4.112",
+  "original_win_fixed_count": 76,
+  "original_win_custom_count": 1,
+  "original_win_total_count": 77,
+  "units": "manufacturer GPD MasterUnits PAIR(300,600), not mm",
+  "options": [
+    {
+      "name": "Continuous70030001",
+      "option_id": 259,
+      "resource_name_id": 259,
+      "page_dimensions": [
+        1039,
+        64000
+      ],
+      "printable_area": [
+        960,
+        64000
+      ],
+      "printable_origin": [
+        40,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<03c0>",
+      "command_bytes_hex": "1b4cffff1b7703c0"
+    },
+    {
+      "name": "PackageShippingLabel",
+      "option_id": 260,
+      "resource_name_id": 260,
+      "page_dimensions": [
+        1039,
+        3600
+      ],
+      "printable_area": [
+        960,
+        3540
+      ],
+      "printable_origin": [
+        40,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0708><1B>w<03C0>",
+      "command_bytes_hex": "1b4c07081b7703c0"
+    },
+    {
+      "name": "Multipurpose70030001",
+      "option_id": 261,
+      "resource_name_id": 261,
+      "page_dimensions": [
+        1039,
+        1200
+      ],
+      "printable_area": [
+        960,
+        1140
+      ],
+      "printable_origin": [
+        40,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0258><1B>w<03c0>",
+      "command_bytes_hex": "1b4c02581b7703c0"
+    },
+    {
+      "name": "NameBadgeLabel70030001",
+      "option_id": 262,
+      "resource_name_id": 262,
+      "page_dimensions": [
+        1039,
+        1398
+      ],
+      "printable_area": [
+        960,
+        1338
+      ],
+      "printable_origin": [
+        40,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<02BB><1B>w<03c0>",
+      "command_bytes_hex": "1b4c02bb1b7703c0"
+    },
+    {
+      "name": "Continuous70040001",
+      "option_id": 263,
+      "resource_name_id": 263,
+      "page_dimensions": [
+        720,
+        64000
+      ],
+      "printable_area": [
+        690,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<02b2>",
+      "command_bytes_hex": "1b4cffff1b7702b2"
+    },
+    {
+      "name": "WideLeverArchLabelShort",
+      "option_id": 264,
+      "resource_name_id": 264,
+      "page_dimensions": [
+        720,
+        4536
+      ],
+      "printable_area": [
+        690,
+        4476
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<08DC><1B>w<02b2>",
+      "command_bytes_hex": "1b4c08dc1b7702b2"
+    },
+    {
+      "name": "WideLeverArchLabelLong",
+      "option_id": 265,
+      "resource_name_id": 265,
+      "page_dimensions": [
+        720,
+        6732
+      ],
+      "printable_area": [
+        690,
+        6702
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0D26><1B>w<02b2>",
+      "command_bytes_hex": "1b4c0d261b7702b2"
+    },
+    {
+      "name": "Continuous70060001",
+      "option_id": 266,
+      "resource_name_id": 266,
+      "page_dimensions": [
+        591,
+        64000
+      ],
+      "printable_area": [
+        561,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<0231>",
+      "command_bytes_hex": "1b4cffff1b770231"
+    },
+    {
+      "name": "LargePendaflexTab",
+      "option_id": 267,
+      "resource_name_id": 267,
+      "page_dimensions": [
+        591,
+        662
+      ],
+      "printable_area": [
+        561,
+        602
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<014B><1B>w<0231>",
+      "command_bytes_hex": "1b4c014b1b770231"
+    },
+    {
+      "name": "NameBadgeLabel70060001",
+      "option_id": 268,
+      "resource_name_id": 268,
+      "page_dimensions": [
+        591,
+        1800
+      ],
+      "printable_area": [
+        561,
+        1740
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0384><1B>w<0231>",
+      "command_bytes_hex": "1b4c03841b770231"
+    },
+    {
+      "name": "NarrowLeverArchLabelShort",
+      "option_id": 269,
+      "resource_name_id": 269,
+      "page_dimensions": [
+        461,
+        4536
+      ],
+      "printable_area": [
+        431,
+        4476
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<08DC><1B>w<01af>",
+      "command_bytes_hex": "1b4c08dc1b7701af"
+    },
+    {
+      "name": "NarrowLeverArchLabelLong",
+      "option_id": 270,
+      "resource_name_id": 270,
+      "page_dimensions": [
+        461,
+        6732
+      ],
+      "printable_area": [
+        431,
+        6672
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0D26><1B>w<01af>",
+      "command_bytes_hex": "1b4c0d261b7701af"
+    },
+    {
+      "name": "Continuous70090001",
+      "option_id": 271,
+      "resource_name_id": 271,
+      "page_dimensions": [
+        295,
+        64000
+      ],
+      "printable_area": [
+        265,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<0109>",
+      "command_bytes_hex": "1b4cffff1b770109"
+    },
+    {
+      "name": "Multipurpose70090001",
+      "option_id": 272,
+      "resource_name_id": 272,
+      "page_dimensions": [
+        295,
+        900
+      ],
+      "printable_area": [
+        265,
+        840
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<01C2><1B>w<0109>",
+      "command_bytes_hex": "1b4c01c21b770109"
+    },
+    {
+      "name": "ReturnAddressLabelLarge",
+      "option_id": 273,
+      "resource_name_id": 273,
+      "page_dimensions": [
+        295,
+        1276
+      ],
+      "printable_area": [
+        265,
+        1216
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<027E><1B>w<0109>",
+      "command_bytes_hex": "1b4c027e1b770109"
+    },
+    {
+      "name": "Continuous70100001",
+      "option_id": 274,
+      "resource_name_id": 274,
+      "page_dimensions": [
+        224,
+        64000
+      ],
+      "printable_area": [
+        194,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<00C2>",
+      "command_bytes_hex": "1b4cffff1b7700c2"
+    },
+    {
+      "name": "ReturnAddressLabelSmall",
+      "option_id": 275,
+      "resource_name_id": 275,
+      "page_dimensions": [
+        224,
+        1200
+      ],
+      "printable_area": [
+        194,
+        1140
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0258><1B>w<00c2>",
+      "command_bytes_hex": "1b4c02581b7700c2"
+    },
+    {
+      "name": "Multipurpose70100001",
+      "option_id": 276,
+      "resource_name_id": 276,
+      "page_dimensions": [
+        224,
+        1500
+      ],
+      "printable_area": [
+        194,
+        1440
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<02EE><1B>w<00c2>",
+      "command_bytes_hex": "1b4c02ee1b7700c2"
+    },
+    {
+      "name": "Continuous70110001",
+      "option_id": 277,
+      "resource_name_id": 277,
+      "page_dimensions": [
+        148,
+        64000
+      ],
+      "printable_area": [
+        118,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<0076>",
+      "command_bytes_hex": "1b4cffff1b770076"
+    },
+    {
+      "name": "Multipurpose70110001",
+      "option_id": 278,
+      "resource_name_id": 278,
+      "page_dimensions": [
+        148,
+        1134
+      ],
+      "printable_area": [
+        118,
+        1074
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0237><1B>w<0076>",
+      "command_bytes_hex": "1b4c02371b770076"
+    },
+    {
+      "name": "FileFolderLabel",
+      "option_id": 279,
+      "resource_name_id": 279,
+      "page_dimensions": [
+        148,
+        2100
+      ],
+      "printable_area": [
+        118,
+        2040
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<041A><1B>w<0076>",
+      "command_bytes_hex": "1b4c041a1b770076"
+    },
+    {
+      "name": "SuspensionFileLabel",
+      "option_id": 280,
+      "resource_name_id": 280,
+      "page_dimensions": [
+        148,
+        1200
+      ],
+      "printable_area": [
+        118,
+        1140
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0258><1B>w<0076>",
+      "command_bytes_hex": "1b4c02581b770076"
+    },
+    {
+      "name": "InternationalAddressLabel",
+      "option_id": 281,
+      "resource_name_id": 281,
+      "page_dimensions": [
+        1039,
+        850
+      ],
+      "printable_area": [
+        960,
+        790
+      ],
+      "printable_origin": [
+        40,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<01A9><1B>w<03c0>",
+      "command_bytes_hex": "1b4c01a91b7703c0"
+    },
+    {
+      "name": "StandardAddressLabel",
+      "option_id": 282,
+      "resource_name_id": 282,
+      "page_dimensions": [
+        1039,
+        662
+      ],
+      "printable_area": [
+        960,
+        602
+      ],
+      "printable_origin": [
+        40,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<014B><1B>w<03c0>",
+      "command_bytes_hex": "1b4c014b1b7703c0"
+    },
+    {
+      "name": "ShippingLabel70130001",
+      "option_id": 283,
+      "resource_name_id": 283,
+      "page_dimensions": [
+        697,
+        2410
+      ],
+      "printable_area": [
+        667,
+        2350
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<04B5><1B>w<029b>",
+      "command_bytes_hex": "1b4c04b51b77029b"
+    },
+    {
+      "name": "ShippingLabel70180001",
+      "option_id": 284,
+      "resource_name_id": 284,
+      "page_dimensions": [
+        1039,
+        1182
+      ],
+      "printable_area": [
+        960,
+        1122
+      ],
+      "printable_origin": [
+        40,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<024F><1B>w<03c0>",
+      "command_bytes_hex": "1b4c024f1b7703c0"
+    },
+    {
+      "name": "NameBadgeCard70190001",
+      "option_id": 285,
+      "resource_name_id": 285,
+      "page_dimensions": [
+        1075,
+        1350
+      ],
+      "printable_area": [
+        960,
+        1290
+      ],
+      "printable_origin": [
+        58,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<02A3><1B>w<03c0>",
+      "command_bytes_hex": "1b4c02a31b7703c0"
+    },
+    {
+      "name": "NameBadgeCard8214",
+      "option_id": 331,
+      "resource_name_id": 331,
+      "page_dimensions": [
+        1075,
+        1276
+      ],
+      "printable_area": [
+        960,
+        1216
+      ],
+      "printable_origin": [
+        58,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<027E><1B>w<03c0>",
+      "command_bytes_hex": "1b4c027e1b7703c0"
+    },
+    {
+      "name": "AppointmentCard",
+      "option_id": 286,
+      "resource_name_id": 286,
+      "page_dimensions": [
+        1075,
+        1200
+      ],
+      "printable_area": [
+        960,
+        1140
+      ],
+      "printable_origin": [
+        58,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<023A><1B>w<03c0>",
+      "command_bytes_hex": "1b4c023a1b7703c0"
+    },
+    {
+      "name": "LeitzLeverArchFile1005",
+      "option_id": 332,
+      "resource_name_id": 332,
+      "page_dimensions": [
+        591,
+        2598
+      ],
+      "printable_area": [
+        561,
+        2538
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0513><1B>w<0231>",
+      "command_bytes_hex": "1b4c05131b770231"
+    },
+    {
+      "name": "WideLeverArchCardShort",
+      "option_id": 287,
+      "resource_name_id": 287,
+      "page_dimensions": [
+        673,
+        4488
+      ],
+      "printable_area": [
+        643,
+        4428
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<08C4><1B>w<0283>",
+      "command_bytes_hex": "1b4c08c41b770283"
+    },
+    {
+      "name": "NarrowLeverArchCardShort",
+      "option_id": 288,
+      "resource_name_id": 288,
+      "page_dimensions": [
+        378,
+        4488
+      ],
+      "printable_area": [
+        348,
+        4428
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<08C4><1B>w<015c>",
+      "command_bytes_hex": "1b4c08c41b77015c"
+    },
+    {
+      "name": "Continuous70070001",
+      "option_id": 289,
+      "resource_name_id": 289,
+      "page_dimensions": [
+        461,
+        64000
+      ],
+      "printable_area": [
+        431,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<01af>",
+      "command_bytes_hex": "1b4cffff1b7701af"
+    },
+    {
+      "name": "Continuous70080001",
+      "option_id": 290,
+      "resource_name_id": 290,
+      "page_dimensions": [
+        378,
+        64000
+      ],
+      "printable_area": [
+        348,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<015c>",
+      "command_bytes_hex": "1b4cffff1b77015c"
+    },
+    {
+      "name": "Continuous70050001",
+      "option_id": 291,
+      "resource_name_id": 291,
+      "page_dimensions": [
+        673,
+        64000
+      ],
+      "printable_area": [
+        643,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<0283>",
+      "command_bytes_hex": "1b4cffff1b770283"
+    },
+    {
+      "name": "Continuous70190001",
+      "option_id": 292,
+      "resource_name_id": 292,
+      "page_dimensions": [
+        1075,
+        64000
+      ],
+      "printable_area": [
+        960,
+        64000
+      ],
+      "printable_origin": [
+        57,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<03C0>",
+      "command_bytes_hex": "1b4cffff1b7703c0"
+    },
+    {
+      "name": "LeitzContinuous70030001",
+      "option_id": 293,
+      "resource_name_id": 293,
+      "page_dimensions": [
+        1039,
+        64000
+      ],
+      "printable_area": [
+        960,
+        64000
+      ],
+      "printable_origin": [
+        40,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<03c0>",
+      "command_bytes_hex": "1b4cffff1b7703c0"
+    },
+    {
+      "name": "LeitzPackageShippingLabel",
+      "option_id": 294,
+      "resource_name_id": 294,
+      "page_dimensions": [
+        1039,
+        3600
+      ],
+      "printable_area": [
+        960,
+        3540
+      ],
+      "printable_origin": [
+        40,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0708><1B>w<03C0>",
+      "command_bytes_hex": "1b4c07081b7703c0"
+    },
+    {
+      "name": "LeitzMultipurpose70030001",
+      "option_id": 295,
+      "resource_name_id": 295,
+      "page_dimensions": [
+        1039,
+        1200
+      ],
+      "printable_area": [
+        960,
+        1140
+      ],
+      "printable_origin": [
+        40,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0258><1B>w<03c0>",
+      "command_bytes_hex": "1b4c02581b7703c0"
+    },
+    {
+      "name": "LeitzNameBadgeLabel70030001",
+      "option_id": 296,
+      "resource_name_id": 296,
+      "page_dimensions": [
+        1039,
+        1398
+      ],
+      "printable_area": [
+        960,
+        1338
+      ],
+      "printable_origin": [
+        40,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<02BB><1B>w<03c0>",
+      "command_bytes_hex": "1b4c02bb1b7703c0"
+    },
+    {
+      "name": "LeitzContinuous70040001",
+      "option_id": 297,
+      "resource_name_id": 297,
+      "page_dimensions": [
+        720,
+        64000
+      ],
+      "printable_area": [
+        690,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<02b2>",
+      "command_bytes_hex": "1b4cffff1b7702b2"
+    },
+    {
+      "name": "LeitzWideLeverArchLabelShort",
+      "option_id": 298,
+      "resource_name_id": 298,
+      "page_dimensions": [
+        720,
+        4536
+      ],
+      "printable_area": [
+        690,
+        4476
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<08DC><1B>w<02b2>",
+      "command_bytes_hex": "1b4c08dc1b7702b2"
+    },
+    {
+      "name": "LeitzWideLeverArchLabelLong",
+      "option_id": 299,
+      "resource_name_id": 299,
+      "page_dimensions": [
+        720,
+        6732
+      ],
+      "printable_area": [
+        690,
+        6702
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0D26><1B>w<02b2>",
+      "command_bytes_hex": "1b4c0d261b7702b2"
+    },
+    {
+      "name": "LeitzContinuous70060001",
+      "option_id": 300,
+      "resource_name_id": 300,
+      "page_dimensions": [
+        591,
+        64000
+      ],
+      "printable_area": [
+        561,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<0231>",
+      "command_bytes_hex": "1b4cffff1b770231"
+    },
+    {
+      "name": "LeitzLargePendaflexTab",
+      "option_id": 301,
+      "resource_name_id": 301,
+      "page_dimensions": [
+        591,
+        662
+      ],
+      "printable_area": [
+        561,
+        602
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<014B><1B>w<0231>",
+      "command_bytes_hex": "1b4c014b1b770231"
+    },
+    {
+      "name": "LeitzNameBadgeLabel70060001",
+      "option_id": 302,
+      "resource_name_id": 302,
+      "page_dimensions": [
+        591,
+        1800
+      ],
+      "printable_area": [
+        561,
+        1740
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0384><1B>w<0231>",
+      "command_bytes_hex": "1b4c03841b770231"
+    },
+    {
+      "name": "LeitzNarrowLeverArchLabelShort",
+      "option_id": 303,
+      "resource_name_id": 303,
+      "page_dimensions": [
+        461,
+        4536
+      ],
+      "printable_area": [
+        431,
+        4476
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<08DC><1B>w<01af>",
+      "command_bytes_hex": "1b4c08dc1b7701af"
+    },
+    {
+      "name": "LeitzNarrowLeverArchLabelLong",
+      "option_id": 304,
+      "resource_name_id": 304,
+      "page_dimensions": [
+        461,
+        6732
+      ],
+      "printable_area": [
+        431,
+        6672
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0D26><1B>w<01af>",
+      "command_bytes_hex": "1b4c0d261b7701af"
+    },
+    {
+      "name": "LeitzContinuous70090001",
+      "option_id": 305,
+      "resource_name_id": 305,
+      "page_dimensions": [
+        295,
+        64000
+      ],
+      "printable_area": [
+        265,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<0109>",
+      "command_bytes_hex": "1b4cffff1b770109"
+    },
+    {
+      "name": "LeitzMultipurpose70090001",
+      "option_id": 306,
+      "resource_name_id": 306,
+      "page_dimensions": [
+        295,
+        900
+      ],
+      "printable_area": [
+        265,
+        840
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<01C2><1B>w<0109>",
+      "command_bytes_hex": "1b4c01c21b770109"
+    },
+    {
+      "name": "LeitzReturnAddressLabelLarge",
+      "option_id": 307,
+      "resource_name_id": 307,
+      "page_dimensions": [
+        295,
+        1276
+      ],
+      "printable_area": [
+        265,
+        1216
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<027E><1B>w<0109>",
+      "command_bytes_hex": "1b4c027e1b770109"
+    },
+    {
+      "name": "LeitzContinuous70100001",
+      "option_id": 308,
+      "resource_name_id": 308,
+      "page_dimensions": [
+        224,
+        64000
+      ],
+      "printable_area": [
+        194,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<00C2>",
+      "command_bytes_hex": "1b4cffff1b7700c2"
+    },
+    {
+      "name": "LeitzReturnAddressLabelSmall",
+      "option_id": 309,
+      "resource_name_id": 309,
+      "page_dimensions": [
+        224,
+        1200
+      ],
+      "printable_area": [
+        194,
+        1140
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0258><1B>w<00c2>",
+      "command_bytes_hex": "1b4c02581b7700c2"
+    },
+    {
+      "name": "LeitzMultipurpose70100001",
+      "option_id": 310,
+      "resource_name_id": 310,
+      "page_dimensions": [
+        224,
+        1500
+      ],
+      "printable_area": [
+        194,
+        1440
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<02EE><1B>w<00c2>",
+      "command_bytes_hex": "1b4c02ee1b7700c2"
+    },
+    {
+      "name": "LeitzContinuous70110001",
+      "option_id": 311,
+      "resource_name_id": 311,
+      "page_dimensions": [
+        148,
+        64000
+      ],
+      "printable_area": [
+        118,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<0076>",
+      "command_bytes_hex": "1b4cffff1b770076"
+    },
+    {
+      "name": "LeitzMultipurpose70110001",
+      "option_id": 312,
+      "resource_name_id": 312,
+      "page_dimensions": [
+        148,
+        1134
+      ],
+      "printable_area": [
+        118,
+        1074
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0237><1B>w<0076>",
+      "command_bytes_hex": "1b4c02371b770076"
+    },
+    {
+      "name": "LeitzFileFolderLabel",
+      "option_id": 313,
+      "resource_name_id": 313,
+      "page_dimensions": [
+        148,
+        2100
+      ],
+      "printable_area": [
+        118,
+        2040
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<041A><1B>w<0076>",
+      "command_bytes_hex": "1b4c041a1b770076"
+    },
+    {
+      "name": "LeitzSuspensionFileLabel",
+      "option_id": 314,
+      "resource_name_id": 314,
+      "page_dimensions": [
+        148,
+        1200
+      ],
+      "printable_area": [
+        118,
+        1140
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0258><1B>w<0076>",
+      "command_bytes_hex": "1b4c02581b770076"
+    },
+    {
+      "name": "LeitzInternationalAddressLabel",
+      "option_id": 315,
+      "resource_name_id": 315,
+      "page_dimensions": [
+        1039,
+        850
+      ],
+      "printable_area": [
+        960,
+        790
+      ],
+      "printable_origin": [
+        40,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<01A9><1B>w<03c0>",
+      "command_bytes_hex": "1b4c01a91b7703c0"
+    },
+    {
+      "name": "LeitzStandardAddressLabel",
+      "option_id": 316,
+      "resource_name_id": 316,
+      "page_dimensions": [
+        1039,
+        662
+      ],
+      "printable_area": [
+        960,
+        602
+      ],
+      "printable_origin": [
+        40,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<014B><1B>w<03c0>",
+      "command_bytes_hex": "1b4c014b1b7703c0"
+    },
+    {
+      "name": "LeitzShippingLabel70130001",
+      "option_id": 317,
+      "resource_name_id": 317,
+      "page_dimensions": [
+        697,
+        2410
+      ],
+      "printable_area": [
+        667,
+        2350
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<04B5><1B>w<029b>",
+      "command_bytes_hex": "1b4c04b51b77029b"
+    },
+    {
+      "name": "LeitzShippingLabel70180001",
+      "option_id": 318,
+      "resource_name_id": 318,
+      "page_dimensions": [
+        1039,
+        1182
+      ],
+      "printable_area": [
+        960,
+        1122
+      ],
+      "printable_origin": [
+        40,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<024F><1B>w<03c0>",
+      "command_bytes_hex": "1b4c024f1b7703c0"
+    },
+    {
+      "name": "LeitzNameBadgeCard70190001",
+      "option_id": 319,
+      "resource_name_id": 319,
+      "page_dimensions": [
+        1075,
+        1350
+      ],
+      "printable_area": [
+        960,
+        1290
+      ],
+      "printable_origin": [
+        58,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<02A3><1B>w<03c0>",
+      "command_bytes_hex": "1b4c02a31b7703c0"
+    },
+    {
+      "name": "LeitzAppointmentCard",
+      "option_id": 320,
+      "resource_name_id": 320,
+      "page_dimensions": [
+        1075,
+        1200
+      ],
+      "printable_area": [
+        960,
+        1140
+      ],
+      "printable_origin": [
+        58,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<023A><1B>w<03c0>",
+      "command_bytes_hex": "1b4c023a1b7703c0"
+    },
+    {
+      "name": "LeitzWideLeverArchCardShort",
+      "option_id": 321,
+      "resource_name_id": 321,
+      "page_dimensions": [
+        673,
+        4488
+      ],
+      "printable_area": [
+        643,
+        4428
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<08C4><1B>w<0283>",
+      "command_bytes_hex": "1b4c08c41b770283"
+    },
+    {
+      "name": "LeitzNarrowLeverArchCardShort",
+      "option_id": 322,
+      "resource_name_id": 322,
+      "page_dimensions": [
+        378,
+        4488
+      ],
+      "printable_area": [
+        348,
+        4428
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<08C4><1B>w<015c>",
+      "command_bytes_hex": "1b4c08c41b77015c"
+    },
+    {
+      "name": "LeitzContinuous70070001",
+      "option_id": 323,
+      "resource_name_id": 323,
+      "page_dimensions": [
+        461,
+        64000
+      ],
+      "printable_area": [
+        431,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<01af>",
+      "command_bytes_hex": "1b4cffff1b7701af"
+    },
+    {
+      "name": "LeitzContinuous70080001",
+      "option_id": 324,
+      "resource_name_id": 324,
+      "page_dimensions": [
+        378,
+        64000
+      ],
+      "printable_area": [
+        348,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<015c>",
+      "command_bytes_hex": "1b4cffff1b77015c"
+    },
+    {
+      "name": "LeitzContinuous70050001",
+      "option_id": 325,
+      "resource_name_id": 325,
+      "page_dimensions": [
+        673,
+        64000
+      ],
+      "printable_area": [
+        643,
+        64000
+      ],
+      "printable_origin": [
+        15,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<0283>",
+      "command_bytes_hex": "1b4cffff1b770283"
+    },
+    {
+      "name": "LeitzContinuous70190001",
+      "option_id": 326,
+      "resource_name_id": 326,
+      "page_dimensions": [
+        1075,
+        64000
+      ],
+      "printable_area": [
+        960,
+        64000
+      ],
+      "printable_origin": [
+        57,
+        0
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<FFFF><1B>w<03C0>",
+      "command_bytes_hex": "1b4cffff1b7703c0"
+    },
+    {
+      "name": "LeitzLargePendaflexTabRotated",
+      "option_id": 327,
+      "resource_name_id": 327,
+      "page_dimensions": [
+        331,
+        1182
+      ],
+      "printable_area": [
+        301,
+        1122
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<024F><1B>w<012D>",
+      "command_bytes_hex": "1b4c024f1b77012d"
+    },
+    {
+      "name": "LeitzMultipurpose70030001Rotated",
+      "option_id": 328,
+      "resource_name_id": 328,
+      "page_dimensions": [
+        600,
+        2078
+      ],
+      "printable_area": [
+        570,
+        2018
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<040F><1B>w<023A>",
+      "command_bytes_hex": "1b4c040f1b77023a"
+    },
+    {
+      "name": "LeitzNameBadgeCard70190001Rotated",
+      "option_id": 329,
+      "resource_name_id": 329,
+      "page_dimensions": [
+        675,
+        2078
+      ],
+      "printable_area": [
+        645,
+        2018
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<040F><1B>w<0285>",
+      "command_bytes_hex": "1b4c040f1b770285"
+    },
+    {
+      "name": "LeitzShippingLabel70180001Rotated",
+      "option_id": 330,
+      "resource_name_id": 330,
+      "page_dimensions": [
+        591,
+        2078
+      ],
+      "printable_area": [
+        561,
+        2018
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<040F><1B>w<0231>",
+      "command_bytes_hex": "1b4c040f1b770231"
+    },
+    {
+      "name": "Wristband",
+      "option_id": 334,
+      "resource_name_id": 334,
+      "page_dimensions": [
+        336,
+        6554
+      ],
+      "printable_area": [
+        306,
+        6494
+      ],
+      "printable_origin": [
+        15,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0CCD><1B>w<0132>",
+      "command_bytes_hex": "1b4c0ccd1b770132"
+    },
+    {
+      "name": "DHLShippingLabel",
+      "option_id": 335,
+      "resource_name_id": 335,
+      "page_dimensions": [
+        1039,
+        4204
+      ],
+      "printable_area": [
+        960,
+        4144
+      ],
+      "printable_origin": [
+        40,
+        30
+      ],
+      "min_size": null,
+      "max_size": null,
+      "raw_command": "<1B>L<0836><1B>w<03C0>",
+      "command_bytes_hex": "1b4c08361b7703c0"
+    },
+    {
+      "name": "CUSTOMSIZE",
+      "option_id": null,
+      "resource_name_id": null,
+      "page_dimensions": null,
+      "printable_area": null,
+      "printable_origin": null,
+      "min_size": [
+        16,
+        16
+      ],
+      "max_size": [
+        10000,
+        64000
+      ],
+      "raw_command": "<1B>L<FFFF>",
+      "command_bytes_hex": "1b4cffff"
+    }
+  ]
+}

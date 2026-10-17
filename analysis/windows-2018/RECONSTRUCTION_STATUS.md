@@ -1268,3 +1268,43 @@ Kein Format erhält einen erfundenen Originalbezeichner oder
 einen aus der Eigenentwicklung abgeleiteten Windows-Befehl.
 
 Keine Änderungen an anderen Branches, OEM-Dateien oder Druckhardware.
+
+
+## All 77 Windows GPD media commands in original-derived C
+
+Work-state checked: sources HEAD `9a8b9feffa5e6f6cc0406515011912e3f0a99a98`, Windows CI successful.
+The original Linux 1.0.3 sources and macOS Classic original PPD/recovered
+native code paths were reviewed alongside the archived Windows GPD.
+The three manufacturer ZIP archives are listed in the project Library
+but their raw bytes could not be mounted in this execution. Distinct
+Linux, Windows and macOS print preambles/end-of-job semantics are
+documented separately in ORIGINAL_PLATFORMS_COMPARISON.md.
+
+Recovered the *entire* 77-record original Windows GPD paper inventory
+and its independently verified normalized text transcription from
+previously staged immutable Git blobs. The transcription is explicitly
+not asserted byte-equivalent to the vendor original: the archived
+Windows OEM GPD SHA-256 remains provenance only. Its 77 GPD option
+blocks parse identically to all 77 preserved inventory records.
+
+Added gpd_media_catalog.[ch] with 77 exact manufacturer per-media
+command records in a generated .inc file. The Python generation
+script verifies every preserved original GPD field before producing
+the C initializer, and CI checks the committed initializer is
+synchronized. Existing gpd_commands.[ch] continues to own the four
+earlier independent command primitives; there is no replacement.
+
+All 76 fixed Windows media IDs are found in the pinned development
+catalog and match all three geometry arrays by exact ID, but the
+original CmdSelect bytes are never recomputed from page dimensions.
+Twenty continuous entries use length FFFF. Original nontrivial
+exceptions AppointmentCard and LeitzAppointmentCard use length 570
+despite 1200-unit page height; this is retained. CUSTOMSIZE has no
+fixed height. No Windows resource-string names or physical cassette
+mappings are invented.
+
+Regression tests: all 77 GPD records vs inventory; 76 exact-geometry
+matches; complete 87-ID four-source report; deterministic generated C
+catalog; GCC/Clang bounded command copy, lookup, lengths, exceptions.
+No real printer operation, COM/Unidrv execution or firmware changes.
+Other branches and pre-existing reconstructed C remain unchanged.

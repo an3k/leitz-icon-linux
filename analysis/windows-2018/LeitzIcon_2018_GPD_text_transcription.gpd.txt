@@ -1,0 +1,1123 @@
+*GPDSpecVersion: "1.0"
+*Include: "StdNames.gpd"
+*MasterUnits: PAIR(300, 600)
+*ResourceDLL: "LeitzUSRes.dll"
+*PrinterType: SERIAL
+*ModelName: "Leitz Icon"
+*Feature: Orientation
+{
+    *rcNameID: =ORIENTATION_DISPLAY
+    *DefaultOption: PORTRAIT
+    *Option: PORTRAIT
+    {
+        *rcNameID: =PORTRAIT_DISPLAY
+    }
+    *Option: LANDSCAPE_CC270
+    {
+        *rcNameID: =LANDSCAPE_DISPLAY
+    }
+}
+*Feature: InputBin
+{
+    *rcNameID: =PAPER_SOURCE_DISPLAY
+}
+*Feature: Resolution
+{
+    *rcNameID: =RESOLUTION_DISPLAY
+    *DefaultOption: Option1
+    *Option: Option1
+    {
+        *Name: "300 x 300 " =DOTS_PER_INCH
+        *DPI: PAIR(300, 300)
+        *TextDPI: PAIR(300, 300)
+        EXTERN_GLOBAL: *StripBlanks: LIST(TRAILING)
+        *SpotDiameter: 120
+        *Command: CmdSendBlockData { *Cmd : "" }
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.3
+            *Cmd: "<1B>h"
+        }
+    }
+    *Option: Option2
+    {
+        *Name: "300 x 600 " =DOTS_PER_INCH
+        *DPI: PAIR(300, 600)
+        *TextDPI: PAIR(300, 600)
+        EXTERN_GLOBAL: *StripBlanks: LIST(TRAILING)
+        *SpotDiameter: 120
+        *Command: CmdSendBlockData { *Cmd : "" }
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.3
+            *Cmd: "<1B>i"
+        }
+    }
+}
+*Feature: PaperSize
+{
+    *rcNameID: =PAPER_SIZE_DISPLAY
+    *DefaultOption: Continuous70030001
+    *Option: Continuous70030001
+    {
+        *rcNameID: 259
+        *OptionID: 259
+        *PageDimensions: PAIR(1039, 64000)
+        *PrintableArea: PAIR(960, 64000)
+        *PrintableOrigin: PAIR(40, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<03c0>"
+        }
+    }
+    *Option: PackageShippingLabel
+    {
+        *rcNameID: 260
+        *OptionID: 260
+        *PageDimensions: PAIR(1039, 3600)
+        *PrintableArea: PAIR(960, 3540)
+        *PrintableOrigin: PAIR(40, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0708><1B>w<03C0>"
+        }
+    }
+    *Option: Multipurpose70030001
+    {
+        *rcNameID: 261
+        *OptionID: 261
+        *PageDimensions: PAIR(1039, 1200)
+        *PrintableArea: PAIR(960, 1140)
+        *PrintableOrigin: PAIR(40, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0258><1B>w<03c0>"
+        }
+    }
+    *Option: NameBadgeLabel70030001
+    {
+        *rcNameID: 262
+        *OptionID: 262
+        *PageDimensions: PAIR(1039, 1398)
+        *PrintableArea: PAIR(960, 1338)
+        *PrintableOrigin: PAIR(40, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<02BB><1B>w<03c0>"
+        }
+    }
+    *Option: Continuous70040001
+    {
+        *rcNameID: 263
+        *OptionID: 263
+        *PageDimensions: PAIR(720, 64000)
+        *PrintableArea: PAIR(690, 64000)
+        *PrintableOrigin: PAIR(15, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<02b2>"
+        }
+    }
+    *Option: WideLeverArchLabelShort
+    {
+        *rcNameID: 264
+        *OptionID: 264
+        *PageDimensions: PAIR(720, 4536)
+        *PrintableArea: PAIR(690, 4476)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<08DC><1B>w<02b2>"
+        }
+    }
+    *Option: WideLeverArchLabelLong
+    {
+        *rcNameID: 265
+        *OptionID: 265
+        *PageDimensions: PAIR(720, 6732)
+        *PrintableArea: PAIR(690, 6702)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0D26><1B>w<02b2>"
+        }
+    }
+    *Option: Continuous70060001
+    {
+        *rcNameID: 266
+        *OptionID: 266
+        *PageDimensions: PAIR(591, 64000)
+        *PrintableArea: PAIR(561, 64000)
+        *PrintableOrigin: PAIR(15, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<0231>"
+        }
+    }
+    *Option: LargePendaflexTab
+    {
+        *rcNameID: 267
+        *OptionID: 267
+        *PageDimensions: PAIR(591, 662)
+        *PrintableArea: PAIR(561, 602)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<014B><1B>w<0231>"
+        }
+    }
+    *Option: NameBadgeLabel70060001
+    {
+        *rcNameID: 268
+        *OptionID: 268
+        *PageDimensions: PAIR(591, 1800)
+        *PrintableArea: PAIR(561, 1740)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0384><1B>w<0231>"
+        }
+    }
+    *Option: NarrowLeverArchLabelShort
+    {
+        *rcNameID: 269
+        *OptionID: 269
+        *PageDimensions: PAIR(461, 4536)
+        *PrintableArea: PAIR(431, 4476)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<08DC><1B>w<01af>"
+        }
+    }
+    *Option: NarrowLeverArchLabelLong
+    {
+        *rcNameID: 270
+        *OptionID: 270
+        *PageDimensions: PAIR(461, 6732)
+        *PrintableArea: PAIR(431, 6672)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0D26><1B>w<01af>"
+        }
+    }
+    *Option: Continuous70090001
+    {
+        *rcNameID: 271
+        *OptionID: 271
+        *PageDimensions: PAIR(295, 64000)
+        *PrintableArea: PAIR(265, 64000)
+        *PrintableOrigin: PAIR(15, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<0109>"
+        }
+    }
+    *Option: Multipurpose70090001
+    {
+        *rcNameID: 272
+        *OptionID: 272
+        *PageDimensions: PAIR(295, 900)
+        *PrintableArea: PAIR(265, 840)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<01C2><1B>w<0109>"
+        }
+    }
+    *Option: ReturnAddressLabelLarge
+    {
+        *rcNameID: 273
+        *OptionID: 273
+        *PageDimensions: PAIR(295, 1276)
+        *PrintableArea: PAIR(265, 1216)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<027E><1B>w<0109>"
+        }
+    }
+    *Option: Continuous70100001
+    {
+        *rcNameID: 274
+        *OptionID: 274
+        *PageDimensions: PAIR(224, 64000)
+        *PrintableArea: PAIR(194, 64000)
+        *PrintableOrigin: PAIR(15, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<00C2>"
+        }
+    }
+    *Option: ReturnAddressLabelSmall
+    {
+        *rcNameID: 275
+        *OptionID: 275
+        *PageDimensions: PAIR(224, 1200)
+        *PrintableArea: PAIR(194, 1140)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0258><1B>w<00c2>"
+        }
+    }
+    *Option: Multipurpose70100001
+    {
+        *rcNameID: 276
+        *OptionID: 276
+        *PageDimensions: PAIR(224, 1500)
+        *PrintableArea: PAIR(194, 1440)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<02EE><1B>w<00c2>"
+        }
+    }
+    *Option: Continuous70110001
+    {
+        *rcNameID: 277
+        *OptionID: 277
+        *PageDimensions: PAIR(148, 64000)
+        *PrintableArea: PAIR(118, 64000)        
+        *PrintableOrigin: PAIR(15, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<0076>"
+        }
+    }
+    *Option: Multipurpose70110001
+    {
+        *rcNameID: 278
+        *OptionID: 278
+        *PageDimensions: PAIR(148, 1134)
+        *PrintableArea: PAIR(118, 1074)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0237><1B>w<0076>"
+        }
+    }
+    *Option: FileFolderLabel
+    {
+        *rcNameID: 279
+        *OptionID: 279
+        *PageDimensions: PAIR(148, 2100)
+        *PrintableArea: PAIR(118, 2040)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<041A><1B>w<0076>"
+        }
+    }
+    *Option: SuspensionFileLabel
+    {
+        *rcNameID: 280
+        *OptionID: 280
+        *PageDimensions: PAIR(148, 1200)
+        *PrintableArea: PAIR(118, 1140)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0258><1B>w<0076>"
+        } 
+    }
+    *Option: InternationalAddressLabel
+    {
+        *rcNameID: 281
+        *OptionID: 281
+        *PageDimensions: PAIR(1039, 850)
+        *PrintableArea: PAIR(960, 790)
+        *PrintableOrigin: PAIR(40, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<01A9><1B>w<03c0>"
+        }
+    }
+    *Option: StandardAddressLabel
+    {
+        *rcNameID: 282
+        *OptionID: 282
+        *PageDimensions: PAIR(1039, 662)
+        *PrintableArea: PAIR(960, 602)
+        *PrintableOrigin: PAIR(40, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<014B><1B>w<03c0>"
+        }
+    }
+    *Option: ShippingLabel70130001
+    {
+        *rcNameID: 283
+        *OptionID: 283
+        *PageDimensions: PAIR(697, 2410)
+        *PrintableArea: PAIR(667, 2350)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<04B5><1B>w<029b>"
+        }
+    }
+    *Option: ShippingLabel70180001
+    {
+        *rcNameID: 284
+        *OptionID: 284
+        *PageDimensions: PAIR(1039, 1182)
+        *PrintableArea: PAIR(960, 1122)
+        *PrintableOrigin: PAIR(40, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<024F><1B>w<03c0>"
+        }
+    }
+    *Option: NameBadgeCard70190001
+    {
+        *rcNameID: 285
+        *OptionID: 285
+        *PageDimensions: PAIR(1075, 1350)
+        *PrintableArea: PAIR(960, 1290)
+        *PrintableOrigin: PAIR(58, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<02A3><1B>w<03c0>"
+        }
+    }
+    *Option: NameBadgeCard8214
+    {
+        *rcNameID: 331
+        *OptionID: 331
+        *PageDimensions: PAIR(1075, 1276)
+        *PrintableArea: PAIR(960, 1216)
+        *PrintableOrigin: PAIR(58, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<027E><1B>w<03c0>"
+        }
+    }
+    *Option: AppointmentCard
+    {
+        *rcNameID: 286
+        *OptionID: 286
+        *PageDimensions: PAIR(1075, 1200)
+        *PrintableArea: PAIR(960, 1140)
+        *PrintableOrigin: PAIR(58, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<023A><1B>w<03c0>"
+        }
+    }
+    *Option: LeitzLeverArchFile1005   
+    {
+        *rcNameID: 332
+        *OptionID: 332
+        *PageDimensions: PAIR(591, 2598)
+        *PrintableArea: PAIR(561, 2538)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0513><1B>w<0231>"
+        }
+    }
+    *Option: WideLeverArchCardShort
+    {
+        *rcNameID: 287
+        *OptionID: 287
+        *PageDimensions: PAIR(673, 4488)
+        *PrintableArea: PAIR(643, 4428)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<08C4><1B>w<0283>"
+        }
+    }
+    *Option: NarrowLeverArchCardShort
+    {
+        *rcNameID: 288
+        *OptionID: 288
+        *PageDimensions: PAIR(378, 4488)
+        *PrintableArea: PAIR(348, 4428)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<08C4><1B>w<015c>"
+        }
+    }
+    *Option: Continuous70070001
+    {
+        *rcNameID: 289
+        *OptionID: 289
+        *PageDimensions: PAIR(461, 64000)
+        *PrintableArea: PAIR(431, 64000)
+        *PrintableOrigin: PAIR(15, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<01af>"
+        }
+    }
+    *Option: Continuous70080001
+    {
+        *rcNameID: 290
+        *OptionID: 290
+        *PageDimensions: PAIR(378, 64000)
+        *PrintableArea: PAIR(348, 64000)
+        *PrintableOrigin: PAIR(15, 0)    	
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<015c>"
+        }
+    }
+    *Option: Continuous70050001
+    {
+        *rcNameID: 291
+        *OptionID: 291
+        *PageDimensions: PAIR(673, 64000)
+        *PrintableArea: PAIR(643, 64000)
+        *PrintableOrigin: PAIR(15, 0)    	
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<0283>"
+        }
+    }
+    *Option: Continuous70190001
+    {
+        *rcNameID: 292
+        *OptionID: 292
+        *PageDimensions: PAIR(1075, 64000)
+        *PrintableArea: PAIR(960, 64000)
+        *PrintableOrigin: PAIR(57, 0)    	
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<03C0>"
+        }
+    }
+    *Option: LeitzContinuous70030001
+    {
+        *rcNameID: 293
+        *OptionID: 293
+        *PageDimensions: PAIR(1039, 64000)
+        *PrintableArea: PAIR(960, 64000)
+        *PrintableOrigin: PAIR(40, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<03c0>"
+        }
+    }
+    *Option: LeitzPackageShippingLabel
+    {
+        *rcNameID: 294
+        *OptionID: 294
+        *PageDimensions: PAIR(1039, 3600)
+        *PrintableArea: PAIR(960, 3540)
+        *PrintableOrigin: PAIR(40, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0708><1B>w<03C0>"
+        }
+    }
+    *Option: LeitzMultipurpose70030001
+    {
+        *rcNameID: 295
+        *OptionID: 295
+        *PageDimensions: PAIR(1039, 1200)
+        *PrintableArea: PAIR(960, 1140)
+        *PrintableOrigin: PAIR(40, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0258><1B>w<03c0>"
+        }
+    }
+    *Option: LeitzNameBadgeLabel70030001
+    {
+        *rcNameID: 296
+        *OptionID: 296
+        *PageDimensions: PAIR(1039, 1398)
+        *PrintableArea: PAIR(960, 1338)
+        *PrintableOrigin: PAIR(40, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<02BB><1B>w<03c0>"
+        }
+    }
+    *Option: LeitzContinuous70040001
+    {
+        *rcNameID: 297
+        *OptionID: 297
+        *PageDimensions: PAIR(720, 64000)
+        *PrintableArea: PAIR(690, 64000)
+        *PrintableOrigin: PAIR(15, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<02b2>"
+        }
+    }
+    *Option: LeitzWideLeverArchLabelShort
+    {
+        *rcNameID: 298
+        *OptionID: 298
+        *PageDimensions: PAIR(720, 4536)
+        *PrintableArea: PAIR(690, 4476)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<08DC><1B>w<02b2>"
+        }
+    }
+    *Option: LeitzWideLeverArchLabelLong
+    {
+        *rcNameID: 299
+        *OptionID: 299
+        *PageDimensions: PAIR(720, 6732)
+        *PrintableArea: PAIR(690, 6702)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0D26><1B>w<02b2>"
+        }
+    }
+    *Option: LeitzContinuous70060001
+    {
+        *rcNameID: 300
+        *OptionID: 300
+        *PageDimensions: PAIR(591, 64000)
+        *PrintableArea: PAIR(561, 64000)
+        *PrintableOrigin: PAIR(15, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<0231>"
+        }
+    }
+    *Option: LeitzLargePendaflexTab
+    {
+        *rcNameID: 301
+        *OptionID: 301
+        *PageDimensions: PAIR(591, 662)
+        *PrintableArea: PAIR(561, 602)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<014B><1B>w<0231>"
+        }
+    }
+    *Option: LeitzNameBadgeLabel70060001
+    {
+        *rcNameID: 302
+        *OptionID: 302
+        *PageDimensions: PAIR(591, 1800)
+        *PrintableArea: PAIR(561, 1740)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0384><1B>w<0231>"
+        }
+    }
+    *Option: LeitzNarrowLeverArchLabelShort
+    {
+        *rcNameID: 303
+        *OptionID: 303
+        *PageDimensions: PAIR(461, 4536)
+        *PrintableArea: PAIR(431, 4476)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<08DC><1B>w<01af>"
+        }
+    }
+    *Option: LeitzNarrowLeverArchLabelLong
+    {
+        *rcNameID: 304
+        *OptionID: 304
+        *PageDimensions: PAIR(461, 6732)
+        *PrintableArea: PAIR(431, 6672)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0D26><1B>w<01af>"
+        }
+    }
+    *Option: LeitzContinuous70090001
+    {
+        *rcNameID: 305
+        *OptionID: 305
+        *PageDimensions: PAIR(295, 64000)
+        *PrintableArea: PAIR(265, 64000)
+        *PrintableOrigin: PAIR(15, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<0109>"
+        }
+    }
+    *Option: LeitzMultipurpose70090001
+    {
+        *rcNameID: 306
+        *OptionID: 306
+        *PageDimensions: PAIR(295, 900)
+        *PrintableArea: PAIR(265, 840)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<01C2><1B>w<0109>"
+        }
+    }
+    *Option: LeitzReturnAddressLabelLarge
+    {
+        *rcNameID: 307
+        *OptionID: 307
+        *PageDimensions: PAIR(295, 1276)
+        *PrintableArea: PAIR(265, 1216)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<027E><1B>w<0109>"
+        }
+    }
+    *Option: LeitzContinuous70100001
+    {
+        *rcNameID: 308
+        *OptionID: 308
+        *PageDimensions: PAIR(224, 64000)
+        *PrintableArea: PAIR(194, 64000)
+        *PrintableOrigin: PAIR(15, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<00C2>"
+        }
+    }
+    *Option: LeitzReturnAddressLabelSmall
+    {
+        *rcNameID: 309
+        *OptionID: 309
+        *PageDimensions: PAIR(224, 1200)
+        *PrintableArea: PAIR(194, 1140)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0258><1B>w<00c2>"
+        }
+    }
+    *Option: LeitzMultipurpose70100001
+    {
+        *rcNameID: 310
+        *OptionID: 310
+        *PageDimensions: PAIR(224, 1500)
+        *PrintableArea: PAIR(194, 1440)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<02EE><1B>w<00c2>"
+        }
+    }
+    *Option: LeitzContinuous70110001
+    {
+        *rcNameID: 311
+        *OptionID: 311
+        *PageDimensions: PAIR(148, 64000)
+        *PrintableArea: PAIR(118, 64000)        
+        *PrintableOrigin: PAIR(15, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<0076>"
+        }
+    }
+    *Option: LeitzMultipurpose70110001
+    {
+        *rcNameID: 312
+        *OptionID: 312
+        *PageDimensions: PAIR(148, 1134)
+        *PrintableArea: PAIR(118, 1074)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0237><1B>w<0076>"
+        }
+    }
+    *Option: LeitzFileFolderLabel
+    {
+        *rcNameID: 313
+        *OptionID: 313
+        *PageDimensions: PAIR(148, 2100)
+        *PrintableArea: PAIR(118, 2040)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<041A><1B>w<0076>"
+        }
+    }
+    *Option: LeitzSuspensionFileLabel
+    {
+        *rcNameID: 314
+        *OptionID: 314
+        *PageDimensions: PAIR(148, 1200)
+        *PrintableArea: PAIR(118, 1140)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0258><1B>w<0076>"
+        } 
+    }
+    *Option: LeitzInternationalAddressLabel
+    {
+        *rcNameID: 315
+        *OptionID: 315
+        *PageDimensions: PAIR(1039, 850)
+        *PrintableArea: PAIR(960, 790)
+        *PrintableOrigin: PAIR(40, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<01A9><1B>w<03c0>"
+        }
+    }
+    *Option: LeitzStandardAddressLabel
+    {
+        *rcNameID: 316
+        *OptionID: 316
+        *PageDimensions: PAIR(1039, 662)
+        *PrintableArea: PAIR(960, 602)
+        *PrintableOrigin: PAIR(40, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<014B><1B>w<03c0>"
+        }
+    }
+    *Option: LeitzShippingLabel70130001
+    {
+        *rcNameID: 317
+        *OptionID: 317
+        *PageDimensions: PAIR(697, 2410)
+        *PrintableArea: PAIR(667, 2350)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<04B5><1B>w<029b>"
+        }
+    }
+    *Option: LeitzShippingLabel70180001
+    {
+        *rcNameID: 318
+        *OptionID: 318
+        *PageDimensions: PAIR(1039, 1182)
+        *PrintableArea: PAIR(960, 1122)
+        *PrintableOrigin: PAIR(40, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<024F><1B>w<03c0>"
+        }
+    }
+    *Option: LeitzNameBadgeCard70190001
+    {
+        *rcNameID: 319
+        *OptionID: 319
+        *PageDimensions: PAIR(1075, 1350)
+        *PrintableArea: PAIR(960, 1290)
+        *PrintableOrigin: PAIR(58, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<02A3><1B>w<03c0>"
+        }
+    }
+    *Option: LeitzAppointmentCard
+    {
+        *rcNameID: 320
+        *OptionID: 320
+        *PageDimensions: PAIR(1075, 1200)
+        *PrintableArea: PAIR(960, 1140)
+        *PrintableOrigin: PAIR(58, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<023A><1B>w<03c0>"
+        }
+    }
+    *Option: LeitzWideLeverArchCardShort
+    {
+        *rcNameID: 321
+        *OptionID: 321
+        *PageDimensions: PAIR(673, 4488)
+        *PrintableArea: PAIR(643, 4428)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<08C4><1B>w<0283>"
+        }
+    }
+    *Option: LeitzNarrowLeverArchCardShort
+    {
+        *rcNameID: 322
+        *OptionID: 322
+        *PageDimensions: PAIR(378, 4488)
+        *PrintableArea: PAIR(348, 4428)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<08C4><1B>w<015c>"
+        }
+    }
+    *Option: LeitzContinuous70070001
+    {
+        *rcNameID: 323
+        *OptionID: 323
+        *PageDimensions: PAIR(461, 64000)
+        *PrintableArea: PAIR(431, 64000)
+        *PrintableOrigin: PAIR(15, 0)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<01af>"
+        }
+    }
+    *Option: LeitzContinuous70080001
+    {
+        *rcNameID: 324
+        *OptionID: 324
+        *PageDimensions: PAIR(378, 64000)
+        *PrintableArea: PAIR(348, 64000)
+        *PrintableOrigin: PAIR(15, 0)    	
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<015c>"
+        }
+    }
+    *Option: LeitzContinuous70050001
+    {
+        *rcNameID: 325
+        *OptionID: 325
+        *PageDimensions: PAIR(673, 64000)
+        *PrintableArea: PAIR(643, 64000)
+        *PrintableOrigin: PAIR(15, 0)    	
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<0283>"
+        }
+    }
+    *Option: LeitzContinuous70190001
+    {
+        *rcNameID: 326
+        *OptionID: 326
+        *PageDimensions: PAIR(1075, 64000)
+        *PrintableArea: PAIR(960, 64000)
+        *PrintableOrigin: PAIR(57, 0)    	
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF><1B>w<03C0>"
+        }
+    }
+    *Option: LeitzLargePendaflexTabRotated
+    {
+        *rcNameID: 327
+        *OptionID: 327
+        *PageDimensions: PAIR(331, 1182)
+        *PrintableArea: PAIR(301, 1122)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<024F><1B>w<012D>"
+        }
+    }
+    *Option: LeitzMultipurpose70030001Rotated
+    {
+        *rcNameID: 328
+        *OptionID: 328
+        *PageDimensions: PAIR(600, 2078)
+        *PrintableArea: PAIR(570, 2018)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<040F><1B>w<023A>"
+        }
+    }
+    *Option: LeitzNameBadgeCard70190001Rotated
+    {
+        *rcNameID: 329
+        *OptionID: 329
+        *PageDimensions: PAIR(675, 2078)
+        *PrintableArea: PAIR(645, 2018)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<040F><1B>w<0285>"
+        }
+    }
+    *Option: LeitzShippingLabel70180001Rotated
+    {
+        *rcNameID: 330
+        *OptionID: 330
+        *PageDimensions: PAIR(591, 2078)
+        *PrintableArea: PAIR(561, 2018)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<040F><1B>w<0231>"
+        }
+    }
+    *Option: Wristband
+    {
+        *rcNameID: 334
+        *OptionID: 334
+        *PageDimensions: PAIR(336, 6554)
+        *PrintableArea: PAIR(306, 6494)
+        *PrintableOrigin: PAIR(15, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0CCD><1B>w<0132>"
+        }
+    }
+	*Option: DHLShippingLabel
+    {
+        *rcNameID: 335
+        *OptionID: 335
+        *PageDimensions: PAIR(1039, 4204)
+        *PrintableArea: PAIR(960, 4144)
+        *PrintableOrigin: PAIR(40, 30)
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<0836><1B>w<03C0>"
+        }
+    }
+    *Option: CUSTOMSIZE
+    {
+        *rcNameID: =USER_DEFINED_SIZE_DISPLAY
+        *MinSize: PAIR(16, 16)      
+        *MaxSize: PAIR(10000, 64000)    
+        *MaxPrintableWidth: 10000
+        *MinLeftMargin: 0
+        *CenterPrintable?: FALSE
+        *Command: CmdSelect
+        {
+            *Order: PAGE_SETUP.2
+            *Cmd: "<1B>L<FFFF>"
+        }
+    }
+}
+*Feature: Halftone
+{
+    *rcNameID: =HALFTONING_DISPLAY
+    *DefaultOption: HT_PATSIZE_SUPERCELL_M
+    *Option: HT_PATSIZE_AUTO 
+    {
+        *rcNameID: =HT_AUTO_SELECT_DISPLAY
+    }
+    *Option: HT_PATSIZE_SUPERCELL_M
+    {
+        *rcNameID: =HT_SUPERCELL_DISPLAY
+    }
+    *Option: HT_PATSIZE_6x6_M
+    {
+        *rcNameID: =HT_DITHER6X6_DISPLAY
+    }
+    *Option: HT_PATSIZE_8x8_M
+    {
+        *rcNameID: =HT_DITHER8X8_DISPLAY
+    }
+}
+
+*Command: CmdStartDoc
+{
+    *Order: DOC_SETUP.1
+    *Cmd: "<1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B><1B>@"
+}
+
+*Command: CmdStartPage
+{
+   *Order: PAGE_SETUP.1
+   *Cmd: "<1B>B<00>"
+}
+
+*Command: CmdEndPage
+{
+    *Order: PAGE_FINISH.1
+    *Cmd: ""
+}
+
+*Command: CmdEndJob
+{
+   *Order: JOB_FINISH.1
+   *Cmd: "<1B>E<1B>@<1B>Z"
+}
+*RotateCoordinate?: FALSE
+*RotateRaster?: FALSE
+*RotateFont?: FALSE
+*CursorXAfterCR: AT_CURSOR_X_ORIGIN
+*XMoveThreshold: 0
+*XMoveUnit: 300
+*Command: CmdXMoveAbsolute { *Cmd : "" }
+*Command: CmdCR { *Cmd : "" }
+*Command: CmdLF { *Cmd : "" }
+*Command: CmdFF { *Cmd : "" }
+*EjectPageWithFF?: TRUE
+*OutputDataFormat: H_BYTE
+*OptimizeLeftBound?: FALSE
+*CursorXAfterSendBlockData: AT_CURSOR_X_ORIGIN
+*CursorYAfterSendBlockData: AUTO_INCREMENT
