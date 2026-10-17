@@ -30,4 +30,12 @@ int32_t leitz_win2018_stream_counted_row(
     leitz_win2018_raster_stream *stream, const uint8_t *pixels,
     uint32_t row_length);
 
+/* Optional native CONTINUOUS branch adapter (raster slot 15,
+ * RVA 0x2380) to the existing static stream_encode(), rather than
+ * duplicating the manufacturer's prefix/RLE/physical mask algorithm.
+ * Only call for nonwhite rows and with 0 <= leading < length.
+ * All source/encoder buffers must be caller-owned and bounded. */
+int32_t leitz_win2018_stream_encode_nonblank(
+    void *context, const uint8_t *pixels, uint32_t length, uint32_t leading);
+
 #endif

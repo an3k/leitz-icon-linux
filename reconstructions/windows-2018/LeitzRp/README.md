@@ -349,3 +349,71 @@ SHA-256 mit den zuvor gespeicherten Originalbelegen überein.
 
 Es werden keine Windows-COM-Objekte, keine Hardwarefunktionen,
 kein USB-Datenstrom und keine produktiven Linux-Branches verändert.
+
+
+## Manufacturer's actual separate continuous-media raster path (RVA 0x2380)
+
+**New functionality, not a repeat of previous row_control:** Original
+Windows LeitzRp.dll (version 2.17.4.112) sends the IPrintOemUni raster
+slot 15 into a distinct function at RVA **0x2380** when
+`IsDieCut == 0`. The previously reconstructed `row_control.c`
+models the other branch (die-cut). The three original manufacturer
+archives were directly opened and their original Linux
+`raster2printer.c` SHA256, Windows i386/amd64 `LeitzRp.dll`
+SHA256 and macOS Classic `raster2printer` SHA256 were reconfirmed:
+the Windows DLL SHA256 values are
+`7586da2d722f76991002fce4062c45625b733dc01902484e117c5bf748f5cd33`
+(x86) and
+`876f3fb48829420fad03692d6d613c28f0150d797c928ba45c021e7edf640787`
+(x64).
+
+Both actual native disassemblies were compared instruction by instruction
+for the distinct continuous row **control**:
+- After the already recovered row counter increment, emit `ESC E`
+  on row 1 of subsequent labels (`label_count != 1`) without checking
+  its HRESULT. This check is **independent** of the die-cut path's
+  separate medium-switch-flag condition.
+- Skip raster content when the current label number exceeds the
+  OEM medium's requested-label limit. When row index equals the
+  physical page height, reset row index, queued blank rows and the
+  cached encoded width (`0xffff`).
+- At `row_index > label_height`, reset queued blanks and width cache;
+  send `ESC G` and increment the 16-bit label counter **only when**
+  `row_index == label_height + 1`. The cutter is therefore delayed
+  one raster callback beyond the nominal label length.
+- For `IsCustomSize == 0`, the original signed remainder
+  `(row_index - 1) % label_height` suppresses the first **14** rows.
+  This is not a universal 14-row print margin; it is the exact
+  condition in this OEM branch.
+- A blank row increments pending blank lines. On the final row of
+  a manually configured label (`ModeAuto == 0`) emit `ESC f`
+  with that count and clear it. For automatic mode, keep pending
+  blank rows. The result of this final-row write is ignored.
+- Before a nonblank row, flush pending `ESC f`; clear the pending
+  count before checking **exact** `E_FAIL`. On `E_FAIL` stop.
+  Other callback returns do not stop it. Call the already recovered
+  raster encoder with the counted leading zero bytes, and **forward**
+  its result (unlike the other OEM row controller's ignored value).
+
+These are independently tested in new `oem_continuous.[ch]`,
+without imposing any artificial physical page length. A zero height
+or invalid caller pointer is safely rejected instead of allowing
+native division-by-zero or invalid pointer behavior.
+
+**Connected output path:** `oem_continuous_bridge.[ch]` supplies
+the existing `oem_row_dispatch` callback for continuous material,
+and the existing `raster_stream` code now exports a **single
+additive wrapper** `leitz_win2018_stream_encode_nonblank`
+around its existing static encoder. No RLE code, last-byte mask,
+row-prefix algorithm or die-cut routine has been duplicated or
+changed. The combined offline test covers 19 consecutive rows,
+the original 14-row skip, blank-line flushing, encoded ink,
+`ESC G` and requested-label suppression.
+
+**Limits:** These are disassembly-derived stream vectors and
+portable adapters. The original Windows COM/Unidrv entry ABI,
+full printer status and physical USB/spooler behavior have not
+been executed for parity. Actual hardware cutter timing remains
+to be verified on a device. The manufacturer's native 16-bit
+row/length and label-count fields are retained, not replaced with
+an invented 170-mm length cap.

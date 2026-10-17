@@ -65,3 +65,19 @@ int32_t leitz_win2018_stream_counted_row(
     return leitz_win2018_process_counted_row(
         s->row, pixels, row_length, stream_write, stream_encode, s);
 }
+
+/* Additive bridge: expose the ALREADY reconstructed FilterGraphics
+ * implementation to the native continuous-media controller without
+ * copying its RLE/prefix/last-byte-mask code. */
+int32_t leitz_win2018_stream_encode_nonblank(
+    void *context, const uint8_t *pixels, uint32_t length, uint32_t leading)
+{
+    leitz_win2018_raster_stream *s=context;
+    if (!s || !s->row || !s->row->physical_width || !s->write ||
+        !s->clipped_row || !s->encoded_row ||
+        (length && !pixels) || leading>=length ||
+        s->scratch_capacity<length || s->clipped_row==s->encoded_row)
+        return LEITZ_WIN2018_ROW_E_FAIL;
+    s->last_filter_result=0;
+    return stream_encode(s,pixels,length,leading);
+}

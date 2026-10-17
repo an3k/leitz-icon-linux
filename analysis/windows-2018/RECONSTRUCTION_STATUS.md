@@ -1686,3 +1686,36 @@ GCC/Clang und lokale Sanitizer-Tests für den neuen Dispatcher
 bestanden. Der CI-Test kompiliert den Integrationstest gegen die
 existierenden Raster- und RLE-Module. Ein echter
 Windows-/Unidrv-/Drucker-Abgleich steht weiter aus.
+
+
+## 2026-10-18: original continuous-media raster path 0x2380 recovered
+
+Before changes, the `sources` branch was at
+`3d4597b01c999a80ff5a78f535c1a3797047c86a` with successful CI. All three original uploaded ZIPs
+were reopened; original Linux filter, Windows i386/x64 raster
+DLLs and original macOS Classic raster filter SHA256 matched
+the existing verified archive records.
+
+The manufacturer has **two distinct** raster slot-15 branches:
+die-cut at x64 RVA 0x2060 (already recovered) and continuous
+at x86/x64 RVA 0x2380 (previously missing). The original 0x2380
+routine was analyzed in both arch-native disassemblies.
+New `LeitzRp/oem_continuous.[ch]` reconstructs its row state
+transitions, 14-row conditional skip, original requested-label
+limit, physical-page row reset, queued blank feeding, exact
+E_FAIL-only handling, forwarded encoding result and deferred
+ESC G one row after the configured label height. The original
+ModeAuto-dependent ESC f flush and native 16-bit wrapping behavior
+are preserved. No fixed print-length limit is introduced.
+
+An independent alternate callback `oem_continuous_bridge.[ch]`
+connects this to the pre-existing `oem_row_dispatch`.
+A strictly additive `raster_stream` public wrapper exposes
+the pre-existing private encoder without duplicating RLE or
+modifying its implementation. Standalone GCC/Clang/ASan/UBSan
+continuous-control tests passed offline; the new integrated
+CI regression compiles against all the existing real
+raster setup, prefix, RLE and stream modules, and checks a
+19-row continuous print/cut command vector. As before, COM
+and actual hardware parity remain pending. No production
+branch is changed.
