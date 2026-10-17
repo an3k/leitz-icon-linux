@@ -265,3 +265,33 @@ successful HTTP response, both network observations, status 3
 short-circuit, and 15s/18s timeouts. Locally passed offline.
 Native .NET execution parity, real HTTP transport and hardware
 validation remain outstanding.
+
+
+## Combined OEM AddPrinter credential callback ordering
+
+The previously reconstructed `wifi_auth.[ch]` preserves the individual
+Windows AddPrinter / LeitzIconCommon status decisions. The separate
+`wifi_auth_flow.[ch]` now composes their **control-flow ordering** offline:
+`ProcessCredentials` (MethodDef 279, RVA 0x6b60) calls
+`CheckLogin` (MethodDef 281, RVA 0x6bb8), which makes the first
+`IsConnectedToSameWiFi` observation. Only when that observation succeeds
+is the control-panel status obtained (original GET `Main.html`,
+via MethodDef 264 and LeitzIconCommon MethodDef 183). Status 3 returns
+immediately; all other statuses lead to a **second**, independently
+observed Wi-Fi match, whose failure produces status 4.
+
+The new portable API accepts **injected observation callbacks only**.
+It does not contact Wi-Fi, send passwords, perform HTTP, call COM,
+or modify any printer or Linux driver settings. Its bounded error
+return for invalid callback values is a deliberate safety extension,
+not a claim of exact original exception behavior.
+
+`wifi_auth_flow_test.c` checks the callback trace:
+`NN` for first Wi-Fi mismatch, `NHN` for HTTP failure,
+and `NH` for authenticated success; it also tests the
+`401 -> 1`, other HTTP error `-> 2`, and success `-> 3`
+decisions, later Wi-Fi changes, and invalid callbacks.
+Strict GCC/Clang and sanitizer tests passed locally against the
+published `wifi_auth` API; the repository Windows reconstruction
+workflow now builds this additional test. Actual .NET/HTTP
+execution and hardware parity remain unverified.
