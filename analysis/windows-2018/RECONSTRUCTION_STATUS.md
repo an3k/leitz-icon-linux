@@ -1232,3 +1232,39 @@ Erstellt werden ausschließlich nach unmittelbarer Verifikation vollständige Ve
 Neu: `test_compare_windows_gpd_four_sources.py` mit vier lokal bestandenen Tests (synthetische Optionen, fehlende Ressourcenbezeichnungen, Geometriedifferenzen, Duplikate, Original-Hashpflicht); in der Windows-CI enthalten. `FOUR_SOURCE_GPD_COMPARISON.md` dokumentiert den Aufruf. Das Original-ZIP ist im aktuellen Container nicht zugänglich; ein mit den echten 77 GPD-Einträgen erzeugter Bericht und ein Originalausführungstest werden daher ausdrücklich **nicht** als bereits erledigt gemeldet.
 
 Produktiver Linux-Treiber, andere Branches, bestehende Quellen, Gerät und Firmware bleiben unangetastet.
+
+
+## Windows-Original-GPD: alle 77 Namen nachträglich aus Projektbibliothek verifiziert
+
+Vor Schreibvorgang geprüft: sources HEAD `1f16fcb597f59b18a16e1eb5506329458b0c4ae2`; letzte CI erfolgreich.
+Die Library enthielt die Einzeldatei `LeitzIcon.gpd` und das früher direkt
+aus demselben Original-ZIP gewonnene vollständige JSON `leitz_windows_2018_original_media_inventory.json`.
+Alle **77 Original-GPD-Optionsblöcke** wurden in dieser Sitzung unabhängig
+aus dem lesbaren GPD-Text extrahiert und mit allen 77 JSON-Datensätzen
+nach Name, OptionID, rcNameID, Dimensionen, bedruckbarer Fläche,
+Ursprung, Min/Max, originalem Cmd-Text und Befehlsbytes verglichen:
+**77/77 identisch, null Feldabweichungen**. Der originale GPD-Rohbyte-SHA
+wurde dabei nicht erneut berechnet, sondern nur der früher
+gespeicherte Quell-SHA verglichen.
+
+Der exakte Namensvergleich mit Entwicklungsbranch `3289f1bd` ergab
+**76/76 feste Windows-Namen** im 86er-Entwicklungskatalog; alle drei
+Geometriefelder pro gleichnamiger Option sind wertgleich. Die zehn
+Entwicklungsbezeichner ohne Windows-Original-GPD-Eintrag wurden explizit
+ermittelt und in `WINDOWS_2018_ALL_MEDIA_NAMES.md` konserviert; mit
+Windows `CUSTOMSIZE` sind 87 eindeutige IDs in der vierfachen
+Vereinigungsmenge. Der neue reine Offline-Test
+`test_windows_gpd_names.py` prüft alle 87 Tabellenzeilen gegen
+die beiden Original-PPDs und den gepinnten Entwicklungsbranch.
+
+**Begrenzung:** Anschließend waren die rohen Bibliotheksdateien
+nicht mehr lesbar/materialisierbar. Deshalb enthält der gesicherte
+Namensbericht bewusst nicht die zuvor nur temporär gelesenen,
+aber nicht vollständig in Git kopierten numerischen Windows-OptionIDs,
+rcNameIDs und OEM-Befehlsbytes (mit Ausnahme des schon zuvor unabhängig
+gesicherten DHL-Formats). Das bestehende Archiv-Hash-Prüfwerkzeug
+`compare_windows_gpd_four_sources.py` bleibt unverändert.
+Kein Format erhält einen erfundenen Originalbezeichner oder
+einen aus der Eigenentwicklung abgeleiteten Windows-Befehl.
+
+Keine Änderungen an anderen Branches, OEM-Dateien oder Druckhardware.
