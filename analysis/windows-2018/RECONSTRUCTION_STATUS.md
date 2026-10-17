@@ -1165,3 +1165,45 @@ reported-status gate, nine independent callback-failure stages,
 resource cleanup and overlong output rejection under GCC/Clang,
 ASan/UBSan. Existing source modules and production branches
 (`driver`, `main`, `cups`) untouched.
+
+
+## Windows 2018 LeitzIcon.gpd fixed command-byte reconstruction (offline)
+
+**Pre-execution state:** sources HEAD
+`c1c23c356d60f696030aa2ad67def6c5319115f2` with all existing
+LeitzRp, LeitzLm, PrintHelper, WiFiHTTP reconstructions present and the
+prior Windows CI successful. None of those modules were changed.
+
+Previously authenticated manufacturer input: original ZIP
+`LeitzIconLabelSetup(4).zip` SHA-256
+`cc6e175fb3f183d211cd1b4610ca2d096ec958421bc45b4bc8fc2740be3034ca`,
+`Drivers/LeitzIcon.gpd` SHA-256
+`f81130f358b6dbc6099812d8ab243958854436be4b1e8c0c0ef8ec7fb60954b7`.
+The earlier results documented these exact GPD bytes:
+- `CmdStartDoc`: 121 consecutive ESC (0x1b) bytes and a
+  terminal `@`, total 122 bytes;
+- `CmdStartPage`: `1B 42 00`;
+- `CmdEndJob`: `1B 45 1B 40 1B 5A`;
+- `PaperSize/DHLShippingLabel` (`OptionID=335`):
+  `1B 4C 08 36 1B 77 03 C0`.
+
+New isolated `reconstructions/windows-2018/GPD/gpd_commands.[ch]`
+provides a bounded callback-free copy of ONLY these byte vectors,
+with a companion strict GCC/Clang test for every byte, truncated output
+rejection and nonmutation on invalid requests. Local GCC/Clang,
+AddressSanitizer and UndefinedBehaviorSanitizer tests passed. Windows
+CI runs the separate `GPD/test.sh` script.
+
+**Important source-conflict boundary:** the older
+`tests/reference/WINDOWS_2018_BINARY_FINDINGS.md` from
+a *different MSI extraction* still lists 120 ESCs and 76 media options.
+That report is not silently conflated with the later GPD ZIP inventory
+(121 ESCs; 76 fixed options and one CUSTOMSIZE, 77 total).
+These are distinct recorded input/artifact findings, not proof
+that the installers have identical GPD bytes.
+
+The actual GPD host expansion and timing relative to the
+LeitzRp COM/Unidrv filter, full 77-option Windows media mapping,
+OEM runtime equality and physical printer operations remain unproven.
+The new module does **not** send bytes to hardware or modify
+the Linux production driver or any non-sources branches.
