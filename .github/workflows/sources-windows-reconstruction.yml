@@ -39,6 +39,8 @@ jobs:
         run: python3 analysis/windows-2018/test_windows_ui_labels.py
       - name: Verify original resource strings C catalog generation
         run: python3 analysis/windows-2018/generate_windows_ui_strings_c.py --check
+      - name: GCC and Clang - original Windows LeitzUI COM GetInfo and cutter callbacks
+        run: sh reconstructions/windows-2018/LeitzUI/test.sh
       - name: GCC and Clang - recovered Windows LeitzDevMode.dll OEM modes
         run: sh reconstructions/windows-2018/LeitzDevMode/test.sh
       - name: GCC and Clang - original Windows GPD commands and declared static job sequencing

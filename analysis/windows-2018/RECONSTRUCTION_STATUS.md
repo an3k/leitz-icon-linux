@@ -1385,3 +1385,49 @@ NOT uploaded to GitHub.
 Neither the original Windows DLLs nor actual printer communications
 were executed. Production branches, preexisting C reconstructions
 and source-original files are unchanged.
+
+
+## Windows 2018 LeitzUI.dll: GetInfo and cut-option synchronization
+
+Current-state check before work: `sources` HEAD
+`ef3cfffca9a803aed797de5372e2fcb26d1d2c85`; latest
+Windows regression completed successfully. Existing LeitzUI
+reconstruction did not exist. Actual DLLs from the previously
+reuploaded Windows manufacturer ZIP were used:
+- x86 SHA-256
+  `b6f066d87ac18aff5d37c6b4ac0c3c13d6e0cd58bb2afb5fb74152e3e99a5293`;
+- x64 SHA-256
+  `7d514bd5bb4c7610569c0aacd7b37cc74318e5fce858bf4fadba9bb554de0a10`.
+
+Independent native disassembly establishes OEM UI GetInfo:
+x86 RVA 0x1140 / x64 RVA 0x1150, returning signature DIPL for
+mode 1, DWORD 1 for mode 3, and documented error codes 50, 87,
+122 on unsupported/invalid/undersized requests.
+
+The OEM PrinterUICallBack is at x86 RVA 0x1770 and x64 0x17d0;
+the document UI callback is at x86 RVA 0x17a0 / x64 0x1820.
+Both manipulate the private CutAfterEachLabel selection on callback
+reason 6; the document UI also implements reason 10 (APPLYNOW)
+and reason 11 (KILLACTIVE). Only a changed low-WORD selection
+causes replacement of the private DWORD, OR 0x8 into its flags,
+and callback return 1; KILLACTIVE restores the selection.
+The native private value lives at +0x10 for x86 and +0x18 for
+x64, not at a universal fixed offset.
+
+Added separate portable `reconstructions/windows-2018/LeitzUI/`
+C source with optional SetLastError callback. The normalized C
+state is **not** the original COM/Unidrv struct and it deliberately
+rejects invalid pointers in place of undefined native behavior.
+Local GCC/Clang -Wall -Wextra -Werror -pedantic -std=c11 O2,
+GCC AddressSanitizer and GCC UndefinedBehaviorSanitizer passed;
+its four C/test/script blobs were checked against the exact
+locally tested Git hashes. A separate Windows CI job step now
+compiles and tests it alongside all previous work.
+
+The archive files were previously SHA-256-inventoried and the
+original Linux filter, macOS Classic filter native boundaries and
+Windows cutter commands were reviewed. These UI callbacks do
+not establish actual physical cutter timing. Original Windows
+DLL execution, COM class factory and full UI integration remain
+open, as do hardware print/cut regression tests. No production
+branches or existing reconstructed code were replaced.
