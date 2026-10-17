@@ -10,6 +10,9 @@ for cc in gcc clang; do
     "$cc" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
         ui_com_factory.c ui_com_factory_test.c -o "$binary"
     "$binary"
+    "$cc" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        ui_property_sheets.c ui_property_sheets_test.c -o "$binary"
+    "$binary"
     rm -f "$binary"
     trap - EXIT HUP INT TERM
 done

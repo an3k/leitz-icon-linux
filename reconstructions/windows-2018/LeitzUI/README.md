@@ -145,3 +145,72 @@ callback tests and the new class factory tests.
 actual registered CLSID activation and object lifetime, all
 IPrintOemUI interface methods/dialog setup, Windows runtime output
 parity, as well as USB printing and physical label cutting.
+
+
+## Original property-sheet construction: OEM UI printer/document options
+
+This work **extends**, without modifying, the previously reconstructed
+`LeitzUI` callback decisions and COM class factory.
+Preflight: sources HEAD `0255d6aa077febea7a5bfa4277beeb857d1c4e0d`,
+passing CI, no original property-sheet constructor present.
+
+Actual uploaded OEM Windows 2018 DLLs were reexamined, with SHA-256:
+x86 `b6f066d87ac18aff5d37c6b4ac0c3c13d6e0cd58bb2afb5fb74152e3e99a5293`,
+x64 `7d514bd5bb4c7610569c0aacd7b37cc74318e5fce858bf4fadba9bb554de0a10`.
+The Linux 1.0.3 C original, original Windows GPD, and macOS Classic
+original raster2printer Mach-O were also checked against their
+previously recorded SHA-256. No installer or OEM executable was run.
+
+The native IPrintOemUI property-sheet selector dispatch is
+**mode 1 = document** and **mode 2 = printer** (x86 RVA
+0x11f0-0x1287; x64 RVA 0x1200-0x126b).
+Invalid mode invokes SetLastError(87), returning E_FAIL.
+The property sheet constructors are x86 document RVA 0x1500,
+printer RVA 0x1630; x64 document RVA 0x14c0, printer RVA 0x1640.
+
+The original receives different native structures based on ABI:
+
+| Exact observed field | 32-bit DLL | 64-bit DLL |
+| --- | --- | --- |
+| pointer to OPTITEM array | parameter +0x2c | parameter +0x58 |
+| cOptItem | parameter +0x30 | parameter +0x60 |
+| property-sheet callback | parameter +0x38 | parameter +0x70 |
+| single OPTITEM byte size (cbSize) | 0x34 | 0x58 |
+| OPTITEM zeroed byte offset | +0x20 | +0x34 |
+| first-item initial selection DWORD | +0x10 | +0x18 |
+| OPTTYPE allocation/size | 0x20 | 0x30 |
+| OPTPARAM allocation/size | 0x18 | 0x30 |
+
+**Exact shared OEM sequence:** if pOptItem is NULL, write cOptItem=1
+and return 0 without allocating anything; otherwise zero
+cOptItem × option-item-stride bytes, write cbSize for each item,
+set the first item's byte +2 to 1 and DWORD flags +4 to **0x0c**
+(document) or **0x04** (printer). Initialize its choice DWORD
+with a zero-extended WORD read from the supplied source record
+at +0x10 (or 0 if that record is absent). Set one-option
+OPTTYPE's cbSize, parameter count=1, an original option type
+byte value of **9**, and one OPTPARAM's cbSize; the OEM
+assigns allocated pointers, loads localized strings, and registers
+the callbacks previously reconstructed at x86 0x17a0/0x1770 and
+x64 0x1820/0x17d0. These native pointer assignments are **not**
+fabricated inside a portable structure.
+
+New `ui_property_sheets.[ch]` is a bounded C model
+of only the **proven data and first option initialization**.
+It exposes separate x86 and x64 item sizes, a normalized caller-
+provided initial WORD, two callback identities, an independent
+OPTTYPE+OPTPARAM serializer with zero pointer fields and no
+Win32 memory ownership. Any buffer shortfall or zero item count
+is rejected before modification; original code can dereference
+invalid native pointers and such behavior is deliberately NOT copied.
+
+Offline GCC/Clang strict C11 and GCC ASan/UBSan passed. Tests cover
+both printer/document modes, both architectures, count-only
+operation, 3-item initialization, exact buffer boundaries,
+initial selection, type/param sizes, canary bytes, NULL cases,
+invalid arch/mode, arithmetic overflow and deterministic failures.
+The existing `LeitzUI/test.sh` is extended to test this
+alongside its old callback and COM factory modules. No changes to
+Linux/CUPS production code or original binaries, no physical
+printer use. Actual Windows property dialogs and real Unidrv COM
+pointer callbacks remain unimplemented.

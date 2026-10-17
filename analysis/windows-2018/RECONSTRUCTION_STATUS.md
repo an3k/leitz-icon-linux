@@ -1474,3 +1474,43 @@ server-lock/unload paths. The existing LeitzUI GitHub CI script
 was only extended to compile/test the new isolated component.
 No production driver branch, original binary, actual device,
 USB/firmware interface or existing regression was overwritten.
+
+
+## OEM UI property-sheet data construction, x86 and x64
+
+Before any change checked sources HEAD
+`0255d6aa077febea7a5bfa4277beeb857d1c4e0d`
+and successful CI. All three user-uploaded original manufacturer
+archives were previously extracted and checked: Linux 1.0.3 original
+raster2printer.c SHA-256
+`bc06c5a2c590ff242f0f0c31e6ba052530ec0b6666c4c673d1d89f2a95dc5cd0`,
+Windows LeitzIcon.gpd SHA-256
+`f81130f358b6dbc6099812d8ab243958854436be4b1e8c0c0ef8ec7fb60954b7`,
+macOS Classic original raster2printer SHA-256
+`72f1dfc66f755f9537330c1f0306828f4510ba3b44296a192d1ee8a2dec12c13`.
+The original Windows LeitzUI.dll i386 and amd64 were disassembled
+directly. Existing UI callbacks and COM class factory were already
+completed; they were preserved verbatim.
+
+The next proven, previously unimplemented part is the
+IPrintOemUI property-sheet **initialization** (document mode 1,
+printer mode 2). x86 original constructor RVAs 0x1500 and 0x1630;
+x64 0x14c0 and 0x1640. The new
+`reconstructions/windows-2018/LeitzUI/ui_property_sheets.[ch]`
+models the OEM item-count query, x86 0x34 / x64 0x58
+OPTITEM layout, zeroing each item, first item flags=12 document
+or 4 printer, zero-extended first selection from a source WORD,
+one-option OPTTYPE/OPTPARAM allocations and fixed fields.
+The source-specific native option item pointer, allocations,
+Win32 text resources and callback **addresses** remain omitted:
+the isolated model exposes normalized callback types and safe
+zero pointer fields; no claim of complete Windows dialog parity.
+
+Original X86 and X64 property-sheet functions were checked instruction
+by instruction for all translated constants/offsets. Offline GCC,
+Clang, GCC AddressSanitizer and UndefinedBehaviorSanitizer passed,
+including callback/selection boundaries and deliberate safe rejection
+of unsafe native short buffers. Existing LeitzUI CI script is extended
+to run this third independent offline regression. Other branches
+and reconstructed modules are not modified; hardware printing and
+physical cutter operations remain unverified.
