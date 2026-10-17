@@ -1220,3 +1220,15 @@ The Windows 2018 GPD has 77 entries (76 fixed + CUSTOMSIZE) according to the pre
 Source discrepancies: Continuous70050001 is named "Continuous - 2 1/5\"" in Linux but "Continuous - 2 1/4\"" in macOS. The development media JSON incorrectly labels DHLShippingLabel as "not present in Windows GPD" despite original GPD evidence. No code/configuration correction of the development branch was made without separate verification.
 
 Added test_paper_cross_sources.py, whose GitHub CI step checks every one of the 87 reported IDs (86 development + distinct Windows CUSTOMSIZE) against original Linux/macOS PPDs and the **pinned** development media catalog checked out read-only. It checks duplicate IDs, exact labels, subset relationships and known provenance contradictions. No new OEM commands or hardware capabilities are inferred.
+
+## Vollständiger Vier-Quellen-Vergleich direkt aus verifizierter Windows-GPD (Werkzeug)
+
+Prüfung vor Änderung: sources HEAD `8ce729d9a9b288cf26fb2e583a9985a11eab9f1d`, Windows-CI erfolgreich. Das Teilinventar `PAPER_FORMATS_CROSS_SOURCE.md` und das vorhandene Windows-GPD-Lesewerkzeug `inventory_windows_gpd.py` bleiben unverändert.
+
+Neue Datei `compare_windows_gpd_four_sources.py` verwendet die bereits vorhandene originale GPD-Optionen-Auslese anstatt einen zweiten GPD-Parser zu schreiben. Sie akzeptiert das Herstellerarchiv und den separaten Entwicklungskatalog, verifiziert die Windows-GPD gegen den zuvor festgestellten SHA-256-Hash `f81130f358b6dbc6099812d8ab243958854436be4b1e8c0c0ef8ec7fb60954b7`, verlangt genau 76 feste Optionen plus `CUSTOMSIZE` und prüft das bekannte DHL-Profil gegen Original-ID, Geometrie und Befehlsbytes. Bei falschem oder fehlendem Original erfolgt ein Fehler statt einer gefälschten vollständigen Inventur.
+
+Erstellt werden ausschließlich nach unmittelbarer Verifikation vollständige Vergleichszeilen aller vier Quellmengen: exakte interne IDs und originale Linux/macOS-Bezeichnungen, Windows-OptionID und rcNameID als nicht aufgelöste UI-Ressourcenkennung, originaler Windows-PaperSize-Befehl und der belegbare Geometrievergleich für wortgleiche IDs. Übereinstimmende Maße beweisen keine identische Kassette; fehlende Windows-UI-Klartextnamen werden nicht erfunden. `CUSTOMSIZE` bleibt ohne allgemeine Festlänge.
+
+Neu: `test_compare_windows_gpd_four_sources.py` mit vier lokal bestandenen Tests (synthetische Optionen, fehlende Ressourcenbezeichnungen, Geometriedifferenzen, Duplikate, Original-Hashpflicht); in der Windows-CI enthalten. `FOUR_SOURCE_GPD_COMPARISON.md` dokumentiert den Aufruf. Das Original-ZIP ist im aktuellen Container nicht zugänglich; ein mit den echten 77 GPD-Einträgen erzeugter Bericht und ein Originalausführungstest werden daher ausdrücklich **nicht** als bereits erledigt gemeldet.
+
+Produktiver Linux-Treiber, andere Branches, bestehende Quellen, Gerät und Firmware bleiben unangetastet.

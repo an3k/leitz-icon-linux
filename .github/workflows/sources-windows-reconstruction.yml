@@ -27,6 +27,8 @@ jobs:
           persist-credentials: false
       - name: Verify four-source paper inventory boundaries
         run: python3 analysis/windows-2018/test_paper_cross_sources.py _pinned_driver/media/media.json
+      - name: Python - complete original Windows GPD four-source comparison logic
+        run: python3 -m unittest discover -s analysis/windows-2018 -p 'test_compare_windows_gpd_four_sources.py' -v
       - name: GCC and Clang - original Windows GPD byte commands
         run: sh reconstructions/windows-2018/GPD/test.sh
       - name: GCC and Clang - offline Windows OEM language monitor status regressions
