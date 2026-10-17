@@ -1308,3 +1308,39 @@ matches; complete 87-ID four-source report; deterministic generated C
 catalog; GCC/Clang bounded command copy, lookup, lengths, exceptions.
 No real printer operation, COM/Unidrv execution or firmware changes.
 Other branches and pre-existing reconstructed C remain unchanged.
+
+
+## Windows 2018 static Unidrv GPD command ordering, isolated C adapter
+
+Preflight checked `sources` HEAD `74ecc345c6d9646737712c2021645af7c0a2f600`: previous 77-entry
+catalog, OEM-derived raster fragments and last successful Windows CI
+already complete and not rewritten. Requested original archives
+`LeitzIconDriversForLinux1.0.3.zip`,
+`LeitzIconLabelSetup.zip`,
+`LeitzIconSoftware-Installer_5.1.465.dmg.zip` were found in the
+project Library but all three returned unauthorized/raw-path errors
+when binary materialization was attempted. Reviewed instead the
+original Linux 1.0.3 C filter, original 2018 GPD text transcription
+and macOS Classic original PPD/native disassembly findings already
+available on `sources`.
+
+New `reconstructions/windows-2018/GPD/gpd_job_sequence.[ch]` is a
+portable GPD-static-command **composer** using unchanged
+`gpd_commands` and `gpd_media_catalog`. It preserves documented
+`DOC_SETUP.1`, `PAGE_SETUP.1/.2/.3`, empty `PAGE_FINISH.1`
+and `JOB_FINISH.1` GPD order, with actual manufacturer
+`Resolution/Option1` (ESC h, 300×300 default) and `Option2`
+(ESC i, 300×600) and the exact 77 OEM media CmdSelect choices.
+`Halftone` GPD choices have no direct static GPD CmdSelect and
+are deliberately not treated as recovered binary dither features.
+Nothing imposes a fixed length for continuous stock.
+
+Offline two-page byte-vector and write-call-boundary test,
+invalid-option preflight and callback-error tests were passed under
+GCC, Clang, AddressSanitizer and UndefinedBehaviorSanitizer locally
+with explicit minimal stubs of pre-existing modules; GitHub CI
+exercises the **actual** pre-existing modules. No OEM Windows executable,
+private COM/Unidrv interface, physical printer, Linux production branch
+or firmware was run. Do not conflate the static GPD command ordering
+with an observed Windows runtime output stream; that integration remains
+open.

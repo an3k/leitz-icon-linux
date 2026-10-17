@@ -11,6 +11,10 @@ for compiler in gcc clang; do
     "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
         gpd_media_catalog.c gpd_media_catalog_test.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        gpd_commands.c gpd_media_catalog.c gpd_job_sequence.c \
+        gpd_job_sequence_test.c -o "$binary"
+    "$binary"
     rm -f "$binary"
     trap - EXIT HUP INT TERM
 done

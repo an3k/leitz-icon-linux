@@ -66,3 +66,36 @@ CI also checks all 77 original records, all 76 fixed-geometry records
 against a pinned development catalog and reproduces the complete
 87-ID four-source comparison. This is an offline read-only data/command
 reconstruction; no OEM Unidrv/COM ABI or hardware-printing parity.
+
+
+## Static Windows GPD job sequencing (October 2026)
+
+The prior bounded `gpd_commands` and complete 77-option
+`gpd_media_catalog` modules already existed and remain **unchanged**.
+The new `gpd_job_sequence.[ch]` composes these into the **static
+GPD-declared** order rather than duplicating the manufacturer media
+selection commands:
+
+- `DOC_SETUP.1`: `CmdStartDoc`, 121 ESC bytes then `@`.
+- `PAGE_SETUP.1`: `CmdStartPage`, `ESC B 00`.
+- `PAGE_SETUP.2`: the exact original selected `PaperSize` `CmdSelect`
+  from the 77-entry catalog; `CUSTOMSIZE` is its own 4-byte command.
+- `PAGE_SETUP.3`: original resolution `Option1` = 300 × 300 dpi /
+  `ESC h` (default), `Option2` = 300 × 600 dpi / `ESC i`.
+- `PAGE_FINISH.1`: `CmdEndPage` explicitly contains zero bytes.
+- `JOB_FINISH.1`: `CmdEndJob`, `ESC E ESC @ ESC Z`.
+
+The original `Halftone` feature has four GPD options and no literal
+`CmdSelect` in those blocks; no unknown OEM dither semantics or commands
+are invented here. Input validation checks the entire page selection
+before output. Unlike unknown OEM failure semantics, the portable
+callback adapter stops after any nonzero callback result.
+
+Regression `gpd_job_sequence_test.c` covers a two-page static sequence
+(DHL 300×600 then CUSTOMSIZE 300×300), byte offsets, callback boundaries,
+empty page finish, invalid selections and callback failures. Local
+GCC/Clang (-std=c11 -Wall -Wextra -Werror -pedantic) and GCC ASan/UBSan
+passed. CI compiles the new adapter against the **real already existing**
+catalog and command modules. This does **not** prove actual Windows
+Unidrv/OEM plug-in execution order, write-call framing or firmware
+behavior and is not a CUPS filter.
