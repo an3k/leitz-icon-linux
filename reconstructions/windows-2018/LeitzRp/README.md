@@ -80,3 +80,113 @@ the Windows original nor a physical printer was executed**. This is not
 the Windows COM/Unidrv caller, and the physical USB backend, native
 exception semantics and OEM-vs-reconstruction parity remain open.
 Run `sh test.sh` for GCC and Clang checks.
+
+
+## Original LeitzRp.dll: OEM raster COM factory and Windows Unidrv host boundary
+
+Preflight confirmed sources HEAD `f1b38b9f2b1d22aae0dcf73d556e16a249d37b86`,
+successful previous Windows CI, and **no** existing LeitzRp
+`GetInfo`, OEM driver interface binding, or COM class factory module.
+Previous row/raster/RLE/length/status implementations were not altered.
+
+The original user-supplied manufacturer ZIPs were opened and verified:
+Linux 1.0.3 SHA-256
+`54e1a92b830e1281975ca8b1f7018275327fa8f214f8bb440fda6e83d80abe17`;
+Windows ZIP SHA-256
+`cc6e175fb3f183d211cd1b4610ca2d096ec958421bc45b4bc8fc2740be3034ca`;
+macOS Classic ZIP SHA-256
+`6a3d6cdd617947dcb33b1d58dd7dc2fc1427601091a8ff7079a013fb7ffa4210`.
+For this specific function reconstruction the exact Windows
+`Drivers/i386/LeitzRp.dll` and
+`Drivers/amd64/LeitzRp.dll` were newly extracted and
+disassembled, **never executed**:
+
+- x86: SHA-256 `7586da2d722f76991002fce4062c45625b733dc01902484e117c5bf748f5cd33`
+- x64: SHA-256 `876f3fb48829420fad03692d6d613c28f0150d797c928ba45c021e7edf640787`
+
+### GetInfo and driver-interface acquisition
+
+New standalone `oem_host.[ch]` covers the original
+raster-plugin GetInfo (x86 RVA 0x1ed0, x64 RVA 0x1f20):
+- mode 1: write requested length 4, return DWORD 0x4c504944
+  (little-endian ASCII `DIPL`), S_OK.
+- mode 3: write requested length 4, return DWORD 1, S_OK.
+- mode 4: write requested length **8**, return E_FAIL **without**
+  calling SetLastError. This differs from the separate LeitzUI
+  implementation and is preserved verbatim.
+- other modes/missing required-size pointer: E_FAIL,
+  SetLastError(87), do not overwrite required size on unknown mode.
+- missing/short output for modes 1/3: requested length 4,
+  E_FAIL, SetLastError(122).
+- The function writes no device/print/cutter command.
+
+At x86 RVA 0x1f80 / x64 RVA 0x1ff0 the raster OEM object caches
+a driver-provided COM interface at native +0x08 / +0x10.
+Only when the slot is NULL does it invoke the incoming
+IUnknown::QueryInterface for **exact GUID**
+`d67ebbf1-78bf-11d1-9480-00a0c90640b8`, recovered
+from x86 original .rdata RVA 0x5074 and x64 original .rdata RVA 0x5268.
+Negative signed HRESULT clears the cache and maps to E_FAIL.
+Nonnegative result (including S_FALSE) returns S_OK even for a NULL
+result pointer; an already cached non-NULL pointer avoids a re-query.
+The original raster object's destruction/reset calls Release on
+its cached driver interface. The portable model uses explicit callbacks,
+does not construct native Win32 COM objects, and rejects NULL
+callbacks safely instead of relying on native unchecked pointers.
+
+### Native plugin COM class factory
+
+New `oem_factory.[ch]` covers the disassembled
+raster-plugin exports and QueryInterface dispatch:
+
+| OEM routine | x86 RVA | x64 RVA | Recovered operation |
+| --- | --- | --- | --- |
+| DllGetClassObject | 0x11a0 | 0x1190 | Compare one CLSID, allocate factory, QueryInterface and Release |
+| Factory QueryInterface | 0x1220 | 0x1230 | Only IUnknown or IClassFactory |
+| CreateInstance | 0x10d0 | 0x10a0 | Reject non-NULL outer object; create raster object; QueryInterface/Release |
+| Raster QueryInterface | 0x1000 | 0x1000 | Only IUnknown or OEM raster-interface IID |
+| LockServer | 0x1140 | 0x1140 | Atomic increment/decrement of one DLL counter |
+| DllCanUnloadNow | 0x1180 | 0x1170 | S_OK iff two *other* original counters are both zero |
+
+Relevant exact manufacturer GUIDs (Windows little-endian arrays in C):
+- Raster-plugin CLSID:
+  `6d6abf26-9f38-11d1-882a-00c04fb961ec`
+  (x86 RVA 0x4174, x64 RVA 0x4280).
+- Raster COM interface:
+  `d67ebbf0-78bf-11d1-9480-00a0c90640b8`
+  (x86 RVA 0x5084, x64 RVA 0x5278).
+- Host COM interface:
+  `d67ebbf1-78bf-11d1-9480-00a0c90640b8`
+  (the different GUID in `oem_host`, **not** an alias).
+- IUnknown and IClassFactory are the standard UUIDs, confirmed in
+  both OEM binary vtable QueryInterface comparisons.
+
+**Important OEM counter distinction:** native x64 LockServer modifies
+RVA 0x76e4; x64 DllCanUnloadNow instead checks RVAs **0x76ec**
+and **0x76e8**. Native x86 LockServer modifies 0x6430;
+DllCanUnloadNow checks **0x6438** and **0x6434**.
+These are distinguishable original storage locations, so the
+portable implementation accepts them as separate supplied counters.
+It does **not** presume that the lock counter automatically controls
+the DLL-unload decision, nor invent the lifetime of these globals.
+
+### Boundaries and validation
+
+Both modules are portable C **decision models**, not Windows DLL
+replacements. They preserve original verified IDs, HRESULT branches,
+buffer sizes, caching and unload decisions. Allocation successes
+and DLL global counts are explicit simulation inputs. Native C++
+vtable pointers, COM object creation/ref-count ownership, Win32
+function calling conventions, IPrintOemUni2 hooks and user-mode
+GPD/Unidrv command timing are not claimed implemented.
+No actual printer traffic or new paper length limit was introduced.
+
+Regression programs `oem_host_test.c` and
+`oem_factory_test.c` verify original byte-order GUIDs,
+mode-specific status/errors, short-buffer nonmutation, interface
+caching, negative/nonnegative HRESULT handling, aggregation,
+class/interface rejection and all three distinct counter states.
+GCC/Clang strict C11 and GCC AddressSanitizer/UndefinedBehaviorSanitizer
+passed locally. The original LeitzRp `test.sh` is
+extended to run both new cases alongside all existing raster tests.
+CI on `sources` is the authoritative shared regression.

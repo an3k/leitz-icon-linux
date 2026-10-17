@@ -1556,3 +1556,48 @@ UndefinedBehaviorSanitizer passed locally; precise source
 blob SHA-1 values were compared to the locally tested C files
 before commit. The existing LeitzUI/test.sh is amended
 without re-running or rewriting earlier C implementation.
+
+
+## Original LeitzRp raster-plugin COM host interface and factory
+
+Before changes: `sources` HEAD
+`f1b38b9f2b1d22aae0dcf73d556e16a249d37b86`;
+existing LeitzRp row_control, label_setup, RLE, raster_stream,
+LeitzUI callbacks/factory/driver binding and Windows CI were
+confirmed present and not rewritten.
+
+Original Linux 1.0.3, Windows 2018 ZIP and macOS Classic 5.1.465
+were reopened and SHA-256 checked; original Windows i386
+LeitzRp.dll `7586da2d722f76991002fce4062c45625b733dc01902484e117c5bf748f5cd33`
+and amd64 LeitzRp.dll
+`876f3fb48829420fad03692d6d613c28f0150d797c928ba45c021e7edf640787`
+were directly inspected with objdump, no OEM execution.
+
+New independent C modules under
+`reconstructions/windows-2018/LeitzRp/oem_host.[ch]`
+and `oem_factory.[ch]` capture previously absent,
+directly disassembled original x86/x64 raster OEM GetInfo,
+driver-interface QueryInterface cache/release, DllGetClassObject,
+factory/raster QueryInterface, CreateInstance, LockServer and
+DllCanUnloadNow decisions. Tests and specific RVAs are in
+`reconstructions/windows-2018/LeitzRp/README.md`.
+
+Crucial observed facts: GetInfo mode 4 publishes required=8 and
+returns E_FAIL without SetLastError; other invalid modes set error
+87, modes 1/3 publish DWORD DIPL/1 with error 122 when output
+is too short. DLL raster interface IID
+`d67ebbf0-78bf-11d1-9480-00a0c90640b8` differs
+from the host interface IID
+`d67ebbf1-78bf-11d1-9480-00a0c90640b8`.
+The original LockServer global address is not either original
+DllCanUnloadNow tested global address (both architectures), so
+the reconstructed model does not falsely couple their counters.
+
+The portable APIs intentionally receive allocation outcomes,
+callbacks and global count values as inputs instead of claiming
+the complete original Windows COM ABI or Unidrv lifecycle.
+No native Windows OEM binary was executed, no printer data was
+sent, and no source of the active Linux driver was modified.
+Local strict GCC, Clang, ASan/UBSan tests passed. Existing
+LeitzRp/test.sh is extended to run the new modules and GitHub
+CI must confirm integration with existing source regressions.
