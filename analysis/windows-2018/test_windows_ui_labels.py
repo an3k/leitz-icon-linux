@@ -17,7 +17,8 @@ for row in fixed:
     label=byname[row["name"]]
     assert label["rcNameID"]==row["resource_name_id"]==row["option_id"]
     assert label["windows_display_name"]
-    matches=[line for line in report.splitlines()
+    comparison_table=report.split("## Original-Windows-Befehlsbytes",1)[0]
+    matches=[line for line in comparison_table.splitlines()
              if line.startswith("| `"+row["name"]+"` |")]
     assert len(matches)==1
     cols=matches[0].split(" | ")
