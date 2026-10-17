@@ -72,3 +72,13 @@ jobs:
           done
       - name: Python - Windows application XML and GPD inventory regression
         run: python3 -m unittest discover -s analysis/windows-2018 -p 'test_inventory_windows_label_sizes.py' -v
+
+      - name: GCC and Clang - complete Windows AddPrinter credential decision ordering
+        run: |
+          set -eu
+          cd reconstructions/windows-2018/WiFiHTTP
+          for cc in gcc clang; do
+            "$cc" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+              wifi_auth.c wifi_auth_flow.c wifi_auth_flow_test.c -o /tmp/leitz-wifi-auth-flow-test
+            /tmp/leitz-wifi-auth-flow-test
+          done
