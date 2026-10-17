@@ -1431,3 +1431,46 @@ not establish actual physical cutter timing. Original Windows
 DLL execution, COM class factory and full UI integration remain
 open, as do hardware print/cut regression tests. No production
 branches or existing reconstructed code were replaced.
+
+
+## LeitzUI.dll native COM factory, QueryInterface and unload gates
+
+Duplicate-work check: sources HEAD
+`3beeaa939aba275f945e18596f944c40e68c4005`, successful prior
+CI, existing LeitzUI GetInfo/cutter callbacks retained unmodified.
+Actual uploaded Linux, Windows and macOS ZIPs were hashed/inspected
+again, and the original LeitzUI x86/x64 binaries were examined
+directly with PE objdump, not executed.
+
+New `reconstructions/windows-2018/LeitzUI/ui_com_factory.[ch]`
+recovers the recorded x86/x64 DllGetClassObject, factory/UI
+QueryInterface, IClassFactory::CreateInstance, LockServer and
+DllCanUnloadNow return-code and GUID decisions. The byte-faithful
+UUID set comes from the original .rdata of both DLL architectures:
+CLSID abce80d7-9f46-11d1-882a-00c04fb961ec;
+OEM UI IID c6a7a9d0-774c-11d1-947f-00a0c90640b8,
+plus standard IUnknown and IClassFactory.
+
+The native code checks the factory's CLSID, initializes the returned
+interface pointer to NULL, refuses unknown interfaces, rejects
+aggregation for CreateInstance, returns E_OUTOFMEMORY when native
+allocation fails, and maintains a separate LockServer counter.
+DllCanUnloadNow returns S_OK iff both observed native global
+counts are zero. QueryInterface + Release follows factory and
+instance allocation. Native DLL function RVAs and original error codes
+are documented in the LeitzUI README.
+
+The new C module is deliberately a bounded portable decision model:
+it does not implement Win32 IClassFactory vtables, reference-managed
+native allocations, OEM UI dialogs or COM registrations. Its result
+represents which original interface would be selected, not a
+native Windows object. Reference-counter lifetime and Linux CUPS
+integration are still unverified. The previous GetInfo/checkbox
+module was not changed.
+
+GCC/Clang strict C11, ASan and UBSan regression passed locally
+on independent GUID vectors, success and failure branches and
+server-lock/unload paths. The existing LeitzUI GitHub CI script
+was only extended to compile/test the new isolated component.
+No production driver branch, original binary, actual device,
+USB/firmware interface or existing regression was overwritten.

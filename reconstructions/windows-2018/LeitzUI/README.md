@@ -69,3 +69,79 @@ locally compiled files by exact Git blob SHA-1.
 full OEMUI object ABI, OEM UI dialog construction, COM dispatch,
 UI printing on Windows, actual USB data and OEM-runtime output parity.
 No changes to manufacturer files, productive Linux code or device.
+
+
+## Original LeitzUI COM class factory: next recovered dispatch boundaries
+
+The 2026-10-17 preflight found no existing COM factory module at sources
+HEAD `3beeaa939aba275f945e18596f944c40e68c4005`;
+prior OEM UI GetInfo and CutAfterEachLabel callbacks remain untouched.
+The exact original OEM DLL binaries were extracted again from the
+user-provided `LeitzIconLabelSetup(5).zip` (SHA-256
+`cc6e175fb3f183d211cd1b4610ca2d096ec958421bc45b4bc8fc2740be3034ca`).
+The separately checked original Linux archive and macOS Classic ZIP
+were not re-reconstructed, as their original source/finding records
+already exist. The Windows DLLs were disassembled offline and never
+executed.
+
+Original LeitzUI.dll:
+- x86 SHA-256 `b6f066d87ac18aff5d37c6b4ac0c3c13d6e0cd58bb2afb5fb74152e3e99a5293`
+- x64 SHA-256 `7d514bd5bb4c7610569c0aacd7b37cc74318e5fce858bf4fadba9bb554de0a10`
+
+The code in `ui_com_factory.[ch]` is a **new portable,
+bounded decision-model API** recovered from those DLLs. It is NOT
+a DLL exporting real Windows IClassFactory function pointers, a
+Microsoft COM registration helper or a complete IPrintOemUI object.
+
+| Original function / decision | x86 RVA | x64 RVA | Native behavior recovered |
+| --- | ---: | ---: | --- |
+| DLL export DllGetClassObject | 0x1460 | 0x1400 | Accept one exact class UUID; set output NULL first; allocate factory, QueryInterface, Release |
+| Class factory QueryInterface | 0x12e0 | 0x1280 | Accept IUnknown and IClassFactory only |
+| IClassFactory::CreateInstance | 0x1390 | 0x1310 | Refuse non-null outer instance (NOAGGREGATION); allocate OEM UI, QueryInterface, Release |
+| OEM UI QueryInterface | 0x1010 | 0x1010 | Accept IUnknown and one original OEM UI interface UUID |
+| IClassFactory::LockServer | 0x1410 | 0x13c0 | Interlocked inc/dec of DLL lock counter |
+| DLL export DllCanUnloadNow | 0x1440 | 0x13e0 | S_OK only when two distinct DLL counters are zero; otherwise S_FALSE |
+
+GUIDs recovered from the x86 .rdata and independently compared with
+the x64 .rdata (all names below are for readability; the C module
+stores actual little-endian Windows GUID bytes):
+
+- class UUID: `abce80d7-9f46-11d1-882a-00c04fb961ec`
+- IUnknown: `00000000-0000-0000-c000-000000000046`
+- IClassFactory: `00000001-0000-0000-c000-000000000046`
+- OEM UI object interface UUID:
+  `c6a7a9d0-774c-11d1-947f-00a0c90640b8`
+
+The actual return codes are `S_OK=0`, `S_FALSE=1`,
+`E_POINTER=0x80004003`,
+`E_NOINTERFACE=0x80004002`,
+`CLASS_E_CLASSNOTAVAILABLE=0x80040111`,
+`CLASS_E_NOAGGREGATION=0x80040110`,
+and `E_OUTOFMEMORY=0x8007000e`.
+Factory and UI object initial reference count is 1 in the native
+constructor before the internal QueryInterface + Release sequence.
+Native factory allocations are 8 bytes on x86 / 16 on x64; OEM
+instance allocations are 12 / 24 bytes. These native objects and
+their vtables are **not** allocated by the portable model.
+
+The C API receives an explicit allocation-success flag and reports an
+abstract resulting interface rather than creating real COM objects.
+Two DLL global counts are supplied explicitly to the unload decision.
+NULL GUID pointers are safely rejected by the model, although the
+original native function often dereferences them unchecked. The
+counter lifetime during native object creation is **not** claimed
+recovered from these decisions alone.
+
+Test coverage: all four exact GUID byte arrays, successful/unknown
+class and interface selection, factory allocation failure,
+CreateInstance aggregation rejection, UI IID vs factory IID,
+NULL/invalid requests, LockServer transitions, and both
+DllCanUnloadNow counters. Local **GCC + Clang + AddressSanitizer +
+UndefinedBehaviorSanitizer** passed under strict C11 flags. The same
+unchanged LeitzUI CI step now compiles both previously completed UI
+callback tests and the new class factory tests.
+
+**Still open:** native Windows COM vtable ABI implementation,
+actual registered CLSID activation and object lifetime, all
+IPrintOemUI interface methods/dialog setup, Windows runtime output
+parity, as well as USB printing and physical label cutting.

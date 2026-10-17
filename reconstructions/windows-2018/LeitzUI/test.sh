@@ -7,6 +7,9 @@ for cc in gcc clang; do
     trap 'rm -f "$binary"' EXIT HUP INT TERM
     "$cc" -std=c11 -Wall -Wextra -Werror -pedantic -O2 leitz_ui_recovered.c leitz_ui_recovered_test.c -o "$binary"
     "$binary"
+    "$cc" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        ui_com_factory.c ui_com_factory_test.c -o "$binary"
+    "$binary"
     rm -f "$binary"
     trap - EXIT HUP INT TERM
 done
