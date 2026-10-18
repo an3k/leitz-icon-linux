@@ -1811,3 +1811,33 @@ locally. Original verification source:
 `analysis/windows-2018/verify_original_rp_printer_name.py`.
 No changes to production branches or the physical device;
 native Windows COM/spooler execution remains unverified.
+
+
+## Original Windows OEM raster slots 4/6: proven LeitzDevMode handoff
+
+Verified preflight: sources HEAD `63c529820da24f3fc114a7f6af8aed9531fc6501`,
+last Windows CI successful. All three original manufacturer
+archives were rehashed (Linux 1.0.3, 2018 Windows and macOS
+5.1.465), plus the actual Windows x86/x64 LeitzRp.dll and
+LeitzDevMode.dll and Linux/macOS raster2printer. Original
+machine-code audit confirms raster vtable slot 4 x86 RVA
+0x15d0 and x64 0x15f0 directly delegate to the distinct
+LeitzDevMode.dll export hrOEMDevMode. Native slot 6
+x86 0x1340 and x64 0x1320 checks, releases and clears
+the cached IUnknown host pointer but does not free the
+raster object or alter its DLL-global lifetime count.
+
+New isolated oem_unidrv_bridge.[ch] makes both already
+recovered C functions callable from the appropriate original
+raster vtable boundary: existing LeitzDevMode/oem_devmode
+for private DEVMODE modes 1..4, and existing
+LeitzRp/oem_host cached-interface Release for slot 6.
+The bridge is explicit about normalized portable arguments,
+not a native Windows COM object or ABI. GCC, Clang, ASan
+and UBSan passed with local fixture equivalence; branch CI
+will use the real repository modules. The manufacturer
+source verifier confirms 9+8 exact x86/x64 machine opcode
+sequences from original DLLs, importing/exporting names
+and original three-ZIP cross-platform SHA256. No existing
+reconstruction or production code overwritten; physical
+device and real native Unidrv still untested.

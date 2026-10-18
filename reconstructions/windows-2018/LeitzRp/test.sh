@@ -77,5 +77,10 @@ for compiler in gcc clang; do
         oem_printer_name.c oem_printer_name_gdi_test.c \
         oem_gdi_caps.c label_setup.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        oem_unidrv_bridge.c oem_unidrv_bridge_test.c \
+        oem_host.c oem_method_map.c \
+        ../LeitzDevMode/oem_devmode.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done

@@ -587,3 +587,64 @@ neither DLL was executed.
 spooler boundary, not native Windows IPrintOemUni COM ABI,
 actual GetPrinterW runtime parity or a physical-printer test.
 No paper size, cutter, RLE logic or device protocol was changed.
+
+
+## Original OEM DEVMODE delegation and cached-host reset (new connection)
+
+Before modification, `sources` was at commit
+`63c529820da24f3fc114a7f6af8aed9531fc6501` with a successful complete Windows CI run.
+Both LeitzRp's OEM host adapter and the original LeitzDevMode's
+28-byte private-DEVMODE transformation were **already reconstructed**.
+The missing part was the proven native call connecting those two
+original binaries; neither original implementation is copied here.
+
+Disassembly and original import tables establish:
+- LeitzRp.dll x86 OEM raster vtable slot **4** RVA `0x15d0`
+  pushes its third and second incoming arguments and calls imported
+  `LeitzDevMode.dll!hrOEMDevMode` through IAT `0x4048`.
+  The x86 wrapper returns via `ret 0x0c`.
+- LeitzRp.dll x64 slot **4** RVA `0x15f0`
+  moves incoming argument 2 into RCX, argument 3 into RDX,
+  and tail-jumps imported `hrOEMDevMode` through IAT `0x4080`.
+- Both original DLLs import or export precisely `hrOEMDevMode`.
+  The x86/x64 LeitzDevMode.dll sources themselves were previously
+  reconstructed under `../LeitzDevMode/oem_devmode.[ch]`.
+- Raster vtable slot **6** x86 RVA `0x1340`, x64 RVA
+  `0x1320` checks the saved host interface (object +8 / +16),
+  calls its **IUnknown::Release** virtual slot (+8 x86 / +16 x64)
+  if non-NULL, clears the field, and returns S_OK. It does
+  **not** itself destroy the raster object or decrement the
+  independent raster-object DLL counter.
+
+The new `oem_unidrv_bridge.[ch]` models just these two original
+cross-component calls with bounded, caller-owned state. Slot 4
+forwards all four OEMDevMode modes (size, defaults, convert, merge)
+and all error/mismatch callbacks to the **existing**
+`leitz_win2018_oemdevmode` without reimplementing its internal
+field decisions. Slot 6 reuses the **existing**
+`leitz_rp_oem_release_driver` to release the saved COM host
+interface exactly once. This is a portable normalized C bridge,
+not an executable native IPrintOemUni/Win32 ABI.
+
+New test `oem_unidrv_bridge_test.c` compiles in CI against
+the actual existing `LeitzDevMode/oem_devmode.c`,
+`oem_host.c` and the 26-slot `oem_method_map.c`,
+checks slot addresses, all four DEVMODE modes, private signature
+and trailing bytes, original signature mismatch and invalid mode,
+and one-time cached-host release/reset without object destruction.
+Local strict GCC, Clang, AddressSanitizer and UBSan passed.
+The shared CI test also checks all existing raster regressions.
+
+Source proof `analysis/windows-2018/verify_original_unidrv_bridges.py`
+reads the original uploaded manufacturer Windows 2018 ZIP, verifies
+both actual x86/x64 LeitzRp.dll and LeitzDevMode.dll SHA-256 hashes,
+and checks **17 machine instruction patterns** (9 x86, 8 x64)
+at the original RVAs plus the importer/exporter names. It also
+rechecks the original Linux 1.0.3 and macOS Classic raster
+sources from their respective unchanged manufacturer ZIPs.
+All checks passed offline with the exact original archives.
+
+No firmware, physical hardware, active Linux filter, GPD/catalog,
+existing C implementation, or production branch was modified.
+Real native Windows COM/Unidrv execution and device printing still
+need end-to-end parity tests.
