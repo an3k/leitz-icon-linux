@@ -139,3 +139,77 @@ alter existing Linux/CUPS production code, change any stock
 format or impose fixed print lengths. Native OpenPortEx/StartDoc/
 EndDoc/ClosePort function bodies, real hardware status framing
 and physical output remain to be fully reconstructed/verified.
+
+
+## Windows OEM EndDocPort / ClosePort (new native lifecycle recovery)
+
+Original source preflight: branch \`sources\` at
+\`6bff2b326ab4a3f8ca834991cdf0b83218aedca4\`; previous
+Windows CI successful. Verified the three manufacturer archives
+by SHA-256, Linux 1.0.3 \`raster2printer.c\`, original macOS Classic
+\`raster2printer\`, and Windows i386/amd64 \`LeitzLm.dll\`.
+Neither manufacturer DLL was executed.
+
+Two **previously missing** native MONITOR2 methods have now been
+separately reconstructed as a portable caller-owned callback model
+\`monitor2_document_lifecycle.[ch]\`:
+
+| Original MONITOR2 method | i386 RVA | amd64 RVA |
+| --- | --- | --- |
+| slot 7 EndDocPort | 0x13d0 | 0x1600 |
+| slot 8 ClosePort | 0x1040 | 0x1100 |
+
+**Original EndDocPort (both binaries):**
+1. Call imported Windows \`SetEvent\` on the port's event handle
+   (x86 offset +0x70; x64 +0xe0), ignoring its result.
+2. Invoke the original saved host EndDocPort callback at x86 port
+   +0x30 / x64 +0x60, passing the original underlying handle
+   at x86 +0x0c / x64 +0x18.
+3. Iterate the port's linked job list (head x86 +0x08 / x64
+   +0x10). For every job, invoke Windows \`SetJobW\` with the
+   job's printer handle, job ID, \`Level=0\`, NULL JOB_INFO,
+   **literal command 7**. The manufacturer continues on
+   SetJobW failure (only prints a diagnostic message).
+4. Free every job record, clear the list head using the OEM
+   internal helper at x86 RVA 0x1b20 / x64 RVA 0x1e60.
+5. Return the **saved original host EndDocPort BOOL** without
+   modifying it based on SetEvent, SetJobW or cleanup results.
+
+**Original ClosePort (both binaries):**
+- Check the host ClosePort callback at x86 +0x34 / x64 +0x68.
+  If present, invoke it on the underlying port handle.
+- Regardless of that BOOL or whether a callback was present,
+  invoke OEM internal port unlink/release helper at x86
+  RVA 0x1a60 / x64 RVA 0x1d30 and return **TRUE**.
+- The native release helper also unlinks and frees associated
+  internal structures. The portable callback represents this
+  ownership boundary but does not reimplement the Windows heap.
+
+The new C module supplies safe external SetEvent, EndDocPort,
+SetJobW, job-free, ClosePort and port-free callbacks. It has
+explicit validation for missing required delegates instead of
+dereferencing wild pointers; the caller must provide an acyclic,
+valid job list. It does **not** implement Winspool, Windows
+thread/critical-section behavior, COM function-pointer layout,
+native printer handles, or physical printer I/O.
+
+The new \`monitor2_document_lifecycle_test.c\` asserts the exact
+event/host/enddoc/job notification/job free sequence, two jobs,
+literal command 7 with level 0/NULL parameters, original BOOL
+return forwarding, ignored failed SetEvent/SetJob results,
+optional ClosePort delegate and safe invalid state. GCC, Clang
+and AddressSanitizer/UndefinedBehaviorSanitizer passed offline.
+
+Independent original-only verifier
+\`analysis/windows-2018/verify_original_lm_document_lifecycle.py\`
+rechecks **15 x86 + 15 x64 native instruction byte sequences**
+directly from original PE sections in the Windows manufacturer
+ZIP, plus the internal Linux and macOS original source checksums.
+The original PE/ZIP verifier passed locally. OEM archives are
+not added to the public GitHub tree. CI runs the deterministic C
+tests alongside every existing language monitor regression.
+
+**Open:** original native OpenPortEx and StartDocPort method bodies,
+real Winspool/MONITOR2 registration and end-to-end hardware
+spooling/status/automatic-cut validation. The actively deployed
+Linux driver and production GitHub branches were not changed.

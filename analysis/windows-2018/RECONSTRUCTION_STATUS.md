@@ -1921,3 +1921,36 @@ LeitzLm/test.sh is extended to run them all in branch CI.
 Limits: no native MONITOR2 function-pointer ABI yet,
 no real Windows spooler or physical status/printing verification;
 previous work and production branches remain unchanged.
+
+
+## Windows MONITOR2 EndDocPort and ClosePort original recovery
+
+Checked sources HEAD \`6bff2b326ab4a3f8ca834991cdf0b83218aedca4\`
+and previous passing CI before any repository changes.
+The three original manufacturer ZIP archives, their Windows
+LeitzLm x86/x64, Linux 1.0.3 and macOS Classic raster filter
+SHA256 all matched recorded originals. Native disassembly
+of LeitzLm x86/x64 establishes EndDocPort in MONITOR2 slot 7
+(RVAs 0x13d0/0x1600) and ClosePort slot 8 (0x1040/0x1100),
+both previously not reconstructed.
+
+EndDocPort sends SetEvent, calls original underlying EndDocPort
+and retains its BOOL, invokes SetJobW on each recorded job
+with original literal Level=0, JOB_INFO=NULL, command=7,
+then frees its list and returns retained host BOOL; SetEvent/
+SetJobW errors do not alter result. ClosePort delegates to the
+host ClosePort when available, then unlinks/releases native port
+state and returns TRUE, ignoring underlying result.
+These decisions, including two-architecture native storage
+offsets and cleanup order, are captured in isolated
+\`LeitzLm/monitor2_document_lifecycle.[ch]\` plus a regression test.
+No Windows heap implementation or spooler ABI is invented;
+callbacks externalize native side effects and ownership.
+
+Offline original verifier
+\`analysis/windows-2018/verify_original_lm_document_lifecycle.py\`
+proved 15 x86 + 15 x64 instruction signatures and original
+Linux/macOS source hashes against the actual OEM ZIPs. Local
+strict GCC, Clang, ASan/UBSan passed. LeitzLm/test.sh integrates
+the new isolated test with all preceding Windows regressions.
+Original OpenPortEx and StartDocPort are still open.
