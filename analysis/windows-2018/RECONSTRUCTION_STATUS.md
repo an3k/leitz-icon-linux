@@ -1719,3 +1719,32 @@ raster setup, prefix, RLE and stream modules, and checks a
 19-row continuous print/cut command vector. As before, COM
 and actual hardware parity remain pending. No production
 branch is changed.
+
+
+## Original Windows spool WriteData and raster VTable slot 8
+
+Preflight confirmed sources HEAD `e3f98bf489e3eaea55a47091fbbf2b8874a89972` and successful CI.
+All three original manufacturer archives re-opened; Linux
+raster2printer.c, Windows LeitzIcon.gpd, macOS Classic raster2printer,
+and x86/x64 LeitzRp.dll hashes matched prior inventory.
+Original x86 RVA 0x29f0 and x64 RVA 0x29e0 were directly
+disassembled: add requested bytes to a 32/64-bit accumulator
+BEFORE invoking COM host write; only exact E_FAIL or a partial
+write causes host error report 200 and overall E_FAIL.
+Other failed HRESULTs with a full write are treated as success
+by the original. The counter is not rolled back after failures.
+
+Original VTable slot 8 x86 RVA 0x14e0 / x64 RVA 0x14f0
+writes one literal ESC byte only when accumulated_bytes
+== (5 * medium WORD+0x0c + 16), then frees nested and outer
+allocations and returns S_OK regardless of that write result.
+Method's semantic Win32 name is NOT inferred.
+
+New standalone oem_write_data.[ch], oem_slot8_finish.[ch],
+unit tests and a raster-stream integration regression were
+added without reimplementing raster encoder or cutter logic.
+A new source-verifier script checked 21 independent x86/x64
+PE opcode sequences directly from the OEM Windows archive,
+and cross-checked original Linux/macOS files. All passed.
+GCC, Clang, ASan/UBSan passed locally. Native COM ABI,
+real spooler and hardware execution remain open.

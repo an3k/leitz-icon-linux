@@ -56,5 +56,16 @@ for compiler in gcc clang; do
         filter_graphics_fragments.c rle_windows_2018.c \
         oem_continuous_integration_test.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        oem_write_data.c oem_write_data_test.c -o "$binary"
+    "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        oem_write_data.c oem_slot8_finish.c oem_slot8_finish_test.c -o "$binary"
+    "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        oem_write_data.c oem_write_integration_test.c \
+        raster_stream.c row_control.c label_setup.c \
+        filter_graphics_fragments.c rle_windows_2018.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done

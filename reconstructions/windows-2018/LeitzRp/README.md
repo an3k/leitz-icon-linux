@@ -417,3 +417,57 @@ been executed for parity. Actual hardware cutter timing remains
 to be verified on a device. The manufacturer's native 16-bit
 row/length and label-count fields are retained, not replaced with
 an invented 170-mm length cap.
+
+
+## Recovered OEM WriteData / COM spool transfer and raster slot 8
+
+A duplicate-work check against branch `sources` at
+`e3f98bf489e3eaea55a47091fbbf2b8874a89972` confirmed that the previously recovered GPD,
+RLE, die-cut and continuous raster streams and COM class factory
+had no native `LeitzRp.dll` WriteData helper model.
+
+**Original Windows binaries, directly inspected:** x86 LeitzRp.dll
+RVA `0x29f0`, x64 `0x29e0`. The OEM increments an internal
+cumulative requested-byte counter **before** each host-write call.
+x86 uses a 32-bit DWORD at object +0x0c, x64 a 64-bit QWORD at +0x18.
+The device-spooler interface is called at COM VTable +0x10 (x86)
+or +0x20 (x64), receiving the output length as a separate DWORD.
+The original returns S_OK if `written == requested` and HRESULT
+is **not exactly** `0x80004005`; other negative HRESULTs alone
+do not make the original fail. Otherwise the original invokes
+COM host VTable +0x28 (x86) or +0x50 (x64) with error code **200**
+and returns E_FAIL without undoing the cumulative byte count.
+
+New `oem_write_data.[ch]` retains the original successful/failed
+transfer gates and supports both original counter widths; an adapter
+matches the existing `leitz_win2018_row_write` signature, so it
+can be used by both previously recovered raster streams without
+duplicating encoding logic.
+
+**Original VTable slot 8:** at x86 RVA 0x14e0 and x64 RVA 0x14f0,
+the OEM checks cumulative bytes against `5 * medium_WORD_0x0c + 16`.
+On equality only, it calls the same WriteData helper with the
+**single byte 0x1b**. Regardless of that write's outcome, it frees
+the nested pointer in a previously allocated block and then the
+outer allocation. It returns S_OK. This slot's Unidrv semantic
+name is not inferred. New `oem_slot8_finish.[ch]` models the
+branch and externalizes the two native frees using callbacks;
+it does not manage the Windows heap itself.
+
+New standalone tests cover exact HRESULT comparison, partial
+writes, error 200, per-architecture 32/64-bit accumulation,
+the conditional one-byte write, and the two cleanup calls.
+An integration test uses `oem_write_data` as the existing original-
+derived `raster_stream` write callback: three OEM-shaped writes
+(4+4+2 bytes) produce `ESC w`, `ESC f`, `ESC G`.
+Injecting a short write invokes report 200 but does not modify
+the existing row-controller's documented ignored-error behavior.
+
+The proof script `analysis/windows-2018/verify_original_rp_write.py`
+was executed with the three actual manufacturer ZIPs. Both
+Windows original PE architectures passed 21 direct native opcode
+checks, and the original Linux C and macOS Classic raster executable
+passed SHA-256 verification. GCC, Clang and ASan/UBSan tests passed
+offline. See the separate original-binary evidence report.
+These are bounded portable C adapters, not an executable native
+Win32 COM driver, real spooler or hardware printer validation.
