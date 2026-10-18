@@ -82,5 +82,12 @@ for compiler in gcc clang; do
         oem_host.c oem_method_map.c \
         ../LeitzDevMode/oem_devmode.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        oem_paper_setting.c oem_paper_setting_test.c -o "$binary"
+    "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        oem_paper_setting.c oem_paper_setting_integration_test.c \
+        label_setup.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done

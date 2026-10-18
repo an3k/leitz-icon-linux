@@ -648,3 +648,76 @@ No firmware, physical hardware, active Linux filter, GPD/catalog,
 existing C implementation, or production branch was modified.
 Real native Windows COM/Unidrv execution and device printing still
 need end-to-end parity tests.
+
+
+## Original two-pass Unidrv PaperSize option retrieval (2026-10-18)
+
+**Newly recovered entry section, separate from the existing label_setup.**
+The original Windows 2018 LeitzRp.dll raster slot 12 (x86 RVA
+`0x15f0` / x64 RVA `0x1600`) queries
+the **original IPrintOemDriverUni::DrvGetDriverSetting** method with
+ANSI feature key `PaperSize` (x86 literal RVA
+`0x4454`, x64 `0x45a8`), through
+the cached host COM interface at native vtable offset
+**+0x0c x86 / +0x18 x64**. Original traces:
+- First call: pOutput=NULL, cbSize=0, outputs cbNeeded
+  and option-count DWORD; the HRESULT is not checked.
+- If cbNeeded is nonzero, allocate cbNeeded bytes and make
+  **the same call a second time**, this time providing the buffer,
+  its original requested capacity and the two result DWORDs.
+- Interpret returned buffer as UTF-16 option name. The manufacturer
+  calls wcsstr with exact, case-sensitive wide literals
+  `Continuous` and `CUSTOMSIZE`,
+  thereby modifying the original IsDieCut/IsCustomSize flags.
+- The original x86 tests/branches are visible at RVA
+  `0x171a/0x17b7` (host calls) and
+  `0x186a/0x1887` (wcsstr); the x64 equivalent is
+  `0x1744/0x17de` and `0x18c2/0x18dd`.
+  The **flag/label length decisions themselves were already
+  implemented** in `label_setup.[ch]` and are
+  explicitly NOT duplicated in the new module.
+
+New `oem_paper_setting.[ch]` reconstructs only the
+**previously missing two-stage host query** with a callback
+rather than pretending to implement the native COM vtable.
+It safely copies a bounded, NUL-terminated UTF-16 option name
+and provides an optional strict ASCII conversion for the
+**internal Windows GPD paper keys** used by preexisting
+`label_setup`. Non-ASCII keys fail conversion
+rather than being silently renamed; raw UTF-16 can be inspected.
+The caller supplies a **memory-allocation budget**, not an
+artificial paper length, printable stock width or driver limit.
+The source also preserves original **ignored HRESULTs** where
+returned data is valid, but protects against unterminated,
+odd-size, excessive or short UTF-16 buffers. A zero first
+cbNeeded does not perform a second query.
+
+New independent tests cover original two-call order, feature
+key, cbNeeded/options counts, harmless failed HRESULTs, exact
+UTF-16 bytes, empty, malformed and insufficient buffers.
+An integration test reuses the **originally reconstructed**
+`label_setup.c` for die-cut, continuous and
+custom-size cases, including variable manual continuous length.
+Existing raster encoder, GDI, COM factory and cutter files
+are unchanged. Offline strict C11 GCC/Clang, GCC ASan/UBSan
+and Clang ASan/UBSan integration tests passed.
+
+New offline primary-source validator
+`analysis/windows-2018/verify_original_paper_setting.py`
+was actually executed on the uploaded original Windows ZIP,
+checking the exact original x86/x64 LeitzRp DLL SHA-256, twelve
+independent **machine opcode locations on each architecture**,
+the original ASCII PaperSize key and both original UTF-16
+comparison literals in each architecture. The original Linux
+1.0.3 raster2printer.c and original macOS Classic 5.1.465
+raster2printer hashes were checked as well. All passed.
+The exact three original OEM ZIPs are intentionally not
+committed, so GitHub CI tests only reproducible portable C
+modules; run the new verifier with the three original ZIPs
+when independent binary verification is needed.
+
+**Limit:** the new function is a safe C source reconstruction
+of the host query boundary, NOT real Windows IPrintOemUni
+ABI or verified Windows runtime spooler behavior.
+Real printer data transmission/cutting are still untested
+on physical OEM hardware from this reconstructed source.

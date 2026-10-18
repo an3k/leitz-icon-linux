@@ -1841,3 +1841,39 @@ sequences from original DLLs, importing/exporting names
 and original three-ZIP cross-platform SHA256. No existing
 reconstruction or production code overwritten; physical
 device and real native Unidrv still untested.
+
+
+## Original Windows PaperSize IPrintOemDriverUni two-pass source retrieval
+
+Checked actual sources branch at
+`2ead7a97fb546870cd1a321380c3583730fb2ce9` with
+passing Windows CI before edits. All three original OEM
+archives, their Windows i386/amd64 LeitzRp.dll binaries
+and the original Linux/macOS raster filters were reopened
+and SHA-256 compared. No prior OEM feature-key query module
+existed; the subsequent string-to-length logic had already
+been reconstructed in `label_setup.[ch]`.
+
+Both original LeitzRp DLL raster COM vtable slot 12 methods
+make two calls through cached host
+DrvGetDriverSetting(..."PaperSize"...): first output=NULL,
+cbSize=0; allocate first cbNeeded if nonzero; then query
+again with that allocated buffer and original option count/
+required-byte output pointers. Return HRESULTs are ignored
+by the original before UTF-16 substring comparisons for
+"Continuous" and "CUSTOMSIZE". Source audit confirmed
+12 machine-opcode patterns per architecture, three exact
+OEM string literals in each original DLL and all three
+original source archives. New independent
+`oem_paper_setting.[ch]` safely models only that
+query and preserves the UTF-16 internal paper name.
+It intentionally leaves the OEM flag/length calculations
+to the **unchanged** `label_setup.c`.
+
+Added original-query tests and a die-cut/endless/custom-size
+integration test against the existing label setup; local
+GCC, Clang, GCC/Clang sanitizers and original PE/ZIP
+verification passed. Tests are appended to existing
+LeitzRp/test.sh for branch CI. No existing implementation
+was replaced and no production branch or printer modified.
+Native COM/Unidrv and actual hardware parity remain open.
