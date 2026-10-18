@@ -1877,3 +1877,47 @@ verification passed. Tests are appended to existing
 LeitzRp/test.sh for branch CI. No existing implementation
 was replaced and no production branch or printer modified.
 Native COM/Unidrv and actual hardware parity remain open.
+
+
+## Windows 2018 LeitzLm MONITOR2 registration / port forwarding (new)
+
+Before modifying repository, \`sources\` HEAD was
+\`23ccc52e0cc986f3d902e8f9d69ec9cb10e69863\` with passing Windows
+CI. Verified all three original manufacturer ZIP SHA-256 digests
+and internally hashed Linux/macOS raster2printer sources. Original
+2018 x86/x64 LeitzLm.dll from user Windows archive were directly
+disassembled; no OEM binaries were executed.
+
+New \`LeitzLm/monitor2_native_map.[ch]\` reconstructs the previously
+unrecorded original exported InitializePrintMonitor2
+(x86 RVA 0x1560, x64 RVA 0x16e0) and native MONITOR2 22-slot
+callback tables at both architecture .data RVA 0x4000:
+x86 cbSize=0x58, object 12 bytes; x64 cbSize=0xb0,
+object 24 bytes. The table's original non-NULL callbacks are
+OpenPortEx slot3, StartDocPort 4, WritePort 5,
+ReadPort 6, EndDocPort 7, ClosePort 8,
+GetPrinterDataFromPort 13, Shutdown 18. Other slots NULL.
+The per-architecture RVA addresses are in README and C source.
+
+New \`LeitzLm/monitor2_port_io.[ch]\` models the original
+WritePort/ReadPort forwarding to the stored per-port
+host delegate (x86 underlying handle +0x0c,
+WritePort +0x28, ReadPort +0x2c; x64 +0x18/+0x50/+0x58).
+WritePort checks a NULL monitor port and sets Win32 error 87;
+valid ports forward BOOL/byte counts as returned.
+ReadPort is an unchecked delegate in OEM; portable C
+safely rejects invalid pointers rather than dereference them.
+The existing LeitzLm/status_dispatch implementation remains
+unchanged and is used in a new integration regression to
+exercise the original three ESC A/U/V status commands.
+
+A new original-source verifier reads raw Windows PE sections,
+both 22-entry function tables and 24 original opcode
+patterns directly from the unchanged Windows manufacturer ZIP
+and checks the original Linux/macOS filter SHA-256. It passed.
+New GCC/Clang/ASan/UBSan portable tests passed locally and
+LeitzLm/test.sh is extended to run them all in branch CI.
+
+Limits: no native MONITOR2 function-pointer ABI yet,
+no real Windows spooler or physical status/printing verification;
+previous work and production branches remain unchanged.
