@@ -1781,3 +1781,33 @@ RLE or cutter. A new C regression exercises the actual
 preexisting label initializer in GitHub CI. Local GCC/Clang and
 ASan/UBSan passed. The production branches and device remain
 unchanged; real Unidrv invocation and printing not claimed.
+
+
+## 2026-10-18: original raster-plugin GetPrinterW name retrieval
+
+Duplicate-work audit: branch sources HEAD `6e21cdb66e5b1ffe540060184337d7fdcd6258e6`, latest CI
+successful, and both original 2018 LeitzRp.dll architectures
+from the unchanged Windows OEM ZIP available. Linux/macOS original
+ZIPs and their actual raster2printer files were hashed again.
+
+Previously recovered GDI CreateDCW expects a printer name as
+a caller argument. The original raster COM vtable method 7
+(x86 0x1370, x64 0x1350) constructs it via two
+GetPrinterW(level=1/PRINTER_INFO_1W) calls: first NULL buffer and
+0 bytes, ignore first BOOL; query pcbNeeded; allocate exactly
+that temporary size, query again; on successful second BOOL copy
+UTF-16 pName (x86 +8, x64 +16). Original method returns zero.
+Exact x86/x64 opcode verification (10 independent patterns each)
+and all three original archive hashes passed locally.
+
+New `LeitzRp/oem_printer_name.[ch]` captures the safe,
+caller-supplied callback/buffer form of the original two-query
+decision; failed and short-buffer paths do not write output.
+New unit tests and a connected `oem_printer_name_gdi_test.c`
+feed this OEM-derived printer name to existing GDI/media
+initialization and verify actual geometry and state without
+duplicating earlier code. Strict GCC/Clang plus ASan/UBSan passed
+locally. Original verification source:
+`analysis/windows-2018/verify_original_rp_printer_name.py`.
+No changes to production branches or the physical device;
+native Windows COM/spooler execution remains unverified.

@@ -529,3 +529,61 @@ Windows-runtime parity.
 Remaining: actual native Unidrv COM call ordering and deployment,
 real windows spooler and physical label/cutter tests. This
 component is **not** a working Windows DLL or Linux CUPS driver.
+
+
+## Original Windows x86/x64 printer-name GetPrinterW acquisition
+
+Duplicate-work check: before editing, sources HEAD was
+`6e21cdb66e5b1ffe540060184337d7fdcd6258e6` and its Windows regression CI was successful.
+The previous GDI module already modeled CreateDCW(WINSPOOL,...)
+and real raster geometry, but its printer-name argument came
+from the caller and no raster-plugin GetPrinterW name-retrieval
+module existed. Existing PrintHelper printer_data.c and
+GetPrinterW(level=2) status checks are separate functions;
+none is duplicated.
+
+Manufacturer LeitzRp.dll method at x86 RVA **0x1370** and x64 RVA
+**0x1350** obtains the actual spooler printer name from
+GetPrinterW using PRINTER_INFO_1W (level 1). In both originals:
+
+1. Call GetPrinterW(handle,1,NULL,0,&needed) and ignore the BOOL
+   result, retaining the returned required byte size.
+2. Only if needed != 0, allocate a temporary buffer of that size.
+   Call GetPrinterW(handle,1,buffer,needed,&needed) again.
+3. Only on a successful second BOOL result, read the UTF-16
+   pName field at +0x08 in x86 or +0x10 in x64, measure the
+   terminated text, allocate/copy its name, and publish it.
+4. The native method returns HRESULT 0 even if it cannot
+   publish the printer name. Native ownership/unchecked memory
+   behavior is **not** blindly copied into the portable C model.
+
+The new isolated `oem_printer_name.[ch]` exposes this **proven two-pass
+sequence** through a caller-supplied GetPrinterW adapter. A
+bounded UTF-16 destination and published character count replace
+native heap/pointer ownership. The callback supplies a bounded
+borrowed pName rather than interpreting potentially invalid Win32
+pointer fields as portable integers.
+
+`oem_printer_name_test.c` covers successful and failed first/second
+queries, zero required size, absent printer name, exact destination
+length, overflow and missing arguments. The **integration test**
+`oem_printer_name_gdi_test.c` obtains the UTF-16 name, supplies it to
+the existing `oem_gdi_caps.c` unchanged and verifies the complete
+GetPrinterW -> CreateDCW -> 13 GetDeviceCaps -> DeleteDC ->
+existing label_setup path. Local strict C11 GCC and Clang,
+AddressSanitizer and UndefinedBehaviorSanitizer all passed.
+
+Original-source verification:
+`analysis/windows-2018/verify_original_rp_printer_name.py`
+directly reads the user's three unmodified original ZIP archives,
+checks all OEM archive and binary SHA-256 hashes, and validates
+**20 independent native instruction patterns**, 10 on each Windows
+architecture. It confirms both level-1 GetPrinterW calls, Winspool
+import-call sites, PRINTER_INFO_1W pName offsets and UTF-16 copying.
+All checks passed offline on actual uploaded original archives;
+neither DLL was executed.
+
+**Limit:** this is a partial portable reconstruction of an OEM
+spooler boundary, not native Windows IPrintOemUni COM ABI,
+actual GetPrinterW runtime parity or a physical-printer test.
+No paper size, cutter, RLE logic or device protocol was changed.

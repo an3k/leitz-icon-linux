@@ -70,5 +70,12 @@ for compiler in gcc clang; do
     "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
         oem_gdi_caps.c oem_gdi_caps_test.c label_setup.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        oem_printer_name.c oem_printer_name_test.c -o "$binary"
+    "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        oem_printer_name.c oem_printer_name_gdi_test.c \
+        oem_gdi_caps.c label_setup.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done
