@@ -67,5 +67,8 @@ for compiler in gcc clang; do
         raster_stream.c row_control.c label_setup.c \
         filter_graphics_fragments.c rle_windows_2018.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        oem_gdi_caps.c oem_gdi_caps_test.c label_setup.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done

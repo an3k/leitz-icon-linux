@@ -1748,3 +1748,36 @@ PE opcode sequences directly from the OEM Windows archive,
 and cross-checked original Linux/macOS files. All passed.
 GCC, Clang, ASan/UBSan passed locally. Native COM ABI,
 real spooler and hardware execution remain open.
+
+
+## 2026-10-18: x86/x64 original GDI query before media initialization
+
+Prior check: branch sources HEAD
+`efeef6833a83ab3baafe94bcf4d914cd0bd923e8`,
+previous CI green, no existing original GDI probing module.
+All three original manufacturer archives were re-read. ZIP SHA256s
+Windows `cc6e175fb3f183d211cd1b4610ca2d096ec958421bc45b4bc8fc2740be3034ca`,
+Linux `54e1a92b830e1281975ca8b1f7018275327fa8f214f8bb440fda6e83d80abe17`,
+macOS `6a3d6cdd617947dcb33b1d58dd7dc2fc1427601091a8ff7079a013fb7ffa4210`
+and internal original LeitzRp x86/x64 and Linux/macOS
+raster2printer hashes match recorded original evidence.
+
+Both original Windows LeitzRp DLLs execute
+CreateDCW(WINSPOOL, printer_name, NULL, DEVMODE), read 13
+GetDeviceCaps selectors in identical order
+[10,8,10,4,6,88,90,40,42,110,111,112,113], and call
+DeleteDC before feeding HORZRES/VERTRES into their layout
+decisions. Read-only original verifier
+`analysis/windows-2018/verify_original_rp_gdi_caps.py`
+confirmed all 26 native selector immediates, four GDI import-call
+opcode sequences and the two UTF-16 WINSPOOL literals, and rechecked
+both other original platforms. No original binary was executed.
+
+A **new**, separate `LeitzRp/oem_gdi_caps.[ch]` models only
+this original GDI probe and forwards the measured dimensions to
+existing `label_setup.c` via a callback-supplied DC, avoiding any
+reimplementation of ModeAuto, orientation, endless media length,
+RLE or cutter. A new C regression exercises the actual
+preexisting label initializer in GitHub CI. Local GCC/Clang and
+ASan/UBSan passed. The production branches and device remain
+unchanged; real Unidrv invocation and printing not claimed.

@@ -471,3 +471,61 @@ passed SHA-256 verification. GCC, Clang and ASan/UBSan tests passed
 offline. See the separate original-binary evidence report.
 These are bounded portable C adapters, not an executable native
 Win32 COM driver, real spooler or hardware printer validation.
+
+
+## Original GDI device metrics at Windows raster-job initialization (2026-10-18)
+
+**Proven new original behavior, not a replacement for prior modules.**
+The printer driver uses CreateDCW with UTF-16 driver string `WINSPOOL`,
+a caller-supplied printer name and DEVMODE, and a NULL output port.
+The manufacturer retrieves GetDeviceCaps values from the new DC
+**13 times in this exact order**: `10, 8, 10, 4, 6, 88, 90, 40, 42, 110, 111, 112, 113`.
+The first call gives VERTRES / raster height, the second HORZRES /
+raster width. The third VERTRES and remaining ten calls are made by
+the original's diagnostic path; no paper dimensions or hardware
+abilities are inferred from them. DeleteDC is called once before
+the already recovered media orientation/label-length calculations,
+and its return is not checked.
+
+Direct original locations:
+- Windows x86 LeitzRp.dll CreateDCW call RVA `0x18df`, the first
+  GDI-selector immediate RVA `0x1963`, DeleteDC at `0x1aa6`,
+  original UTF-16 WINSPOOL literal at `0x456c`.
+- Windows x64 LeitzRp.dll CreateDCW call RVA `0x192f`, the first
+  GDI-selector immediate RVA `0x19a2`, DeleteDC at `0x1b2d`,
+  original UTF-16 WINSPOOL literal at `0x46d8`.
+
+New standalone `oem_gdi_caps.[ch]` exposes callbacks for the
+native operations and forwards **only measured GDI geometry** to
+the already existing `label_setup.c` implementation. It does not change
+the physical cassette selection, print length, die-cut/continuous
+decision, cutter or RLE encoding, and introduces no length limit.
+Native pointer/failed-CreateDC semantics are safeguarded: a missing
+DC leaves outputs unchanged; successful DCs get all 13 calls and
+one teardown before the prior media initializer executes.
+The original would not necessarily validate bad caller arguments;
+the portable adapter does.
+
+The new offline fixture test checks the 13 selectors in order,
+UTF-16 driver name, NULL port, caller printer and DEVMODE identity,
+DC cleanup even on a failed DeleteDC return, untouched state on
+CreateDCW failure, normal/custom/landscape dimensions and continuous
+manual label length through **the existing** media initializer.
+The branch CI builds this test against the real repo's label_setup.c
+(not the local compile fixture). GCC, Clang, GCC ASan and UBSan
+passed locally.
+
+Verification script:
+`analysis/windows-2018/verify_original_rp_gdi_caps.py`
+uses only Python stdlib to read all three original ZIPs. It checks
+original ZIP and source hashes and compares 13 selector immediates,
+CreateDCW and DeleteDC native call bytes and the UTF-16 WINSPOOL
+literal in each original Windows PE architecture (26 selectors total).
+The original Windows, macOS 5.1.465 and Linux 1.0.3 checks
+completed successfully offline. The OEM binaries are intentionally
+not stored in GitHub; GitHub CI checks the portable code, not original
+Windows-runtime parity.
+
+Remaining: actual native Unidrv COM call ordering and deployment,
+real windows spooler and physical label/cutter tests. This
+component is **not** a working Windows DLL or Linux CUPS driver.
