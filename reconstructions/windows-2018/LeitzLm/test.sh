@@ -21,5 +21,15 @@ for compiler in gcc clang; do
         monitor2_document_lifecycle.c monitor2_document_lifecycle_test.c \
         -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        monitor2_open_port.c monitor2_open_port_test.c -o "$binary"
+    "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        monitor2_start_doc.c monitor2_start_doc_test.c -o "$binary"
+    "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        monitor2_start_doc.c monitor2_document_lifecycle.c \
+        monitor2_start_doc_integration_test.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done

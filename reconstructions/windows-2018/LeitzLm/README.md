@@ -213,3 +213,103 @@ tests alongside every existing language monitor regression.
 real Winspool/MONITOR2 registration and end-to-end hardware
 spooling/status/automatic-cut validation. The actively deployed
 Linux driver and production GitHub branches were not changed.
+
+
+## Original Windows MONITOR2 OpenPortEx / StartDocPort recovered
+
+**Duplicate-work checkpoint:** Before changing the branch, `sources`
+HEAD was `8166a6fba1f4e1b6069c7c3ecb10718dc0130f3e` and the entire Windows CI was green. The earlier
+reconstructions of the MONITOR2 22-entry table, WritePort, ReadPort,
+GetPrinterDataFromPort, EndDocPort, ClosePort and raster data encoder
+were read and are unchanged. Only the previously missing MONITOR2
+slots **3** and **4** are addressed here.
+
+Original manufacturer archives re-opened, independently SHA-256
+matched against the recorded original sources:
+
+- Linux `LeitzIconDriversForLinux1.0.3.zip`:
+  `54e1a92b830e1281975ca8b1f7018275327fa8f214f8bb440fda6e83d80abe17`
+- Windows `LeitzIconLabelSetup.zip`:
+  `cc6e175fb3f183d211cd1b4610ca2d096ec958421bc45b4bc8fc2740be3034ca`
+- macOS `LeitzIconSoftware-Installer_5.1.465.dmg.zip`:
+  `6a3d6cdd617947dcb33b1d58dd7dc2fc1427601091a8ff7079a013fb7ffa4210`
+
+Original Windows LeitzLm.dll x86 SHA-256
+`4faeba4f90200c3cc56523bc6e4caa4784d384766fadc8f38378153c0e89947e`,
+x64 SHA-256
+`8d58d21fdfedae812863a4efae30c6132a196d563c3e3a2f018667d3bd29561d`.
+
+| Original native routine | x86 RVA | x64 RVA |
+| --- | --- | --- |
+| MONITOR2 slot 3 OpenPortEx | `0x11a0` | `0x12a0` |
+| MONITOR2 slot 4 StartDocPort | `0x12e0` | `0x14b0` |
+
+**OpenPortEx**, new `monitor2_open_port.[ch]`:
+- Check the supplied MONITOR2 host callback table at five required
+  pointer slots **2, 4, 5, 6, 8** (x86 offsets 8/16/20/24/32,
+  x64 offsets 16/32/40/48/64). Missing callback gives
+  `SetLastError(3007)` and FALSE.
+- Under the OEM global synchronization, check the port name against
+  already registered ports. Duplicate gives `SetLastError(170)`
+  and FALSE.
+- Allocate and register the native port, which the original
+  helper creates with **0x478 bytes x86 / 0x4f0 bytes x64**.
+  The callback-driven portable allocator owns that registration;
+  no Windows heap or global linked list is fabricated.
+- Call the supplied host OpenPort function at x86 callback +8 /
+  x64 callback +16, passing the underlying handle output at
+  native port x86 +0x0c / x64 +0x18.
+- On failed host opening, invoke the existing conceptual port
+  unlink/release boundary without publishing a port. On success,
+  copy **22 pointer entries** (88/176 bytes in the original)
+  into its stored host table, publish the port and report success.
+  This model uses `uintptr_t` entries and callbacks rather than
+  pretending that native x86/x64 function pointers are portable.
+
+**StartDocPort**, new `monitor2_start_doc.[ch]`:
+- Validate port pointer, nonempty bounded UTF-16 printer name and
+  required fifth document-info parameter. Invalid native arguments
+  produce `SetLastError(87)` and FALSE.
+- Invoke `WaitForSingleObject(event, 60000)`, then
+  `ResetEvent(event)`, ignoring both results as in the OEM.
+- Allocate a record for the UTF-16 name (the manufacturer's
+  allocation expression is **2*name_length+0x12** on x86 and
+  **2*name_length+0x22** on x64, including terminator).
+  The portable allocator receives the name and bounded character
+  count and must own its name copy; no Windows allocator is cloned.
+- Call `OpenPrinterW` to obtain a printer handle, store the
+  supplied JobId and prepend the new record to the existing
+  per-port job list (native head x86 +8/x64 +16).
+- Finally invoke the stored host `StartDocPort` callback (x86
+  port +0x24 / x64 +0x48), forwarding its BOOL unchanged.
+  The record remains in the list even if this host callback returns
+  FALSE, reflecting the actual native control flow.
+- On unsuccessful `OpenPrinterW`, the safe portable model frees
+  the **unlinked** record. The original has a less safe early
+  return path and may leave this allocation behind. This is an
+  explicit memory-safety difference, not claimed byte-for-byte ABI.
+
+Regression coverage: `monitor2_open_port_test.c` verifies
+required host slots, duplicate errors, lock/lookup/open order,
+successful table copy, failed host opening and cleanup.
+`monitor2_start_doc_test.c` verifies event wait/reset, allocated
+job list, failure result retention, and bad arguments.
+`monitor2_start_doc_integration_test.c` calls the **existing**
+`monitor2_document_lifecycle.c` to complete a job and check
+`SetJobW(Level=0,NULL,7)` and list cleanup, without changing
+its source. GCC, Clang, GCC ASan/UBSan passed locally for
+both independent and integration tests.
+
+Primary-source verifier
+`analysis/windows-2018/verify_original_lm_open_start.py`
+checks **25 x86 and 24 x64** direct original machine-code
+sequences (49 total), both original Windows DLL SHA-256 hashes,
+all three unchanged OEM archives and original Linux/macOS
+raster filter hashes. All offline checks passed. Original vendor
+binaries are NOT checked into the repository.
+
+**Limit:** This is an independently testable native-behavior
+reconstruction with caller-owned callbacks, not a compiled native
+Windows MONITOR2 DLL or a tested physical Linux driver. Real
+Windows host, network/USB printer I/O, cutter and monitor-thread
+behavior have not been validated against actual device traces.

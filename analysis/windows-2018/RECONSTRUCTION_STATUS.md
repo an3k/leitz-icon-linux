@@ -1954,3 +1954,43 @@ Linux/macOS source hashes against the actual OEM ZIPs. Local
 strict GCC, Clang, ASan/UBSan passed. LeitzLm/test.sh integrates
 the new isolated test with all preceding Windows regressions.
 Original OpenPortEx and StartDocPort are still open.
+
+
+## OEM Windows LeitzLm OpenPortEx and StartDocPort reconstruction
+
+Duplicate-work preflight: sources HEAD `8166a6fba1f4e1b6069c7c3ecb10718dc0130f3e`, latest
+Windows CI green, existing MONITOR2 table, port I/O, status and
+EndDoc/ClosePort modules already present. Original manufacturer
+Windows ZIP, Linux 1.0.3 ZIP and macOS Classic 5.1.465 ZIP
+rehashed successfully together with original x86/x64 LeitzLm.dll
+and native raster2printer files.
+
+Direct original PE disassembly x86 RVA 0x11a0 / x64 RVA 0x12a0
+confirms OpenPortEx: check five host callback slots (2,4,5,6,8),
+return error 3007 if missing, synchronize and check duplicate
+port name (error 170), allocate and register a port, call host
+OpenPort, on failure release the port, on success publish the
+returned port and save 88/176 bytes of host MONITOR2 callbacks.
+The native port allocation helpers allocate 0x478 / 0x4f0 bytes.
+
+StartDocPort x86 RVA 0x12e0 / x64 RVA 0x14b0 checks native
+arguments (error 87), waits 60000ms on the document event and
+resets it, allocates the per-job UTF16 name record, calls
+OpenPrinterW, records JobId, prepends job to existing port list,
+then calls host StartDocPort. The host BOOL is forwarded; a
+record remains registered after its failure. The portable
+model safely frees a failed-to-open *unlinked* record.
+
+New callback-driven LeitzLm/monitor2_open_port.[ch] and
+monitor2_start_doc.[ch] model the original conditions with
+safe boundaries and reuse the pre-existing document job struct,
+without reimplementing EndDocPort, raster encoding or Windows
+heap internals. Independent original verifier proves **49**
+machine-instruction sequences across both original DLL
+architectures plus Linux/macOS original filter hashes.
+Local strict GCC, Clang and ASan/UBSan tests pass.
+New integration test uses the real existing
+monitor2_document_lifecycle.c to prove StartDoc -> EndDoc ->
+SetJobW(7) -> cleanup. Branch CI is extended to run the
+three new test targets. Native Windows execution and
+physical print/cut parity remain open.
