@@ -313,3 +313,81 @@ reconstruction with caller-owned callbacks, not a compiled native
 Windows MONITOR2 DLL or a tested physical Linux driver. Real
 Windows host, network/USB printer I/O, cutter and monitor-thread
 behavior have not been validated against actual device traces.
+
+
+## Native MONITOR2 shared port release and Shutdown (new)
+
+Before this change, `sources` was at `5cc088752a0ce08706e84859a4342ef7181332ef` and the full
+Windows static reconstruction CI passed. Previously recovered
+`OpenPortEx`, `StartDocPort`, `WritePort`, `ReadPort`,
+`EndDocPort` and `ClosePort` remain untouched. The missing
+common **native port-destructor** behavior and **Shutdown**
+traversal are now reconstructed separately.
+
+Original OEM LeitzLm.dll directly examined in both architectures:
+
+| OEM routine | Original i386 RVA | Original amd64 RVA |
+| --- | --- | --- |
+| Shared port destruction helper | `0x1a60` | `0x1d30` |
+| MONITOR2 Shutdown (table slot 18) | `0x1000` | `0x10b0` |
+| Imported `DeletePrinter` thunk | `0x1b70` | `0x1ec2` |
+
+The destructor:
+1. Unlinks a port from the OEM's global port linked list
+   (original `next` offset i386 +4, amd64 +8).
+2. If the port's recorded printer handle at i386 +0x10 /
+   amd64 +0x20 is non-NULL, calls the **WINSPOOL.DRV
+   `DeletePrinter` export**, ignoring its BOOL return.
+   This is **not `ClosePrinter`**, and it may remove a
+   configured Windows printer. The exact imported function
+   was confirmed in the original DLL import tables and
+   jump thunks.
+3. If the event handle at i386 +0x70 / amd64 +0xe0 exists,
+   calls `CloseHandle` and ignores its BOOL.
+4. Under the job-list critical section, frees the port's
+   linked job nodes, sets the job-list head to NULL and
+   releases the critical section. Original job-list head:
+   i386 +8, amd64 +16.
+5. Calls `GlobalFree` on the name allocation at port +0
+   and then on the port object itself.
+
+The **Shutdown** callback gets the monitor's current port
+list (i386 monitor +8, amd64 +16), saves each node's next
+pointer before destruction, calls the **same shared helper**
+for every port, and finally calls `GlobalFree` on the
+monitor allocation. It does **not** call the saved host
+`ClosePort` delegate as a separate step.
+
+New `monitor2_owned_cleanup.[ch]` models these distinct
+ownership transitions using caller-supplied safe callbacks
+for `DeletePrinter`, `CloseHandle`, lock/unlock and
+`GlobalFree`. It cannot call the destructive Windows
+`DeletePrinter` itself. Do **not** bind that callback to a
+real printer until the OEM reason for doing so and native
+handle ownership are independently validated. The model
+does not allocate or dereference Windows HANDLEs or emulate
+native critical-section semantics.
+
+`monitor2_owned_cleanup_test.c` checks unlinking,
+conditional original import callbacks, precise delete /
+close / job-lock / GlobalFree ordering, shutdown
+traversal and invalid input. Integration test
+`monitor2_owned_cleanup_integration_test.c` passes
+this same reconstructed destructor into the **unchanged**
+`monitor2_document_lifecycle.c` ClosePort callback to
+check the original host ClosePort -> native release sequence.
+GCC/Clang strict C11 and GCC ASan/UBSan passed locally.
+
+A new independent original-only verifier
+`analysis/windows-2018/verify_original_lm_owned_cleanup.py`
+reads the three original manufacturer ZIPs, verifies their
+SHA-256 hashes, checks original LeitzLm.dll i386/amd64 hashes,
+**20 x86 and 21 x64 native instruction patterns** including
+the DeletePrinter jump thunks, and verifies the original Linux
+1.0.3 and macOS Classic raster filter hashes. All pass offline.
+No OEM DLL is executed, redistributed or embedded in GitHub.
+
+**Not complete:** Native Windows monitor ABI, actual memory
+allocator/locking behavior and physical printing/cutting
+remain untested. The portable safe model does not endorse
+the original's potentially destructive printer deletion.

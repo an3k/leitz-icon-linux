@@ -1994,3 +1994,40 @@ monitor2_document_lifecycle.c to prove StartDoc -> EndDoc ->
 SetJobW(7) -> cleanup. Branch CI is extended to run the
 three new test targets. Native Windows execution and
 physical print/cut parity remain open.
+
+
+## Original Windows LeitzLm shared port destructor + MONITOR2 Shutdown
+
+Duplicate-work preflight confirmed sources HEAD `5cc088752a0ce08706e84859a4342ef7181332ef`
+with full Windows CI success. The three OEM ZIPs and internal
+Windows LeitzLm i386/amd64 binaries, Linux raster2printer.c
+and macOS raster2printer were rechecked by SHA-256.
+
+Newly documented original LeitzLm.dll routines:
+- shared port cleanup helper i386 RVA 0x1a60 / amd64 0x1d30;
+- MONITOR2 Shutdown callback i386 0x1000 / amd64 0x10b0;
+- WINSPOOL.DRV!DeletePrinter import jump thunk i386 0x1b70 /
+  amd64 0x1ec2 (confirmed by imported function names).
+
+The native shared cleanup unlinks the port from the global
+list, conditionally calls **DeletePrinter** (NOT ClosePrinter)
+on a saved printer handle, conditionally calls CloseHandle
+for the event, clears/frees all linked jobs under its critical
+section, then GlobalFree's the name buffer and port object.
+Shutdown iterates the monitor's port list using the SAME
+destructor then GlobalFree's the monitor object. Shutdown
+does not separately call the host ClosePort delegate.
+
+Added isolated `LeitzLm/monitor2_owned_cleanup.[ch]`
+with externally supplied cleanup/lock callbacks, unit tests
+and an integration test connected to the preexisting original
+ClosePort reconstruction. The destructive original Winspool
+call is represented as a callback **only**; nothing in this
+source invokes any real OS DeletePrinter or real printer.
+
+Direct original PE verifier checked 41 native instruction
+patterns across both architectures, original imported
+DeletePrinter and all three OEM archive/source SHA-256 hashes.
+Strict GCC, Clang, AddressSanitizer and UBSan offline tests
+pass. Existing modules and production branches unchanged.
+Full native runtime and actual device output remain open.
