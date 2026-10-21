@@ -529,3 +529,51 @@ Linux/macOS raster2printer source bytes.
 **Still open:** a native Windows MONITOR2 binary/API shim,
 synchronization/lifetime under real Winspool concurrency,
 true Win32/USB I/O and physical print/cut parity.
+
+
+## Cross-module full-session monitor regression (2026-10-21)
+
+**Preflight/deduplication:** Verified `sources` at `afa78b35d28745a94d92a1b5b8003443a4107d2b`
+with passing Windows CI, after concurrent addition of the separate
+`monitor2_registry_open_integration_test.c`. That earlier test
+already covers registry -> OpenPortEx -> cleanup, so those functions
+were NOT rewritten. This new check extends the chain across
+**port data I/O, status, StartDocPort, EndDocPort and ClosePort**
+using seven preexisting implementation modules, in both modeled
+x86 and x64 allocation variants.
+
+New `monitor2_full_session_test.c` compiles the real existing
+`monitor2_port_registry.c`, `monitor2_open_port.c`,
+`monitor2_port_io.c`, `status_dispatch.c`,
+`monitor2_start_doc.c`, `monitor2_document_lifecycle.c`
+and `monitor2_owned_cleanup.c`. A deterministic callback fixture:
+
+- opens a registered named port and verifies original event
+  initialization, 22 host callback entries and both architecture
+  allocation sizes;
+- rejects differently-cased duplicate port names (Win32 error 170);
+- writes exact data bytes, then sends the original vendor status
+  command ESC A via the ReadPort/WritePort callback pair;
+- starts an actual modeled job with a 60000-ms wait/reset, saves
+  printer handle and calls host StartDocPort;
+- completes it with original SetJobW(job, level 0, NULL, command 7)
+  and frees the job despite failed SetJob results;
+- calls host ClosePort and the existing owned destructor, ensuring
+  monitor registry unlink, event close, balanced locks and no
+  outstanding native name/port allocations.
+
+The test passed strict GCC, Clang, and Clang ASan/UBSan locally
+with functionally matching source fixtures; the branch CI executes
+it against actual repository sources. Previous individual and
+registry-open integration tests remain unchanged.
+
+**Important boundary:** the independently reconstructed
+`document_port.jobs` and `owned_port.jobs` types are NOT
+a unified native Windows object. The fixture guarantees that
+the document list has been completed before the owned destructor
+runs. The new test does not claim native MONITOR2/Unidrv ABI,
+actual Windows spooler execution, a physical print, or a
+validated cutter response. Completing those remains necessary.
+The original Linux 1.0.3, Windows OEM 2018 and macOS Classic
+ZIP SHA-256 values and the x86/x64 LeitzLm DLL hashes were
+rechecked unchanged before this work.

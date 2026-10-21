@@ -2089,3 +2089,25 @@ DeletePrinter, native Windows loader or hardware operation.
 GCC, Clang and Clang ASan/UBSan passed locally with
 interface-equivalent copies; actual GitHub module CI
 is the authoritative subsequent integration check.
+
+
+## Cross-module LeitzLm session regression (2026-10-21)
+
+Verified current sources HEAD `afa78b35d28745a94d92a1b5b8003443a4107d2b`, CI passing, and
+existing concurrent registry -> OpenPortEx integration test.
+Did not modify any OEM-derived implementation. Original
+Windows 2018, Linux 1.0.3 and macOS Classic manufacturer
+archives and x86/x64 Windows language-monitor source hashes
+matched previous recorded SHA-256.
+
+New LeitzLm/monitor2_full_session_test.c composes **seven
+existing** Windows C modules through both modeled architecture
+sizes: registered OpenPortEx and duplicate prevention, byte
+WritePort, vendor ESC A status ReadPort, StartDocPort event/job
+registration, EndDocPort SetJobW command 7/free, ClosePort
+and owned registry/event/name/port cleanup. Offline GCC,
+Clang and Clang ASan/UBSan passed using equivalent source
+fixtures; GitHub CI checks the actual branch sources. This
+is an offline interface-regression fixture only: real native
+MONITOR2 object ownership/Winspool and printer output/cut
+remain unverified.
