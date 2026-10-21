@@ -391,3 +391,92 @@ No OEM DLL is executed, redistributed or embedded in GitHub.
 allocator/locking behavior and physical printing/cutting
 remain untested. The portable safe model does not endorse
 the original's potentially destructive printer deletion.
+
+
+## LeitzLm original native port registration and lookup (new)
+
+**Duplicate-work preflight:** On `sources` HEAD `c877eb3a229a96cdb037c99c5765bce9fef57887`,
+the previous Windows CI was successful. Existing MONITOR2 callback
+map, OpenPortEx, StartDocPort, port I/O, EndDocPort/ClosePort,
+status dispatch and shared owned-port destructor were already
+reconstructed and have **not been replaced**. This addition
+recovers their formerly abstracted **native registry lookup and
+port allocation** helpers.
+
+Manufacturer `LeitzLm.dll` originals were read from the unchanged
+user-provided Windows ZIP (SHA-256
+`cc6e175fb3f183d211cd1b4610ca2d096ec958421bc45b4bc8fc2740be3034ca`).
+Both i386 and amd64 DLLs matched their documented individual hashes.
+Linux 1.0.3 and macOS Classic manufacturer archives and
+`raster2printer` source hashes were also rechecked.
+
+| Original helper | i386 RVA | amd64 RVA |
+| --- | --- | --- |
+| Case-insensitive lookup of registered port name | `0x1ae0` | `0x1e00` |
+| Allocate/register a port with Win32 resources | `0x19b0` | `0x1c40` |
+
+**Exact original lookup behavior:** Reject NULL/empty UTF-16
+input, traverse the global singly linked port list in order,
+compare each saved port name using imported Windows
+**`lstrcmpiW`**, return first matching port, or NULL.
+Names are not compared bytewise or by ASCII-only case folding.
+The new portable module calls an externally supplied comparison
+function instead of incorrectly claiming to reproduce
+Windows Unicode collation.
+
+**Exact original port-construction behavior:**
+- `GlobalAlloc` a native port block of **0x478 bytes on i386**
+  or **0x4f0 bytes on amd64**, then zero the allocated block.
+- Allocate and copy the UTF-16 name including its terminating
+  NUL as a **separate allocation**.
+- Set its global next pointer to the prior head and register
+  the new port **before** creating the event.
+- Clear printer handle, job-list pointer and the OEM state flag.
+- Call `CreateEventW(NULL, TRUE, TRUE, NULL)`: manual-reset and
+  **initially signaled**. Store the returned event handle.
+- Initialize a separate **0x400-byte port scratch region** to zero.
+  The original offsets for the event and scratch are
+  i386 `+0x70/+0x74`; amd64 `+0xe0/+0xe8`.
+- The OEM does **not** reject a NULL `CreateEventW` result after
+  registering the port. The new model preserves that behavior
+  explicitly and reports the NULL event in its state.
+
+New `monitor2_port_registry.[ch]` uses the existing
+`leitz_lm_owned_port` record as its leading field, so the
+**existing** `monitor2_owned_cleanup.c` unlinks and frees
+the new port and separate name allocation; no second destructor
+is written. This is a portable state model, not binary-compatible
+Win32 layout. Allocation and event creation are external callback
+boundaries; none invokes native spooler APIs.
+
+**Deliberate safety correction:** On allocation failure for the
+native port or name, the manufacturer's path can dereference a
+NULL port pointer. The portable implementation safely returns
+without registering a broken entry, and frees any newly allocated
+unlinked port. It also validates the caller's bounded UTF-16
+name and integer capacity. Registry iteration requires an acyclic
+caller-owned list, and its original external OpenPortEx caller
+must hold the synchronization lock.
+
+The independent regression `monitor2_port_registry_test.c` checks
+both native allocation sizes, UTF-16 name cloning, case-insensitive
+lookup callback, duplicate and absent search, insertion order,
+flag and 1024-byte scratch initialization, manual-reset/signaled
+event parameters, permitted event failure, allocation-failure
+cleanup and actual integration with the previously recovered
+port destructor. Strict C11 GCC, Clang and GCC ASan/UBSan pass.
+
+The new standalone source verifier
+`analysis/windows-2018/verify_original_lm_port_registry.py`
+reopens the original manufacturer ZIPs, verifies their full
+SHA-256 values, compares **21 i386 and 20 amd64** directly
+transcribed machine instructions in the actual LeitzLm PE
+sections, proves the native `lstrcmpiW` and `CreateEventW`
+import names and rechecks the unchanged Linux/macOS filters.
+All original source checks pass offline. The manufacturer
+DLLs are not added to GitHub.
+
+**Open:** Binding these portable submodules to a fully executable
+native Windows monitor and validating actual Windows spooler
+port concurrency, real printer status, printed output and
+automatic hardware cutting.

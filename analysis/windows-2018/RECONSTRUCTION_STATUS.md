@@ -2031,3 +2031,39 @@ DeletePrinter and all three OEM archive/source SHA-256 hashes.
 Strict GCC, Clang, AddressSanitizer and UBSan offline tests
 pass. Existing modules and production branches unchanged.
 Full native runtime and actual device output remain open.
+
+
+## Native LeitzLm port registry: original lookup + allocation
+
+Verified `sources` on c877eb3a229a96cdb037c99c5765bce9fef57887 and its last successful
+Windows CI, and checked original manufacturer Linux/Windows/macOS
+ZIPs and x86/x64 LeitzLm binaries against recorded SHA-256 values.
+
+New `LeitzLm/monitor2_port_registry.[ch]` recovers two original
+functions previously only represented by OpenPortEx's
+`exists`/`allocate` callback boundaries:
+i386 0x1ae0 / amd64 0x1e00 searches the registered ports
+using Win32 lstrcmpiW (case-insensitive UTF16); i386 0x19b0 /
+amd64 0x1c40 allocates and zeroes 0x478/0x4f0 bytes,
+clones the UTF16 name, prepends the global list entry,
+sets original empty fields, calls CreateEventW
+(manual-reset=TRUE, initially-signaled=TRUE) and clears the
+0x400-byte local scratch region. Original event creation
+failure is not treated as an allocation failure.
+
+The model uses caller-supplied comparison, alloc/free and event
+callbacks. It uses the **existing** owned-port structure as
+its initial field and the **existing** owned-port destructor
+as its cleanup path. The manufacturer's unsafe NULL-dereference
+error path is guarded by safe failure unwinding. No native Win32
+printer or DeletePrinter operations are executed.
+
+A local deterministic test checks both architecture sizes,
+real shared destructor interoperability, UTF16 copying,
+case-insensitive lookup, event initialization and negative
+branches with strict GCC/Clang and ASan/UBSan. The independent
+PE verifier checks 21 + 20 native instruction patterns and
+original imported names against the actual OEM DLLs, plus
+Linux/macOS filter hashes. CI test script includes the new
+separate regression. Native MONITOR2 ABI and real printing
+remain to be verified.
