@@ -53,5 +53,10 @@ for compiler in gcc clang; do
         monitor2_start_doc.c monitor2_document_lifecycle.c \
         status_dispatch.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        monitor2_job_owner_bridge.c monitor2_job_owner_bridge_test.c \
+        monitor2_start_doc.c monitor2_document_lifecycle.c \
+        monitor2_owned_cleanup.c -o "$binary"
+    "$binary"
     rm -f "$binary"
 done

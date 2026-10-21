@@ -2111,3 +2111,31 @@ fixtures; GitHub CI checks the actual branch sources. This
 is an offline interface-regression fixture only: real native
 MONITOR2 object ownership/Winspool and printer output/cut
 remain unverified.
+
+
+## OEM native port job-list ownership bridge (2026-10-21)
+
+Verified sources HEAD `8367271ff0529298a70024b8f212008aff657d96` and successful CI, the three
+original manufacturer archives, Windows x86/x64 LeitzLm.dll
+and original Linux/macOS raster filters. Native disassembly
+proves StartDocPort, EndDocPort and job-list helper access
+the exact same original port job-head: x86 offset +8, x64 +16;
+the x64 shared destructor also consumes that same list.
+
+Prior source reconstruction had independent portable job-list
+members in document vs owned-port structs, and the previous
+full-session test avoided pending jobs at ClosePort. Added
+`LeitzLm/monitor2_job_owner_bridge.[ch]` as an explicit
+single-owner synchronization boundary without modifying
+any existing OEM-derived C implementation. New regression
+covers successful multi-job Start/End, host StartDoc failure
+with still-owned job freed by ClosePort, mismatch protection,
+and ownership invalidation after release. Strict GCC/Clang
+and Clang ASan/UBSan tests passed locally. GitHub CI invokes
+the new test against preexisting source modules.
+
+`verify_original_lm_shared_job_owner.py` passed against all
+three original ZIPs, checked 5 x86 + 7 x64 native instruction
+patterns, both original DLL SHA-256 values and native Linux/macOS
+raster filter SHA-256. Real Win32 MONITOR2 ownership/locking,
+native C ABI and physical printer behavior remain open.

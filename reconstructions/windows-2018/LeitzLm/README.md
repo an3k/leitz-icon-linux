@@ -577,3 +577,61 @@ validated cutter response. Completing those remains necessary.
 The original Linux 1.0.3, Windows OEM 2018 and macOS Classic
 ZIP SHA-256 values and the x86/x64 LeitzLm DLL hashes were
 rechecked unchanged before this work.
+
+
+## Shared native job-list ownership across existing MONITOR2 modules
+
+**Duplicate-work preflight:** `sources` at `8367271ff0529298a70024b8f212008aff657d96`, full
+Windows CI passed. The existing registry, StartDocPort, EndDocPort,
+ClosePort, owned-port destructor and full-session tests were reviewed
+and preserved without replacement. Exact original manufacturer
+Linux 1.0.3, Windows 2018 and macOS Classic 5.1.465 archive
+SHA-256 digests match the established inventory.
+
+The native OEM language monitor uses **one job-list head per port**,
+at x86 +0x08 / x64 +0x10, shared by StartDocPort, EndDocPort,
+its list-clearing helper and the port destructor. The prior
+independent portable `leitz_lm_document_port.jobs` and
+`leitz_lm_owned_port.jobs` structures expose **two views**, a
+gap the full-session fixture previously sidestepped by finishing
+all jobs before cleanup. This new work addresses that gap directly.
+
+New isolated `monitor2_job_owner_bridge.[ch]` wraps the **existing**
+functions without rewriting them:
+- Verify both list views match **before any side effects**; reject
+  mismatched ownership or already-closed bridge with -1.
+- On StartDocPort synchronize the owned list even when the host
+  StartDocPort returns FALSE **after registering a job**, as in OEM.
+- On EndDocPort synchronize the owned list after the existing code
+  sends SetJobW(level 0, NULL, command 7) and frees its entries.
+- On ClosePort clear the non-owning document view before calling
+  its existing `release_port` callback, which must invoke the
+  existing `leitz_lm_release_owned_port` destructor. That destructor
+  solely owns outstanding jobs; mark bridge closed after release.
+  Missing destructor callback or out-of-sync views cause no
+  side effects. The document view itself remains caller-owned.
+
+`monitor2_job_owner_bridge_test.c` checks **two completed jobs**,
+their original SetJobW notifications, no double frees; a failed
+host StartDocPort leaving a job registered until ClosePort;
+mismatched list rejection without mutation; missing cleanup
+callback; closed-bridge non-reusability; and resource counts.
+Strict GCC and Clang C11, and Clang ASan/UBSan passed offline
+against matching existing source interfaces. The branch CI builds
+the test against the **actual unchanged repository modules**.
+
+Original manufacturer verification:
+`analysis/windows-2018/verify_original_lm_shared_job_owner.py`
+was run on the actual three original ZIPs. It confirmed
+5 x86 + 7 x64 opcode sequences identifying the *same*
+per-port list head in StartDocPort, EndDocPort, list clearer,
+and the x64 owned-port destructor; also checked original
+Windows LeitzLm binary SHA-256 plus Linux/macOS native filter
+checksums. Originals are not checked into the repository.
+
+**Scope limitation:** the bridge is a portable, caller-serialized
+source-level ownership mechanism. It is **not** the native
+MONITOR2 memory layout, lock implementation, Win32 ABI,
+a physical printer test or proof of automatic-cut parity.
+The callbacks for release ownership must be supplied correctly;
+no real DeletePrinter or device commands are invoked by tests.
