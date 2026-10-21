@@ -2067,3 +2067,25 @@ original imported names against the actual OEM DLLs, plus
 Linux/macOS filter hashes. CI test script includes the new
 separate regression. Native MONITOR2 ABI and real printing
 remain to be verified.
+
+
+## Cross-module MONITOR2 port open/registration/destruction test
+
+Verified `sources` on commit `57de89b8a40708949a2076a1baca5cced6c6e12f` with passing CI
+before any edits; original Windows/Linux/macOS archives
+and key manufacturer binary/source hashes checked. Existing
+OpenPortEx, port registry and owned-port destructor modules
+remain unchanged. Added ONLY a new integration regression,
+`LeitzLm/monitor2_registry_open_integration_test.c`,
+and appended its build/run command to `LeitzLm/test.sh`.
+The regression directly links the three real existing
+implementations to prove successful registry/host OpenPort,
+original native x64 allocation size, UTF-16 name allocation,
+manual-reset event and cleared scratch, duplicate detection
+(error 170), failed host-open cleanup, missing callback
+(error 3007), and same-destructor port/event/name cleanup.
+All OS/destructive effects are fixture callbacks; no real
+DeletePrinter, native Windows loader or hardware operation.
+GCC, Clang and Clang ASan/UBSan passed locally with
+interface-equivalent copies; actual GitHub module CI
+is the authoritative subsequent integration check.

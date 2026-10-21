@@ -42,5 +42,10 @@ for compiler in gcc clang; do
         monitor2_port_registry.c monitor2_owned_cleanup.c \
         monitor2_port_registry_test.c -o "$binary"
     "$binary"
+    "$compiler" -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+        monitor2_port_registry.c monitor2_open_port.c \
+        monitor2_owned_cleanup.c monitor2_registry_open_integration_test.c \
+        -o "$binary"
+    "$binary"
     rm -f "$binary"
 done

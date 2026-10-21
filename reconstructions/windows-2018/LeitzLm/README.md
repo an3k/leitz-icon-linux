@@ -480,3 +480,52 @@ DLLs are not added to GitHub.
 native Windows monitor and validating actual Windows spooler
 port concurrency, real printer status, printed output and
 automatic hardware cutting.
+
+
+## Existing MONITOR2 registry -> OpenPortEx -> destructor integration
+
+Preflight checked `sources` commit
+`57de89b8a40708949a2076a1baca5cced6c6e12f` and its successful Windows reconstruction CI.
+The new `monitor2_registry_open_integration_test.c` uses the
+**unchanged, real C implementations**:
+`monitor2_port_registry.c`, `monitor2_open_port.c` and
+`monitor2_owned_cleanup.c` in the same test binary.
+
+The cross-module regression checks that:
+
+- Port opening invokes native registry allocation (0x4f0-byte
+  x64 layout), clones its UTF-16 name, initializes its 0x400-byte
+  scratch area, registers it and creates a manual-reset/signaled event.
+- The existing host OpenPort callback and its saved 22-entry
+  table produce a usable separately modeled OpenPortEx view.
+- A case-variant spelling of a registered port is rejected
+  with error 170 **before** another host-open or allocation.
+  The portable fixture's comparison handles only ASCII test
+  names: it does **not** claim equivalence to Windows lstrcmpiW
+  for arbitrary Unicode.
+- Port release delegates to the **preexisting** OEM-derived
+  destructor, unregisters the port, closes its event and frees
+  the separate UTF-16 name and port allocations.
+- Failed host OpenPort releases its newly registered allocation
+  without publishing a port pointer; absent required host
+  callbacks are rejected with error 3007.
+- **No actual Windows DeletePrinter API is used.** The
+  DeletePrinter callback is a test-only guard and must not
+  be connected to real printer deletion without resolving
+  native handle ownership and side effects.
+
+Strict C11 GCC, Clang and Clang AddressSanitizer/UndefinedBehaviorSanitizer
+completed successfully with local interface-equivalent copies of
+the earlier source modules. Repository CI compiles this test
+against the actual unchanged upstream modules. No new
+production module, Windows binary, or real spooler integration
+is implied by this test.
+
+The original 2018 Windows, Linux 1.0.3 and macOS 5.1.465 OEM ZIPs
+were re-read; their full SHA-256 hashes match the previously
+recorded originals, as do the Windows LeitzLm.dll and the
+Linux/macOS raster2printer source bytes.
+
+**Still open:** a native Windows MONITOR2 binary/API shim,
+synchronization/lifetime under real Winspool concurrency,
+true Win32/USB I/O and physical print/cut parity.
